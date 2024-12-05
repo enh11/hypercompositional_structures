@@ -1,0 +1,11 @@
+[package]
+name = "hyperstruc"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+itertools = "0.13.0"
+nalgebra = "0.33.2"
+permutation = "0.4.1"
+rand = "0.8.5"
+sets = "1.2.1"
