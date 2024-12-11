@@ -491,7 +491,6 @@ pub fn get_random_hypercomposition_matrix(n:&u32)->DMatrix<u32>{
 } 
 pub fn collect_hypergroupoid(cardinality:&u32)->Vec<u128>{
     //TO BE FIXED
-    let mut label_hypergroupoid:Vec<u128>=Vec::new();
     let size = cardinality.pow(3);
     let x = 2u128.pow(size-cardinality);
     let y = 2u128.pow(size);
