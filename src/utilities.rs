@@ -75,3 +75,16 @@ pub fn representation_permutation_subset (k:&u32,sigma:&Permutation)->u32 {
 
     binary_to_u32(&normalized_sigma.apply_slice(binary_k))
 }
+pub fn representing_hypergroupoid(n:&mut u128,cardinality:&u32)->bool{
+    let mut hypergroupoid = true;
+    while *n>=2u128.pow(*cardinality) {
+        if n.trailing_zeros()>=3 {
+            hypergroupoid=false;
+            return hypergroupoid;
+        }
+        *n>>=cardinality;
+    }
+    hypergroupoid
+}
+
+

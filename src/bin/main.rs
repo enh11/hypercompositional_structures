@@ -1,6 +1,7 @@
 
 #![allow(unused_imports)]
 #![allow(dead_code)]
+use hyperstruc::hs::collect_hypergroupoid;
 use hyperstruc::utilities::{binary_to_u32, cartesian_product, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, power_set, to_set};
 use hyperstruc::{hs::{get_random_hypercomposition_matrix, HyperGroupoid, HyperGroupoidMat}, hyper_structure::{representation_random_hypercomposition_table, HyperStruct}};
 use itertools::interleave;
@@ -11,6 +12,10 @@ use std::collections:: HashSet;
 use permutation::Permutation;
 
 fn main() {
+    /*COLLECT ORDER THREE HYPERGROUPOIDS */
+    let cardinality = 3u32;
+    let order_3_hypergroupoid = collect_hypergroupoid(&cardinality);
+    println!("number of order 3 hypergroupoids: {}",order_3_hypergroupoid.len());
 /*
 let n: u32=3;
 let h_groupoid=  HyperGroupoidMat::new_random_from_cardinality(&n);

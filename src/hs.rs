@@ -5,7 +5,7 @@ use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
 use rand:: Rng;
-use crate::utilities::{cartesian_product, get_subset, ones_positions, representation_permutation_subset, subset_as_u32, to_set};
+use crate::utilities::{cartesian_product, get_subset, ones_positions, representation_permutation_subset, representing_hypergroupoid, subset_as_u32, to_set};
 #[derive(Debug, Clone,PartialEq)]
 pub struct HyperGroupoid{
     pub h:HashSet<u32>,
@@ -489,4 +489,19 @@ pub fn get_random_hypercomposition_matrix(n:&u32)->DMatrix<u32>{
     let m  =DMatrix::from_iterator(*n as usize, *n as usize, (0..n.pow(2)).into_iter().map(|_|rng.gen_range(1..2u32.pow(*n as u32))));
     m
 } 
+pub fn collect_hypergroupoid(cardinality:&u32)->Vec<u128>{
+    //TO BE FIXED
+    let mut label_hypergroupoid:Vec<u128>=Vec::new();
+    let size = cardinality.pow(3);
+    let x = 2u128.pow(size-cardinality);
+    let y = 2u128.pow(size);
+    
+        println!("size is {size}");
+        println!("there are {} to be tested", y-x);
+
+    (2u128.pow(size-cardinality)..2u128.pow(size)).into_iter().filter(|i|representing_hypergroupoid(&mut i.clone(),&cardinality)).collect()
+        
+    
+
+}
 

@@ -1,7 +1,7 @@
 use std::{collections::HashSet, vec};
 use itertools::Itertools;
 use rand::Rng;
-use crate::utilities::{get_subset, subset_as_u32, to_set,ones_positions,cartesian_product};
+use crate::utilities::{cartesian_product, get_subset, ones_positions, representing_hypergroupoid, subset_as_u32, to_set};
 
 #[derive(Debug, Clone,PartialEq)]
 pub struct HyperStruct{
