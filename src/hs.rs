@@ -5,13 +5,7 @@ use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
 use rand:: Rng;
-use crate::utilities::{cartesian_product, get_subset, ones_positions, representation_permutation_subset, representing_hypergroupoid, subset_as_u32, to_set};
-#[derive(Debug, Clone,PartialEq)]
-pub struct HyperGroupoid{
-    pub h:HashSet<u32>,
-    pub hyper_composition:Vec<Vec<u32>>,
-    pub n:u32
-}
+use crate::utilities::{binary_to_u32, cartesian_product, from_tag_to_vec, get_subset, n_to_binary_vec, ones_positions, representation_permutation_subset, representing_hypergroupoid, subset_as_u32, to_set};
 #[derive(Debug, Clone,PartialEq)]
 pub struct HyperGroupoidMat{
     pub h:HashSet<u32>,
@@ -39,11 +33,30 @@ impl HyperGroupoidMat {
         n:n as u32
    }
 }
+pub fn new_from_tag(mut tag:u128,cardinality:&u32)->Self{
+    let vector_of_subsets_as_integers=from_tag_to_vec(&mut tag, &cardinality);
+    let vector_of_subsets_as_integers: Vec<u32>=vector_of_subsets_as_integers.iter().map(|x|binary_to_u32(x)).collect();
+
+    let hyper_composition_matrix = DMatrix::from_row_slice(*cardinality as usize, *cardinality as usize, &vector_of_subsets_as_integers);
+    
+    println!("{}",hyper_composition_matrix);
+    HyperGroupoidMat::new_from_matrix(&hyper_composition_matrix)
+}
+pub fn get_integer_tag(&self)->u32{
+
+    binary_to_u32(&self.hyper_composition
+        .transpose()//transpose is required because iteration in matrix is by column
+        .iter()
+        .map(|x|n_to_binary_vec(&(*x as u128), &self.n))
+        .rev()
+        .concat())
+
+}
 pub fn permutation_of_table(&self,sigma:&Permutation)->Self{
     let permutation_hypergroupoids = &self.hyper_composition;
     let alfa =DMatrix::from_iterator(self.n as usize, self.n as usize, 
         permutation_hypergroupoids.iter()
-            .map(|x| representation_permutation_subset(x,&sigma)));
+            .map(|x| representation_permutation_subset(&(*x as u128),&sigma)));
     
     HyperGroupoidMat { 
         h: self.h.clone(), 
@@ -205,7 +218,7 @@ pub fn get_singleton(&self)->DMatrix<u32>{
 }
 impl Display for HyperGroupoidMat{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut table:DMatrix<String>=DMatrix::from_iterator(self.n as usize, self.n as usize, 
+        let table:DMatrix<String>=DMatrix::from_iterator(self.n as usize, self.n as usize, 
             self.hyper_composition.iter().map(|x|format!("{:?}",to_set(&get_subset(x, &self.n)))));
         
         write!(f, "\nH: {:?},\nHypercomposition table:\n{} It is represented by: {}Size:{}\n", self.h, table, self.hyper_composition, self.n )
@@ -213,266 +226,6 @@ impl Display for HyperGroupoidMat{
 }
 
 
-
-
-/*DELATE HERE! EVERYTHING IS ON HYPERGROUPOIDMAT
-
-just give a look at fix_associativity(), sometime it works*/
-
-impl Display for HyperGroupoid{
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut table=String::new();
-        //let s:Vec<Vec<HashSet<u32>>> =self.hyper_composition.iter().map(|x|x.iter().map(|y|to_set(&get_subset(&y, &self.n))).collect()).collect();
-        for item in &self.hyper_composition{
-            let set_item:Vec<HashSet<u32>>=item.iter().map(|x|to_set(&get_subset(x, &self.n))).collect();
-            table.push_str(&format!("{:?}\n",set_item));
-        }
-        write!(f, "H: {:?},\nHypercomposition table:\n{}", self.h, table) 
-    }
-}
-
-
-impl HyperGroupoid {
-    pub fn new_random_from_cardinality(n:&u32)->Self{
-        let h_vec=(0..*n as u32).into_iter().collect();
-        let ht = get_random_hypercomposition_table(&n);
-        HyperGroupoid { 
-            h: h_vec, 
-            hyper_composition: ht, 
-            n: *n}
-    }
-    pub fn get_subset_from_k(&self,k:&u32)->HashSet<u32>{
-        /*
-        k is a number in 0..2^n-1. We use its binary representation to build a set
-        whose elements are the non-zero bits of n*/
-        let n = self.h.len() as u32;
-        let mut subset: Vec<u32> = Vec::new();
-        if k>=&2u32.pow(n){panic!("k can't be grater then 2^n");}
-        for i in 0..n {
-            if (k >> i)&1==1{
-                subset.push(i);
-                }
-        }
-        to_set(&subset)
-    }
-
-    pub fn elements_multiplication(&self,k:&u32,l:&u32)->u32{
-        if k>=&self.n||l>=&self.n {panic!("k and l must be elements of H. Size of H is {}, k is {} and l is {}",self.n,k,l)}
-        let k_subset = to_set(&vec![*k]);
-        let l_subset = to_set(&vec![*l]);
-        self.subsets_multiplication(&k_subset, &l_subset)
-
-    }
-    pub fn subsets_multiplication(&self, k_subset:&HashSet<u32>,l_subset:&HashSet<u32>)->u32{
-        if !k_subset.is_subset(&self.h)||!l_subset.is_subset(&self.h) { panic!("K must be a subset of H!")};
-        let k:u32=subset_as_u32(k_subset);
-        let l  =subset_as_u32(l_subset);
-        let onse_k=ones_positions(k, &self.h.len());
-        let ones_l=ones_positions(l, &self.h.len());
-        let mut indexes:Vec<(u32,u32)>=Vec::new();
-        for a in onse_k{
-            for b in &ones_l{
-                    indexes.push((a,*b));
-            }
-        }
-        indexes.iter().fold(0u32, |acc, x| acc|self.hyper_composition[x.0 as usize][x.1 as usize])
-
-    }
-    pub fn get_singleton(&self)->Vec<HashSet<u32>>{
-        //self.h.iter().map(|x| vec![*x]).collect()
-        let mut singletons = Vec::new();
-        let sort_h:Vec<_>=self.h.clone().into_iter().sorted().collect();
-        for item in sort_h {
-            singletons.push(HashSet::from([item]));
-        }
-        singletons
-
-        
-    }
-    pub fn is_associative(&self)->bool{
-        let mut associativity:bool=false;
-        for a in self.get_singleton() {
-            for b in self.get_singleton(){
-                for c in self.get_singleton(){
-                    let ab_c=self.subsets_multiplication(&to_set(
-                        &get_subset(
-                            &self.subsets_multiplication(&a, &b),&self.n)),&c);
-                    let a_bc = self.subsets_multiplication(&a, &to_set(&get_subset(&self.subsets_multiplication(&b, &c),&self.n)));
-                if a_bc!=ab_c{
-                    println!("a is {:?},b is {:?},c is {:?}, ab_c is {:?}, a_bc is {:?}",a,b,c,ab_c,a_bc);
-                    return false}
-                    else{associativity= true}
-                }
-            }
-        }
-        associativity
-    }
-    pub fn assert_associativity(&self) {
-        for a in self.get_singleton() {
-            for b in self.get_singleton(){
-                for c in self.get_singleton(){
-                    let ab_c=self.subsets_multiplication(&to_set(
-                        &get_subset(
-                            &self.subsets_multiplication(&a, &b),&self.n)),&c);
-                    let a_bc = self.subsets_multiplication(&a, &to_set(&get_subset(&self.subsets_multiplication(&b, &c),&self.n)));
-                assert_eq!(a_bc,ab_c, "Not an associative hyperstructure!\na(bc) = {:?}\n(ab)c= {:?})",to_set(&get_subset(&a_bc,&self.n)),to_set(&get_subset(&ab_c, &self.n)));
-                }
-            }
-        }
-    }
-    pub fn check_associativity (&self){
-        for a in 0..self.n{
-            for b in 0..self.n{
-                for c in 0..self.n{
-                    let subset_a =to_set(&get_subset(&a, &self.n));
-                    let subset_b =to_set(&get_subset(&b, &self.n));
-                    let subset_c =to_set(&get_subset(&c, &self.n));
-                    let ab= self.subsets_multiplication(&subset_a, &subset_b);
-                    let ab_c=self.subsets_multiplication(&to_set(
-                        &get_subset(
-                            &ab,&self.n)),&subset_c);
-                    let bc= self.subsets_multiplication(&subset_b, &subset_c);
-                    let a_bc = self.subsets_multiplication(&subset_a, &to_set(&get_subset(&bc,&self.n)));
-                if ab_c!=a_bc{
-                    println!("entered in the if");
-                    println!("a is {:?} b is {:?} c is {:?}, ab is {:?}, bc is {:?},ab_c is {:?},a_bc is {:?}",subset_a,subset_b,subset_c,to_set(&get_subset(&ab, &self.n)),to_set(&get_subset(&bc, &self.n)),to_set(&get_subset(&ab_c, &self.n)),to_set(&get_subset(&a_bc, &self.n)));
-                }
-                }
-            }
-        }
-    }
-    pub fn fix_associativity(&self)->Self{
-        // TO BE FIXEDDDDDDD
-        if self.is_associative() {return  self.clone();}
-        let mut rng = rand::thread_rng();
-        let mut new_hyperstructure = self.clone();
-        let mut new_hypercomposition: Vec<Vec<u32>>=self.hyper_composition.clone();
-        for a in self.get_singleton() {
-            for b in self.get_singleton(){
-                for c in self.get_singleton(){
-                    let mut ab= new_hyperstructure.subsets_multiplication(&a, &b);
-                    let ab_c=new_hyperstructure.subsets_multiplication(&to_set(
-                        &get_subset(
-                            &ab,&self.n)),&c);
-                    let bc=new_hyperstructure.subsets_multiplication(&b, &c);
-                    let a_bc = new_hyperstructure.subsets_multiplication(&a, &to_set(&get_subset(&bc,&self.n)));
-                    if ab_c!=a_bc{
-    
-
-                    }
-                /* if ab_c<a_bc {
-                    println!("ab_c<a_bc");
-                    let missing_elements=a_bc-ab_c;
-                    let ab_ones=ones_positions(ab, &(self.n as usize));
-                    if ab==0{
-                        let index_a:u32=a.iter().sum();
-                        let index_b:u32=b.iter().sum();
-                        new_hyperstructure.hyper_composition[index_a as usize][index_b as usize]=missing_elements;
-                    } else {
-                        let c_ones=ones_positions(subset_as_u32(&c), &(self.n as usize));
-                        let mut indexes:Vec<(u32,u32)>=Vec::new();
-                            for a in ab_ones{
-                                for b in &c_ones{
-                                    indexes.push((a,*b));
-                                }
-                            }
-                        let value_to_be_modified :Vec<((u32,u32),u32)>= indexes.iter().map(|x| (*x,new_hyperstructure.hyper_composition[x.0 as usize][x.1 as usize])).collect();
-                        let min_value=value_to_be_modified.iter().min_by_key(|x|x.1);
-                        new_hyperstructure.hyper_composition[min_value.unwrap().0.0 as usize][min_value.unwrap().0.1 as usize]|=missing_elements;  }
-                        }
-                if a_bc<ab_c {
-                    println!("a_bc<ab_c");
-                    let missing_elements=ab_c-a_bc;
-                    let bc_ones=ones_positions(bc, &(self.n as usize));
-                    if bc==0{
-                        let index_b:u32=b.iter().sum();
-                        let index_c:u32=c.iter().sum();
-                        new_hyperstructure.hyper_composition[index_b as usize][index_c as usize]=missing_elements;
-                    } else {
-                        let a_ones=ones_positions(subset_as_u32(&a), &(self.n as usize));
-
-                        let mut indexes:Vec<(u32,u32)>=Vec::new();
-                            for a in a_ones{
-                                for b in &bc_ones{
-                                indexes.push((a,*b));
-                            }
-                        }
-                    let value_to_be_modified :Vec<((u32,u32),u32)>= indexes.iter().map(|x| (*x,new_hyperstructure.hyper_composition[x.0 as usize][x.1 as usize])).collect();
-                    let min_value=value_to_be_modified.iter().min_by_key(|x|x.1);
-                    new_hyperstructure.hyper_composition[min_value.unwrap().0.0 as usize][min_value.unwrap().0.1 as usize]|=missing_elements;          }
-                } */
-                }
-            }
-        }
-        new_hyperstructure
-
-    }
-    pub fn fix_reproductivity(&self)->Self{
-        if self.is_reproductive() {return self.clone();}
-        let h=subset_as_u32(&self.h);
-        let mut new_hypercomposition: Vec<Vec<u32>>=self.hyper_composition.clone();
-        for element in self.get_singleton() {
-            let x_h=self.subsets_multiplication(&element, &self.h);
-            if x_h!=h{
-                
-                let row_index: &u32=&element.into_iter().sum();//this is the element converted in a singleton.
-                let missing_integer = h-x_h;
-                let min_value_in_row=self.hyper_composition[*row_index as usize].iter().min().unwrap();
-                let column_position=self.hyper_composition[*row_index as usize].iter().position(|x| x==min_value_in_row).unwrap();
-                new_hypercomposition[*row_index as usize][column_position]=min_value_in_row|missing_integer;
-            }
-        }
-        let modified_hyperstructure  =HyperGroupoid{
-            h:self.h.clone(),
-            hyper_composition:new_hypercomposition,
-            n:self.n
-        };
-    let mut transpose: Vec<_>  =(0..modified_hyperstructure.hyper_composition[0].len())
-                                .map(|i| modified_hyperstructure.hyper_composition.iter().map(|inner| inner[i].clone()).collect::<Vec<u32>>())
-                                .collect();
-    for element in self.get_singleton() {
-        let h_x=modified_hyperstructure.subsets_multiplication(&self.h, &element);
-        if h_x!=h{
-            
-            let row_index: &u32=&element.into_iter().sum();//this is the element converted in a singleton.
-            let missing_integer = h-h_x;
-            let min_value_in_row=transpose[*row_index as usize].iter().min().unwrap();
-            let column_position=transpose[*row_index as usize].iter().position(|x| x==min_value_in_row).unwrap();
-
-            transpose[*row_index as usize][column_position]=min_value_in_row|missing_integer;
-        }
-    }
-    new_hypercomposition=(0..transpose[0].len())
-                        .map(|i| transpose.iter().map(|inner| inner[i].clone()).collect::<Vec<u32>>())
-                        .collect();  
-    HyperGroupoid {h: self.h.clone(), 
-                    hyper_composition: new_hypercomposition, 
-                    n: self.n }     
-       }
-        
-    pub fn is_reproductive(&self)->bool{
-        let h=subset_as_u32(&self.h);
-        let mut reproductive = false;
-        for element in self.get_singleton() {
-            let x_h=self.subsets_multiplication(&element, &self.h);
-            let h_x=self.subsets_multiplication(&self.h, &element);
-            if(x_h==h)&&(h_x==h)
-                {reproductive=true}
-                else {return false;}
-        }
-        reproductive
-    }
-    pub fn assert_reproductivity(&self){
-        let h=subset_as_u32(&self.h);
-        for element in self.get_singleton() {
-            let x_h=self.subsets_multiplication(&element, &self.h);
-            let h_x=self.subsets_multiplication(&self.h, &element);
-            assert_eq!(x_h,h,"Not a reproductive hyperstructure:\nxH = {:?}, H = {:?}",to_set(&get_subset(&x_h, &self.n)),self.h);
-            assert_eq!(h_x,h,"Not a reproductive hyperstructure:\nHx = {:?}, H = {:?}",to_set(&get_subset(&h_x, &self.n)),self.h);
-    }
-}
-    
-}
 pub fn get_random_hypercomposition_table(n:&u32)->Vec<Vec<u32>>{
     let vec: Vec<u32>=(0u32..*n as u32).into_iter().map(|x|x).collect();
     let index_cartesian=cartesian_product(&vec);
@@ -490,7 +243,6 @@ pub fn get_random_hypercomposition_matrix(n:&u32)->DMatrix<u32>{
     m
 } 
 pub fn collect_hypergroupoid(cardinality:&u32)->Vec<u128>{
-    //TO BE FIXED
     let size = cardinality.pow(3);
     let x = 2u128.pow(size-cardinality);
     let y = 2u128.pow(size);
@@ -499,8 +251,4 @@ pub fn collect_hypergroupoid(cardinality:&u32)->Vec<u128>{
         println!("there are {} to be tested", y-x);
 
     (2u128.pow(size-cardinality)..2u128.pow(size)).into_iter().filter(|i|representing_hypergroupoid(&mut i.clone(),&cardinality)).collect()
-        
-    
-
 }
-

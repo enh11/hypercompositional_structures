@@ -2,8 +2,8 @@
 #![allow(unused_imports)]
 #![allow(dead_code)]
 use hyperstruc::hs::collect_hypergroupoid;
-use hyperstruc::utilities::{binary_to_u32, cartesian_product, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, power_set, to_set};
-use hyperstruc::{hs::{get_random_hypercomposition_matrix, HyperGroupoid, HyperGroupoidMat}, hyper_structure::{representation_random_hypercomposition_table, HyperStruct}};
+use hyperstruc::utilities::{binary_to_u32, cartesian_product, collect_n_digits, from_tag_to_vec, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, power_set, to_set};
+use hyperstruc::{hs::{get_random_hypercomposition_matrix, HyperGroupoidMat}, hyper_structure::{representation_random_hypercomposition_table, HyperStruct}};
 use itertools::interleave;
 use nalgebra::DMatrix;
 use itertools::Itertools;
@@ -12,12 +12,27 @@ use std::collections:: HashSet;
 use permutation::Permutation;
 
 fn main() {
+/*    
     /*COLLECT ORDER THREE HYPERGROUPOIDS */
     let cardinality = 3u32;
     let order_3_hypergroupoid = collect_hypergroupoid(&cardinality);
     println!("number of order 3 hypergroupoids: {}",order_3_hypergroupoid.len());
-/*
+
+*/ 
+
+/*GETTING A HYPERSTRUCTUR FROM INTEGER TAG */
+let mut rng = rand::thread_rng();
 let n: u32=3;
+let mut tag: u128 = rng.gen_range(2u128.pow(26)+1..=2u128.pow(27));
+println!("{:b}",tag);
+let subsets = from_tag_to_vec(&mut tag, &n);
+println!("{:?}",subsets);
+println!("tag is {}",tag);
+let hyperstructure = HyperGroupoidMat::new_from_tag(tag,&n);
+println!("{}",hyperstructure);
+let tag = hyperstructure.get_integer_tag();
+println!("tag is {}",tag);
+/*
 let h_groupoid=  HyperGroupoidMat::new_random_from_cardinality(&n);
 println!(" A new Hyper Groupoid : {}",h_groupoid);
 println!("H is reproductive: {}",h_groupoid.is_reproductive());

@@ -1,7 +1,6 @@
-use std::{collections::HashSet};
 
-use itertools::Itertools;
-use nalgebra::{DMatrix, Matrix};
+use std::collections::HashSet;
+use nalgebra::DMatrix;
 use permutation::Permutation;
 
 pub fn to_set(v:&Vec<u32>)->HashSet<u32>{
@@ -50,7 +49,7 @@ pub fn permutaton_matrix_from_permutation(n:&u32,sigma:&Permutation)->DMatrix<u3
     let x: Vec<u32> =sigma.apply_slice(rows).concat();
     DMatrix::from_row_slice(*n as usize, *n as usize, &x).transpose()
 }
-pub fn n_to_binary_vec(k: &u32, width: &u32) -> Vec<u32> {
+pub fn n_to_binary_vec(k: &u128, width: &u32) -> Vec<u32> {
 	format!("{:0>width$}", format!("{:b}", k), width = *width as usize)
 		.chars()
 		.map(|x| if x == '1' { 1u32 } else { 0u32 })
@@ -58,10 +57,10 @@ pub fn n_to_binary_vec(k: &u32, width: &u32) -> Vec<u32> {
 }
 pub fn binary_to_u32(binary_vec:&Vec<u32>)->u32 {
     let s= binary_vec.iter().map(|x|x.to_string()).collect::<String>();
-    let intval = u32::from_str_radix(&s, 2).unwrap();
-    intval
+    u32::from_str_radix(&s, 2).unwrap()
+
 }
-pub fn representation_permutation_subset (k:&u32,sigma:&Permutation)->u32 {
+pub fn representation_permutation_subset (k:&u128,sigma:&Permutation)->u32 {
     /*The input value is k in (0..2^n), therefore it represent a subset of H with |H|=n.
     Any occurrence of 1 in the binary representation of k correspond to an element in the subset S corresponding to k 
     Example: k=5="101"-> S={2,0}. 
@@ -85,6 +84,32 @@ pub fn representing_hypergroupoid(n:&mut u128,cardinality:&u32)->bool{
         *n>>=cardinality;
     }
     hypergroupoid
+}
+pub fn collect_n_digits(width: &u32,m_representation_hypergroupoid:&u128)->Vec<u32>{
+    let binary_n = n_to_binary_vec(m_representation_hypergroupoid, &width);
+    let out :Vec<u32>=(0..*width).rev().into_iter().map(|i|binary_n.iter().rev().nth(i as usize).unwrap()).into_iter().map(|x| if *x == 1 { 1u32 } else { 0u32 }).collect();
+out
+}
+pub fn from_tag_to_vec(tag:&u128, n:&u32)->Vec<Vec<u32>>{
+    let mut tag = tag.clone();
+    let mut tag_vec:Vec<Vec<u32>>=Vec::new();
+    let power_set_cardinality = 2u128.pow(*n);
+
+    loop{
+        if tag.trailing_zeros()>=*n{
+            println!("{} zeroes found",tag.trailing_zeros());
+            panic!("Can't be an hypergroupoid");
+        } else {
+            tag_vec.push(collect_n_digits(n, &tag));
+            tag>>=*n as u128;
+        }
+        if tag<power_set_cardinality {
+            tag_vec.push(collect_n_digits(n, &tag));
+
+            break;}
+    }
+    tag_vec.iter().map(|x|x.clone()).rev().collect()
+    
 }
 
 
