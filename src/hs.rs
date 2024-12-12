@@ -38,9 +38,7 @@ pub fn new_from_tag(mut tag:u128,cardinality:&u32)->Self{
     let vector_of_subsets_as_integers: Vec<u32>=vector_of_subsets_as_integers.iter().map(|x|binary_to_u32(x)).collect();
 
     let hyper_composition_matrix = DMatrix::from_row_slice(*cardinality as usize, *cardinality as usize, &vector_of_subsets_as_integers);
-    
-    println!("{}",hyper_composition_matrix);
-    HyperGroupoidMat::new_from_matrix(&hyper_composition_matrix)
+        HyperGroupoidMat::new_from_matrix(&hyper_composition_matrix)
 }
 pub fn get_integer_tag(&self)->u32{
 
@@ -151,7 +149,6 @@ pub fn right_division(&self,a:&u32,b:&u32)->u32{
         true
     }
     else {
-        println!("xH = {:?}, Hx = {:?}",row_sum,col_sum);
         false
     }
    }
@@ -204,7 +201,6 @@ pub fn is_associative(&self)->bool{
                     &self.mul_by_representation(&a, &b),&c);
                 let a_bc = self.mul_by_representation(&a, &self.mul_by_representation(&b, &c));
                 if a_bc==ab_c{continue;}else {
-                        println!("Not associative hypergroupoid:\n{:?}{:?}_{:?}= {:?}\n {:?}_{:?}{:?} = {:?}", to_set(&get_subset(a, &self.n)), to_set(&get_subset(b, &self.n)), to_set(&get_subset(c, &self.n)), to_set(&get_subset(&ab_c, &self.n)), to_set(&get_subset(a, &self.n)), to_set(&get_subset(b, &self.n)), to_set(&get_subset(c, &self.n)),  to_set(&get_subset(&a_bc, &self.n)));
                         associativity=false;
                     }
             }
@@ -251,4 +247,9 @@ pub fn collect_hypergroupoid(cardinality:&u32)->Vec<u128>{
         println!("there are {} to be tested", y-x);
 
     (2u128.pow(size-cardinality)..2u128.pow(size)).into_iter().filter(|i|representing_hypergroupoid(&mut i.clone(),&cardinality)).collect()
+}
+pub fn collect_hypergroups(cardinality:&u32)->Vec<u128>{
+    let size = cardinality.pow(3);
+    (2u128.pow(size-cardinality)..2u128.pow(size)).into_iter().filter(|i|representing_hypergroupoid(&mut i.clone(),&cardinality)&&HyperGroupoidMat::new_from_tag(*i, cardinality).is_hypergroup()).collect()
+
 }

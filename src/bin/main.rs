@@ -1,7 +1,9 @@
-
+#![allow(unused)]
 #![allow(unused_imports)]
 #![allow(dead_code)]
-use hyperstruc::hs::collect_hypergroupoid;
+use std::fs::File;
+use std::io::prelude::*;
+use hyperstruc::hs::{collect_hypergroupoid, collect_hypergroups};
 use hyperstruc::utilities::{binary_to_u32, cartesian_product, collect_n_digits, from_tag_to_vec, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, power_set, to_set};
 use hyperstruc::{hs::{get_random_hypercomposition_matrix, HyperGroupoidMat}, hyper_structure::{representation_random_hypercomposition_table, HyperStruct}};
 use itertools::interleave;
@@ -11,15 +13,19 @@ use rand::{seq::index, Rng};
 use std::collections:: HashSet;
 use permutation::Permutation;
 
-fn main() {
-/*    
+fn main(){
+    
     /*COLLECT ORDER THREE HYPERGROUPOIDS */
-    let cardinality = 3u32;
-    let order_3_hypergroupoid = collect_hypergroupoid(&cardinality);
-    println!("number of order 3 hypergroupoids: {}",order_3_hypergroupoid.len());
-
-*/ 
-
+    let cardinality = 4u32;
+    
+    let mut hg_tags:Vec<u128>=collect_hypergroups(&cardinality);
+    
+    println!("Funded {} hypergroups", hg_tags.len());
+    let s = format!("{:?}",hg_tags);
+    write(s);
+    
+    
+/* 
 /*GETTING A HYPERSTRUCTUR FROM INTEGER TAG */
 let mut rng = rand::thread_rng();
 let n: u32=3;
@@ -32,6 +38,7 @@ let hyperstructure = HyperGroupoidMat::new_from_tag(tag,&n);
 println!("{}",hyperstructure);
 let tag = hyperstructure.get_integer_tag();
 println!("tag is {}",tag);
+*/
 /*
 let h_groupoid=  HyperGroupoidMat::new_random_from_cardinality(&n);
 println!(" A new Hyper Groupoid : {}",h_groupoid);
@@ -44,7 +51,7 @@ println!("H is associativity: {}",new_hg.is_associative());
  */
 
 /*GET HYPERSTRUCTURE FROM MATRIX */
-
+/*
 let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
 let hypergroup=HyperGroupoidMat::new_from_matrix(&matrix);
 println!("{}",hypergroup);
@@ -60,16 +67,12 @@ println!("permutation prova {}",perm_mat);
 
 let prova_permut = hypergroup.permutation_of_table(&alpha);
 println!("prova permut {}",prova_permut);
+ */
 
 /* 
 (0..hypergroup.n as usize).into_iter().map(|i| permutation_matrix_from_sigma.row(i)=identity.row(sigma.apply_idx(i))).collect();
  */
-let a:u32  =0;
-let b:u32 = 1;
-let a_left_b=hypergroup.left_division(&a, &b);
-println!("a_left_b ={:?}", to_set(&get_subset(&a_left_b,&hypergroup.n)));
-let a_right_b=hypergroup.right_division(&a, &b);
-println!("a_right_b ={:?}", to_set(&get_subset(&a_right_b,&hypergroup.n)));
+
 /* 
 Look for a random associative hypergroupoid of order 5
 
@@ -108,7 +111,12 @@ println!("THE END\n");
 
 
 }
+fn write(s:String)-> std::io::Result<()> {
+    let mut file = File::create("foo.txt")?;
 
+    file.write(&s.as_bytes())?;
+    Ok(())
+}
 fn singleton(v:&Vec<u32>)->Vec<Vec<u32>>{
     v.iter().map(|x| vec![*x]).collect()
 }
