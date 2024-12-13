@@ -193,7 +193,6 @@ pub fn fix_reproductivity(&self)->Self{
     }
 }
 pub fn is_associative(&self)->bool{
-    let mut associativity = true;
     for a in &self.get_singleton(){
         for b in &self.get_singleton(){
             for c in &self.get_singleton(){
@@ -201,12 +200,12 @@ pub fn is_associative(&self)->bool{
                     &self.mul_by_representation(&a, &b),&c);
                 let a_bc = self.mul_by_representation(&a, &self.mul_by_representation(&b, &c));
                 if a_bc==ab_c{continue;}else {
-                        associativity=false;
+                        return false;
                     }
             }
         }
     }
-associativity
+true
 }
 pub fn get_singleton(&self)->DMatrix<u32>{
     DMatrix::from_row_iterator(1, self.n as usize, (0..self.n).into_iter().map(|i|2u32.pow(i)))

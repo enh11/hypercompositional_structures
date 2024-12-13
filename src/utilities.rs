@@ -62,7 +62,8 @@ pub fn binary_to_u32(binary_vec:&Vec<u32>)->u32 {
 
 }
 pub fn representation_permutation_subset (k:&u128,sigma:&Permutation)->u32 {
-    /*The input value is k in (0..2^n), therefore it represent a subset of H with |H|=n.
+    /*
+    The input value is k in (0..2^n), therefore it represent a subset of H with |H|=n.
     Any occurrence of 1 in the binary representation of k correspond to an element in the subset S corresponding to k 
     Example: k=5="101"-> S={2,0}. 
     The input value sigma is a permutation of S_n. We build the corresponding permutation matrix and we make it act on the binary representation of k. 
@@ -78,7 +79,7 @@ pub fn representation_permutation_subset (k:&u128,sigma:&Permutation)->u32 {
 pub fn representing_hypergroupoid(n:&mut u128,cardinality:&u32)->bool{
     let mut hypergroupoid = true;
     while *n>=2u128.pow(*cardinality) {
-        if n.trailing_zeros()>=3 {
+        if n.trailing_zeros()>=*cardinality {
             hypergroupoid=false;
             return hypergroupoid;
         }
