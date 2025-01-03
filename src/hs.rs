@@ -5,7 +5,7 @@ use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
 use rand:: Rng;
-use crate::utilities::{binary_to_u32, cartesian_product, from_tag_to_vec, get_subset, n_to_binary_vec, ones_positions, representation_permutation_subset, representing_hypergroupoid, subset_as_u32, to_set};
+use crate::utilities::{binary_to_u32, cartesian_product, from_tag_to_vec, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid, subset_as_u32, to_set};
 #[derive(Debug, Clone,PartialEq)]
 pub struct HyperGroupoidMat{
     pub h:HashSet<u32>,
@@ -60,6 +60,13 @@ pub fn permutation_of_table(&self,sigma:&Permutation)->Self{
         h: self.h.clone(), 
         hyper_composition:alfa, 
         n: self.n}
+}
+pub fn isomorphic_hypergroup_from_permutation(&self, sigma:&Permutation)->Self{
+    let perm_mat = permutaton_matrix_from_permutation(&self.n, &sigma.clone());
+    let isomorphic_matrix=perm_mat.clone()*self.permutation_of_table(sigma).hyper_composition*perm_mat.transpose();
+
+    //let isomorphic_matrix=self.permutation_of_table(sigma).hyper_composition;
+    HyperGroupoidMat::new_from_matrix(&isomorphic_matrix)
 }
 pub fn is_hypergroup(&self)->bool{
     self.is_associative()&&self.is_reproductive()
@@ -192,6 +199,24 @@ pub fn fix_reproductivity(&self)->Self{
         n:self.n
     }
 }
+pub fn assert_associativity(&self)->bool{
+    for a in &self.get_singleton(){
+        for b in &self.get_singleton(){
+            for c in &self.get_singleton(){
+                let ab_c=self.mul_by_representation(
+                    &self.mul_by_representation(&a, &b),&c);
+                let a_bc = self.mul_by_representation(&a, &self.mul_by_representation(&b, &c));
+                if a_bc==ab_c {continue;} else {
+                        println!("Not associative:");
+                        println!("{}{}_{}= {}",a,b,c,ab_c);
+                        println!("{}_{}{}= {}",a,b,c, a_bc);
+                    }
+            }
+        }
+    }
+true
+}
+
 pub fn is_associative(&self)->bool{
     for a in &self.get_singleton(){
         for b in &self.get_singleton(){
@@ -199,7 +224,7 @@ pub fn is_associative(&self)->bool{
                 let ab_c=self.mul_by_representation(
                     &self.mul_by_representation(&a, &b),&c);
                 let a_bc = self.mul_by_representation(&a, &self.mul_by_representation(&b, &c));
-                if a_bc==ab_c{continue;}else {
+                if a_bc==ab_c {continue;} else {
                         return false;
                     }
             }

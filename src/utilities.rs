@@ -1,5 +1,6 @@
 
 use std::collections::HashSet;
+use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
 
@@ -20,7 +21,7 @@ pub fn power_set (n:&u32)->Vec<Vec<u32>>{
             subset.push(i);
             }
     }
-    subset
+    subset.iter().map(|x|*x).collect()
 }
 pub fn ones_positions(k:u32,n:&usize)->Vec<u32>{
     (0..*n as u32).into_iter().filter(|x|(k>>x)&1==1).collect()
@@ -47,7 +48,7 @@ pub fn permutaton_matrix_from_permutation(n:&u32,sigma:&Permutation)->DMatrix<u3
     let identity: DMatrix<u32>=DMatrix::identity(*n as usize,*n as usize);
     let rows:Vec<Vec<u32>> = identity.row_iter().map(|x|x.iter().map(|z|*z).collect()).collect();
 
-    let x: Vec<u32> =sigma.apply_slice(rows).concat();
+    let x: Vec<u32> =sigma.clone().inverse().apply_slice(rows).concat();
     DMatrix::from_row_slice(*n as usize, *n as usize, &x).transpose()
 }
 pub fn n_to_binary_vec(k: &u128, width: &u32) -> Vec<u32> {
@@ -67,14 +68,14 @@ pub fn representation_permutation_subset (k:&u128,sigma:&Permutation)->u32 {
     Any occurrence of 1 in the binary representation of k correspond to an element in the subset S corresponding to k 
     Example: k=5="101"-> S={2,0}. 
     The input value sigma is a permutation of S_n. We build the corresponding permutation matrix and we make it act on the binary representation of k. 
-    The we convert the result into u32
+    Then, we convert the result into u32.
     
     We prefer to inverse and normalize sigma
     */
-    let normalized_sigma = sigma.clone().inverse().normalize(true);
-    let binary_k=n_to_binary_vec(&k,&(normalized_sigma.len() as u32));
-
-    binary_to_u32(&normalized_sigma.apply_slice(binary_k))
+    let binary_k=n_to_binary_vec(&k,&(sigma.len() as u32)).iter().rev().map(|x|*x).collect_vec();
+    let x =sigma.apply_slice(&binary_k).iter().rev().map(|x|*x).collect_vec();
+    
+    binary_to_u32(&x)
 }
 pub fn representing_hypergroupoid(n:&mut u128,cardinality:&u32)->bool{
     let mut hypergroupoid = true;
