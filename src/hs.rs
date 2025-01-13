@@ -262,18 +262,4 @@ pub fn get_random_hypercomposition_matrix(n:&u32)->DMatrix<u32>{
     let m  =DMatrix::from_iterator(*n as usize, *n as usize, (0..n.pow(2)).into_iter().map(|_|rng.gen_range(1..2u32.pow(*n as u32))));
     m
 } 
-pub fn collect_hypergroupoid(cardinality:&u32)->Vec<u128>{
-    let size = cardinality.pow(3);
-    let x = 2u128.pow(size-cardinality);
-    let y = 2u128.pow(size);
-    
-        println!("size is {size}");
-        println!("there are {} to be tested", y-x);
 
-    (2u128.pow(size-cardinality)..2u128.pow(size)).into_iter().filter(|i|representing_hypergroupoid(&mut i.clone(),&cardinality)).collect()
-}
-pub fn collect_hypergroups(cardinality:&u32)->Vec<u128>{
-    let size = cardinality.pow(3);
-    (2u128.pow(size-cardinality)..2u128.pow(size)).into_iter().filter(|i|representing_hypergroupoid(&mut i.clone(),&cardinality)&&HyperGroupoidMat::new_from_tag(*i, cardinality).is_hypergroup()).collect()
-
-}

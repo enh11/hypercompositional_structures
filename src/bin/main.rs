@@ -1,24 +1,30 @@
-#![allow(unused)]
-#![allow(unused_imports)]
-#![allow(dead_code)]
-use std::fs::File;
-use std::io::prelude::*;
+use core::num;
+use std::env;
 use std::vec;
-use hyperstruc::hg2::TAG_2;
-use hyperstruc::hg3::TAG_3;
-use hyperstruc::hs::{collect_hypergroupoid, collect_hypergroups};
-use hyperstruc::utilities::{binary_to_u32, cartesian_product, collect_n_digits, from_tag_to_vec, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, power_set, representation_permutation_subset, subset_as_u32, to_set};
-use hyperstruc::{hs::{get_random_hypercomposition_matrix, HyperGroupoidMat}, hyper_structure::{representation_random_hypercomposition_table, HyperStruct}};
-use itertools::interleave;
-use nalgebra::constraint::SameNumberOfRows;
-use nalgebra::DMatrix;
-use itertools::Itertools;
-use rand::seq::index::IndexVec;
-use rand::{seq::index, Rng};
+use std::time::Instant;
+use hyperstruc::enumeration::{collect_hypergroups, enumeration_hypergroups};
+use hyperstruc::utilities::{cartesian_product, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, power_set, representation_permutation_subset, subset_as_u32, to_set};
+use rand::Rng;
 use std::collections:: HashSet;
 use permutation::Permutation;
 
 fn main(){
+    let args: Vec<String> = env::args().collect();  
+    let number: u32 = match args[1].parse() {
+        Ok(n) => {
+            n
+        },
+        Err(_) => {
+            eprintln!("error: Argument not an u32");
+            return;
+        },
+    };    
+    let now = Instant::now();
+        let e= enumeration_hypergroups(&number);
+        println!("{:?}",e);
+    let end = now.elapsed();
+    println!("Elapsed:{:?}",end);
+
 /*     let n=6u32;
     for i in 0..8 {
 
@@ -64,13 +70,16 @@ println!("H is repdocutive: {}",new_hg.is_reproductive());
 println!("H is associativity: {}",new_hg.is_associative());
 
  */
-
+/* 
 /*GET HYPERSTRUCTURE FROM MATRIX */
 
 let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
 let hypergroup=HyperGroupoidMat::new_from_matrix(&matrix);
 println!("{}",hypergroup);
 println!("H is hypergroup: {}",hypergroup.is_hypergroup());
+ */
+
+/* 
 /*TEST NUMBER OF ISOMORPHISM IN TERMS OF PERMUTATIONS */
 let mut count_isomorphism:u32=0;
 let permut_vec:Vec<Vec<usize>> = (0..hypergroup.n as usize).permutations(hypergroup.n as usize).collect();
@@ -92,23 +101,21 @@ for sigma in permutation {
 
 }
 println!("number of isomorphism {}",count_isomorphism);
-
-let cardinality = 3;
-let permut_vec:Vec<Vec<usize>> = (0..cardinality as usize).permutations(cardinality as usize).collect();
+ */
+/* 
+let now = Instant::now();
+//let cardinality = 3;
+let tag_2= collect_hypergroups(&CARDINALITY);
+let permut_vec:Vec<Vec<usize>> = (0..CARDINALITY as usize).permutations(CARDINALITY as usize).collect();
 let permutation:Vec<Permutation> = permut_vec.iter().map(|sigma| Permutation::oneline(sigma.clone())).collect();
-
-println!("number of permutation = {}",permut_vec.len());
 let mut classes:Vec<(u32,Vec<u32>)>=Vec::new();
 
-for tag in TAG_3 {
+for tag in tag_2 {
     let mut isomorphism_classes:Vec<u32>=Vec::new();
 
     for sigma in &permutation {        
-    
-        let isomorphic_image = HyperGroupoidMat::new_from_tag(tag, &cardinality).isomorphic_hypergroup_from_permutation(&sigma);
-        if isomorphic_image.is_hypergroup(){
-            isomorphism_classes.push(isomorphic_image.get_integer_tag());
-        }
+        let isomorphic_image_tag = HyperGroupoidMat::new_from_tag(tag, &CARDINALITY).isomorphic_hypergroup_from_permutation(&sigma).get_integer_tag();
+        isomorphism_classes.push(isomorphic_image_tag);
 
     }
     let isomorphism_classes:Vec<u32>=isomorphism_classes.iter().sorted().dedup().map(|x|*x).collect();
@@ -120,21 +127,28 @@ for tag in TAG_3 {
 }
 let classes:Vec<&(u32, Vec<u32>)>=classes.iter().sorted_by(|x,y|x.0.cmp(&y.0)).dedup().collect();
 let mut c:Vec<usize>=Vec::new();
-for k in (1..=permut_vec.len()){
-    let c_k:Vec<_>=classes.iter().filter(|y|(*y.1).len()==k).collect();
-    c.push(c_k.len());
-}
+    let mut c_k:Vec<&(u32,Vec<u32>)>;
+    let mut s = String::new();
+    for k in 1..=permut_vec.len(){
+        c_k=classes.iter().filter(|y|(*y.1).len()==k).into_iter().map(|x|x.clone()).collect_vec();
+        c.push(c_k.len());
+        let add_str=format!("{:?}\n",c_k);
+        s.push_str(&add_str);
+        write(s.clone());
+        
 
-
-
+    }
 /* for tag in classes.iter().map(|x|x.0) {
-    let hg  = HyperGroupoidMat::new_from_tag(tag as u128, &cardinality);
+    let hg  = HyperGroupoidMat::new_from_tag(tag as u128, &CARDINALITY);
     print!("{}",hg);
-} */
-
+}  */
 
 println!("isomorphism classes order 3 {:?}",c);
+let end =now.elapsed();
+println!("time= :{:?}",end);
 
+
+ */
  /* 
 (0..hypergroup.n as usize).into_iter().map(|i| permutation_matrix_from_sigma.row(i)=identity.row(sigma.apply_idx(i))).collect();
  */
@@ -177,12 +191,7 @@ println!("THE END\n");
 
 
 }
-fn write(s:String)-> std::io::Result<()> {
-    let mut file = File::create("foo.txt")?;
 
-    file.write(&s.as_bytes())?;
-    Ok(())
-}
 fn singleton(v:&Vec<u32>)->Vec<Vec<u32>>{
     v.iter().map(|x| vec![*x]).collect()
 }

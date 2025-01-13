@@ -1,5 +1,5 @@
 
-use std::collections::HashSet;
+use std::{collections::HashSet, fs::File, io::Write};
 use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
@@ -113,6 +113,18 @@ pub fn from_tag_to_vec(tag:&u128, n:&u32)->Vec<Vec<u32>>{
     }
     tag_vec.iter().map(|x|x.clone()).rev().collect()
     
-}
 
+}
+pub fn write_hypergroups(s:String)-> std::io::Result<()> {
+    let mut file = File::create("hygrp.txt")?;
+    
+    file.write(&s.as_bytes())?;
+    Ok(())
+}
+pub fn write(s:String)-> std::io::Result<()> {
+    let mut file = File::create("foo.txt")?;
+    
+    file.write(&s.as_bytes())?;
+    Ok(())
+}
 
