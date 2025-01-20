@@ -3,17 +3,41 @@ use std::{collections::HashSet, fs::File, io::Write};
 use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
-
-pub fn to_set(v:&Vec<u32>)->HashSet<u32>{
+/// Converts a Vec<u32> into a HashSet<u32>
+/// # Example
+/// ```
+/// use hyperstruc::utilities::vec_to_set;
+/// let v=vec![1,2,0];
+/// let v_as_set=vec_to_set(&v);
+/// println!("{:?}",v_as_set);
+///
+pub fn vec_to_set(v:&Vec<u32>)->HashSet<u32>{
     v.iter().map(|x|*x).collect()
 }
 pub fn power_set (n:&u32)->Vec<Vec<u32>>{
     (0..2u32.pow(*n)).into_iter().map(|i|  get_subset(&i, &n)).collect()
   }
-  pub fn get_subset(k:&u32,n:&u32)->Vec<u32>{
-    /*n is the cardinality of the set X, therefore there are 2^n subset.
-    k is a number in 0..2^n. We use its binary representation to build a set
-    whose elements are the non-zero bit of n*/
+/// Represents the integer $k$ as a subset of the set H={0,1,..,n-1}.
+/// There are 2^n different integer representing subsets of H. It will panic if $k is greater then 2^n.
+/// The subset S represented by k is given by the binary representation of k: 
+/// i is in S if and only if the i-th digit of binary representation of k is a one.
+/// Output is Vec<u32>. Use fn vec_to_set to convert it into a HashSet<u32>.
+/// # Example
+/// ```
+/// use hyperstruc::utilities::vec_to_set;
+/// use hyperstruc::utilities::get_subset;
+/// use std::collections::HashSet;
+/// 
+/// let cardinality = 4u32;
+/// let k=6;
+/// let subset_as_vec=get_subset(&k,&cardinality);
+/// let subset= vec_to_set(&subset_as_vec);
+/// 
+/// println!("{:?}",subset);
+/// let test_subset:HashSet<u32>= (1..=2).into_iter().collect();
+/// assert_eq!(subset,test_subset);
+///
+pub fn get_subset(k:&u32,n:&u32)->Vec<u32>{
     let mut subset: Vec<u32> = Vec::new();
     if k>=&2u32.pow(*n){panic!("k can't be grater then 2^n");}
     for i in 0..*n {

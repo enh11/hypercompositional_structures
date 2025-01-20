@@ -5,7 +5,7 @@ use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
 use rand:: Rng;
-use crate::utilities::{binary_to_u32, cartesian_product, from_tag_to_vec, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid, subset_as_u32, to_set};
+use crate::utilities::{binary_to_u32, cartesian_product, from_tag_to_vec, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid, subset_as_u32, vec_to_set};
 #[derive(Debug, Clone,PartialEq)]
 pub struct HyperGroupoidMat{
     pub h:HashSet<u32>,
@@ -13,6 +13,15 @@ pub struct HyperGroupoidMat{
     pub n:u32
 }
 impl HyperGroupoidMat {
+/// Generate a new random hyperstructure with cardinality n.
+/// # Example
+/// ```
+/// use hyperstruc::hs::HyperGroupoidMat;
+/// 
+/// let n  =4u32;
+/// let hyperstructure = HyperGroupoidMat::new_random_from_cardinality(&n);
+/// println!("{hyperstructure}");
+///  
    pub fn new_random_from_cardinality(n:&u32)->Self{
     let h_vec=(0..*n as u32).into_iter().collect();
         let ht = get_random_hypercomposition_matrix(&n);
@@ -21,6 +30,18 @@ impl HyperGroupoidMat {
             hyper_composition: ht, 
             n: *n}
    }
+/// Generate a new hyperstructure given a square matrix. Every entry in the matrix are u32 and represent a subset of H={0,1,2,...,n},
+/// where n is the size of the matrix, i.e., the cardinality of the new hyperstructure.
+/// In particular, if x,y are elements of H, then x*y is the entries in position (x,y). 
+/// For more detail about representation, see pub fn get_subset() in utilities.rs.
+/// # Example
+/// ```
+/// use hyperstruc::hs::HyperGroupoidMat;
+/// use nalgebra::DMatrix;
+/// let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
+/// let hyperstructure=HyperGroupoidMat::new_from_matrix(&matrix);
+/// println!("{hyperstructure}");
+///
    pub fn new_from_matrix(matrix:&DMatrix<u32>)->Self{
     if !matrix.is_square(){panic!("Matrix must be a square matrix!")}
     let a:Vec<&u32>= matrix.iter().filter(|a|**a==0).collect();
@@ -94,7 +115,7 @@ pub fn get_subset_from_k(&self,k:&u32)->HashSet<u32>{
             subset.push(i);
             }
     }
-    to_set(&subset)
+    vec_to_set(&subset)
 }
    pub fn mul_by_representation(&self,int_k:&u32,int_l:&u32)->u32{
     let ones_k=ones_positions(*int_k, &self.h.len());
@@ -117,12 +138,12 @@ self.mul_by_representation(&int_k, &int_l)
 pub fn left_division(&self,a:&u32,b:&u32)->u32{
     /*This function compute the value b\a={x in H s.t. a in bx} */
     
-    let sub_a=to_set(&get_subset(&2u32.pow(*a), &self.n));
+    let sub_a=vec_to_set(&get_subset(&2u32.pow(*a), &self.n));
     let sub_b=2u32.pow(*b);
     self.get_singleton().iter()
     .filter(
         |x| sub_a.is_subset(
-            &to_set(&get_subset(
+            &vec_to_set(&get_subset(
                         &self.mul_by_representation(&sub_b, x), &self.n)
                     )
                 )
@@ -132,12 +153,12 @@ pub fn left_division(&self,a:&u32,b:&u32)->u32{
 }
 pub fn right_division(&self,a:&u32,b:&u32)->u32{
         /*This function compute the value a/b={x in H s.t. a in xb} */
-        let sub_a=to_set(&get_subset(&2u32.pow(*a), &self.n));
+        let sub_a=vec_to_set(&get_subset(&2u32.pow(*a), &self.n));
     let sub_b=2u32.pow(*b);
     self.get_singleton().iter()
     .filter(
         |x| sub_a.is_subset(
-            &to_set(&get_subset(
+            &vec_to_set(&get_subset(
                         &self.mul_by_representation(x,&sub_b), &self.n)
                     )
                 )
@@ -239,7 +260,7 @@ pub fn get_singleton(&self)->DMatrix<u32>{
 impl Display for HyperGroupoidMat{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let table:DMatrix<String>=DMatrix::from_iterator(self.n as usize, self.n as usize, 
-            self.hyper_composition.iter().map(|x|format!("{:?}",to_set(&get_subset(x, &self.n)))));
+            self.hyper_composition.iter().map(|x|format!("{:?}",vec_to_set(&get_subset(x, &self.n)))));
         
         write!(f, "\nH: {:?},\nHypercomposition table:\n{} It is represented by: {}Size:{}\n", self.h, table, self.hyper_composition, self.n )
     }

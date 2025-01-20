@@ -3,7 +3,8 @@ use std::env;
 use std::vec;
 use std::time::Instant;
 use hyperstruc::enumeration::{collect_hypergroups, enumeration_hypergroups};
-use hyperstruc::utilities::{cartesian_product, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, power_set, representation_permutation_subset, subset_as_u32, to_set};
+use hyperstruc::utilities::{cartesian_product, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, power_set, representation_permutation_subset, subset_as_u32, vec_to_set};
+use nalgebra::coordinates::X;
 use rand::Rng;
 use std::collections:: HashSet;
 use permutation::Permutation;
@@ -223,9 +224,9 @@ fn set_hypercomposition(h:&Vec<u32>,a:&Vec<u32>,b:&Vec<u32>)->HashSet<u32>{
     /*
     Let A,B be subset of H. Then, the product AB is define as the union of 
     ab with a in A and b in B */
-    let h_set=to_set(&h);
-    let a_set=to_set(&a);
-    let b_set=to_set(&b);
+    let h_set=vec_to_set(&h);
+    let a_set=vec_to_set(&a);
+    let b_set=vec_to_set(&b);
 
     if !a_set.is_subset(&h_set)|!b_set.is_subset(&h_set){panic!("A and B must be subsets of H")}
     
@@ -240,5 +241,5 @@ fn set_hypercomposition(h:&Vec<u32>,a:&Vec<u32>,b:&Vec<u32>)->HashSet<u32>{
             prod.concat();
         }
     }
-    to_set(&prod.concat())
+    vec_to_set(&prod.concat())
 }

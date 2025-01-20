@@ -1,7 +1,7 @@
 use std::{collections::HashSet, vec};
 use itertools::Itertools;
 use rand::Rng;
-use crate::utilities::{cartesian_product, get_subset, ones_positions, representing_hypergroupoid, subset_as_u32, to_set};
+use crate::utilities::{cartesian_product, get_subset, ones_positions, representing_hypergroupoid, subset_as_u32, vec_to_set};
 
 #[derive(Debug, Clone,PartialEq)]
 pub struct HyperStruct{
@@ -17,12 +17,12 @@ impl HyperStruct {
     }
     pub fn new_random_from_cardinality(n:u32)->Self{
         let h_vec:Vec<u32>=(0..n).into_iter().collect();
-        let h_set:HashSet<u32>=to_set(&h_vec);
+        let h_set:HashSet<u32>=vec_to_set(&h_vec);
         let ht: Vec<((u32, u32), Vec<u32>)> = random_hypercomposition_table(&h_vec);
 
         let mut ht_set:Vec<((u32, u32), HashSet<u32>)>=Vec::new();
             for item in ht {
-                let set=to_set(&item.1);
+                let set=vec_to_set(&item.1);
                 ht_set.push((item.0,set));
             }
             HyperStruct { 
@@ -46,7 +46,7 @@ impl HyperStruct {
                 }
             }
         }
-        to_set(&vec_product)
+        vec_to_set(&vec_product)
     }
     pub fn singleton(&self)->Vec<HashSet<u32>>{
         //self.h.iter().map(|x| vec![*x]).collect()
@@ -59,9 +59,6 @@ impl HyperStruct {
         
     }
     pub fn get_subset_from_k(&self,k:&u32)->HashSet<u32>{
-        /*
-        k is a number in 0..2^n. We use its binary representation to build a set
-        whose elements are the non-zero bits of n*/
         let n = self.h.len() as u32;
         let mut subset: Vec<u32> = Vec::new();
         if k>=&2u32.pow(n){panic!("k can't be grater then 2^n");}
@@ -70,7 +67,7 @@ impl HyperStruct {
                 subset.push(i);
                 }
         }
-        to_set(&subset)
+        vec_to_set(&subset)
     }
     
     pub fn is_reproductive(&self)->bool{
