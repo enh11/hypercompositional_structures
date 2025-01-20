@@ -37,10 +37,10 @@ pub fn power_set (n:&u32)->Vec<Vec<u32>>{
 /// let test_subset:HashSet<u32>= (1..=2).into_iter().collect();
 /// assert_eq!(subset,test_subset);
 ///
-pub fn get_subset(k:&u32,n:&u32)->Vec<u32>{
+pub fn get_subset(k:&u32,cardinality:&u32)->Vec<u32>{
     let mut subset: Vec<u32> = Vec::new();
-    if k>=&2u32.pow(*n){panic!("k can't be grater then 2^n");}
-    for i in 0..*n {
+    if k>=&2u32.pow(*cardinality){panic!("k can't be grater then 2^n");}
+    for i in 0..*cardinality {
         if (k >> i)&1==1{
             subset.push(i);
             }
@@ -88,16 +88,22 @@ pub fn subset_as_u32(k:&HashSet<u32>)->u32{
     k.iter().map(|x|2u32.pow(*x)).sum()
 }
 pub fn permutaton_matrix_from_permutation(n:&u32,sigma:&Permutation)->DMatrix<u32>{
-    /*
-        let permutations_of_n:Vec<Vec<u32>> = (0..*n).permutations(*n as usize).collect();
-        if permutations_of_n.binary_search(sigma).is_err() {panic!("Sigma = {:?} is not a permutation of n = {}.",sigma,n)}
-     */
     let identity: DMatrix<u32>=DMatrix::identity(*n as usize,*n as usize);
     let rows:Vec<Vec<u32>> = identity.row_iter().map(|x|x.iter().map(|z|*z).collect()).collect();
 
     let x: Vec<u32> =sigma.clone().inverse().apply_slice(rows).concat();
     DMatrix::from_row_slice(*n as usize, *n as usize, &x).transpose()
 }
+/// Gets binary representation of an integer k with width-numbers-of-bit.
+/// # Example
+/// ```
+/// use hyperstruc::utilities::n_to_binary_vec;/// 
+/// let cardinality=4;
+/// let k=6;
+/// let binary=n_to_binary_vec(&k,&cardinality);
+/// let v=vec![0,1,1,0];
+/// assert_eq!(v,binary);
+///
 pub fn n_to_binary_vec(k: &u128, width: &u32) -> Vec<u32> {
 	format!("{:0>width$}", format!("{:b}", k), width = *width as usize)
 		.chars()

@@ -3,14 +3,16 @@ use std::env;
 use std::vec;
 use std::time::Instant;
 use hyperstruc::enumeration::{collect_hypergroups, enumeration_hypergroups};
+use hyperstruc::hs::HyperGroupoidMat;
 use hyperstruc::utilities::{cartesian_product, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, power_set, representation_permutation_subset, subset_as_u32, vec_to_set};
 use nalgebra::coordinates::X;
+use nalgebra::DMatrix;
 use rand::Rng;
 use std::collections:: HashSet;
 use permutation::Permutation;
 
 fn main(){
-    let args: Vec<String> = env::args().collect();  
+/*     let args: Vec<String> = env::args().collect();  
     let number: u32 = match args[1].parse() {
         Ok(n) => {
             n
@@ -25,7 +27,7 @@ fn main(){
         println!("{:?}",e);
     let end = now.elapsed();
     println!("Elapsed:{:?}",end);
-
+ */
 /*     let n=6u32;
     for i in 0..8 {
 
@@ -72,13 +74,13 @@ println!("H is associativity: {}",new_hg.is_associative());
 
  */
 /* 
-/*GET HYPERSTRUCTURE FROM MATRIX */
+GET HYPERSTRUCTURE FROM MATRIX */
 
 let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
 let hypergroup=HyperGroupoidMat::new_from_matrix(&matrix);
 println!("{}",hypergroup);
 println!("H is hypergroup: {}",hypergroup.is_hypergroup());
- */
+
 
 /* 
 /*TEST NUMBER OF ISOMORPHISM IN TERMS OF PERMUTATIONS */

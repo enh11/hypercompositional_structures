@@ -129,14 +129,8 @@ pub fn is_commutative(&self)->bool{
 /// assert_eq!(subset,test_subset);
 ///
 pub fn get_subset_from_k(&self,k:&u32)->HashSet<u32>{
-    let n = self.h.len() as u32;
-    let mut subset: Vec<u32> = Vec::new();
-    if k>=&2u32.pow(n){panic!("k can't be grater then 2^n");}
-    for i in 0..n {
-        if (k >> i)&1==1{
-            subset.push(i);
-            }
-    }
+    let cardinality = self.h.len() as u32;
+    let subset: Vec<u32> = get_subset(&k, &cardinality);
     vec_to_set(&subset)
 }
    pub fn mul_by_representation(&self,int_k:&u32,int_l:&u32)->u32{
@@ -150,16 +144,13 @@ pub fn get_subset_from_k(&self,k:&u32)->HashSet<u32>{
     }
     indexes.iter().fold(0u32, |acc, x| acc|self.hyper_composition[(x.0 as usize,x.1 as usize)])
 }
-
 pub fn mul(&self,subset_k:&HashSet<u32>,subset_l:&HashSet<u32>)->u32{
     if !subset_k.is_subset(&self.h)||!subset_l.is_subset(&self.h) { panic!("K and L must be a subsets of H!")};
     let int_k=subset_as_u32(&subset_k);
     let int_l=subset_as_u32(&subset_l);
 self.mul_by_representation(&int_k, &int_l)   
 }
-pub fn left_division(&self,a:&u32,b:&u32)->u32{
-    /*This function compute the value b\a={x in H s.t. a in bx} */
-    
+pub fn left_division(&self,a:&u32,b:&u32)->u32{    
     let sub_a=vec_to_set(&get_subset(&2u32.pow(*a), &self.n));
     let sub_b=2u32.pow(*b);
     self.get_singleton().iter()
