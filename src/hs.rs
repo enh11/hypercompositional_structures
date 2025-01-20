@@ -103,10 +103,32 @@ pub fn is_commutative(&self)->bool{
     }
     true
 }
+/// Represents the integer $k$ as a subset of the set H={0,1,..,n-1}.
+/// There are 2^n different integer representing subsets of H. It will panic if $k is greater then 2^n.
+/// The subset S represented by k is given by the binary representation of k: 
+/// i is in S if and only if the i-th digit of binary representation of k is a one.
+/// Output is Vec<u32>. Use fn vec_to_set to convert it into a HashSet<u32>.
+/// Reverse function is subset_as_u32() in utilities.rs
+/// # Example
+/// ```
+/// use hyperstruc::hs::HyperGroupoidMat;
+/// use std::collections::HashSet;
+/// 
+/// let cardinality = 4u32;
+/// let hyperstructure = HyperGroupoidMat::new_random_from_cardinality(&cardinality);
+/// let k=6;
+/// let subset=hyperstructure.get_subset_from_k(&k);
+/// println!("{:?}",subset);
+/// let test_subset:HashSet<u32>= (1..=2).into_iter().collect();
+/// assert_eq!(subset,test_subset);
+/// 
+/// let k=8;
+/// let subset=hyperstructure.get_subset_from_k(&k);
+/// println!("{:?}",subset);
+/// let test_subset:HashSet<u32>= vec![3].into_iter().collect();
+/// assert_eq!(subset,test_subset);
+///
 pub fn get_subset_from_k(&self,k:&u32)->HashSet<u32>{
-    /*
-    k is a number in 0..2^n-1. We use its binary representation to build a set
-    whose elements are the non-zero bits of n*/
     let n = self.h.len() as u32;
     let mut subset: Vec<u32> = Vec::new();
     if k>=&2u32.pow(n){panic!("k can't be grater then 2^n");}

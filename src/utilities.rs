@@ -61,6 +61,29 @@ pub fn cartesian_product(set: &Vec<u32>) -> Vec<(u32, u32)> {
     }
     product
 }
+/// Represents a subset $S$ as an integer in H={0,1,..,n-1}.
+/// There are 2^n different subsets of H. It will panic if $k is greater then 2^n.
+/// Elements in S correspond to indices of occurrences of ones for the binary representation of the integer k which identifies S.
+/// Therefore, k equals the sum of power two with exponents in S. 
+/// # Example
+/// ```
+/// use hyperstruc::utilities::vec_to_set;
+/// use hyperstruc::utilities::subset_as_u32;
+/// use hyperstruc::utilities::get_subset;
+/// use std::collections::HashSet;
+/// 
+/// let subset:HashSet<u32>= (1..=2).into_iter().collect();
+/// let subset_as_integer= subset_as_u32(&subset);
+/// let test_integer=6u32;
+/// assert_eq!(subset_as_integer,test_integer);
+/// 
+/// let cardinality=4;
+/// let k=8;
+/// let subset=vec_to_set(&get_subset(&k,&cardinality));
+/// let subset_as_integer= subset_as_u32(&subset);
+/// assert_eq!(subset_as_integer,k);
+/// 
+///
 pub fn subset_as_u32(k:&HashSet<u32>)->u32{
     k.iter().map(|x|2u32.pow(*x)).sum()
 }
