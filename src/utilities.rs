@@ -37,6 +37,14 @@ pub fn power_set (n:&u32)->Vec<Vec<u32>>{
 /// let test_subset:HashSet<u32>= (1..=2).into_iter().collect();
 /// assert_eq!(subset,test_subset);
 ///
+/// let cardinality = 3u32;
+/// let k=2;
+/// let subset_as_vec=get_subset(&k,&cardinality);
+/// let subset= vec_to_set(&subset_as_vec);
+/// 
+/// println!("{:?}",subset);
+/// let test_subset:HashSet<u32>= [1].into_iter().collect();
+/// assert_eq!(subset,test_subset);
 pub fn get_subset(k:&u32,cardinality:&u32)->Vec<u32>{
     let mut subset: Vec<u32> = Vec::new();
     if k>=&2u32.pow(*cardinality){panic!("k can't be grater then 2^n");}
@@ -143,8 +151,17 @@ pub fn representing_hypergroupoid(n:&mut u128,cardinality:&u32)->bool{
 }
 pub fn collect_n_digits(width: &u32,m_representation_hypergroupoid:&u128)->Vec<u32>{
     let binary_n = n_to_binary_vec(m_representation_hypergroupoid, &width);
-    let out :Vec<u32>=(0..*width).rev().into_iter().map(|i|binary_n.iter().rev().nth(i as usize).unwrap()).into_iter().map(|x| if *x == 1 { 1u32 } else { 0u32 }).collect();
-out
+    let out :Vec<u32>=(0..*width)
+        .rev()
+        .into_iter()
+        .map(|i|
+            binary_n.iter().rev().nth(i as usize).unwrap()).
+            into_iter()
+            .map(
+                |x| if *x == 1 { 1u32 } 
+                    else { 0u32 })
+            .collect();
+    out
 }
 pub fn from_tag_to_vec(tag:&u128, n:&u32)->Vec<Vec<u32>>{
     let mut tag = tag.clone();
@@ -168,14 +185,17 @@ pub fn from_tag_to_vec(tag:&u128, n:&u32)->Vec<Vec<u32>>{
     
 
 }
-pub fn write_hypergroups(s:String)-> std::io::Result<()> {
-    let mut file = File::create("hygrp.txt")?;
+pub fn write_hypergroups(s:String,name:&str)-> std::io::Result<()> {
+    let file_name=format!("{}.txt",name);
+    let mut file = File::create(file_name)?;
     
     file.write(&s.as_bytes())?;
     Ok(())
 }
-pub fn write(s:String)-> std::io::Result<()> {
-    let mut file = File::create("foo.txt")?;
+pub fn write(s:String,name:&str)-> std::io::Result<()> {
+    let file_name=format!("{}.txt",name);
+
+    let mut file = File::create(file_name)?;
     
     file.write(&s.as_bytes())?;
     Ok(())

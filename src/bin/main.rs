@@ -4,7 +4,10 @@ use std::vec;
 use std::time::Instant;
 use hyperstruc::enumeration::{collect_hypergroups, enumeration_hypergroups};
 use hyperstruc::hs::HyperGroupoidMat;
+use hyperstruc::utilities::collect_n_digits;
+use hyperstruc::utilities::from_tag_to_vec;
 use hyperstruc::utilities::{cartesian_product, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, power_set, representation_permutation_subset, subset_as_u32, vec_to_set};
+use itertools::Itertools;
 use nalgebra::coordinates::X;
 use nalgebra::DMatrix;
 use rand::Rng;
@@ -12,6 +15,52 @@ use std::collections:: HashSet;
 use permutation::Permutation;
 
 fn main(){
+
+    let tag =25830028u128;
+    let cardinality=3u32;
+    println!("starting tag {}",tag);
+    let hypergroup=HyperGroupoidMat::new_from_tag(&tag,&cardinality);
+    println!("new from tag {}",hypergroup);
+    println!("tag is hypergroup: {}",hypergroup.is_hypergroup());
+    println!("tag {}",hypergroup.get_integer_tag());
+
+
+for i in 0..hypergroup.n{
+    if hypergroup.is_left_identity(&i) {
+
+        let i_singleton=vec_to_set(&get_subset(&2u32.pow(i), &hypergroup.n));
+        println!("Left identities {:?}",i_singleton)
+    }
+}
+for i in 0..hypergroup.n{
+    if hypergroup.is_right_identity(&i) {
+
+        let i_singleton=vec_to_set(&get_subset(&2u32.pow(i), &hypergroup.n));
+        println!("Right identities {:?}",i_singleton)
+    }
+}
+for i in 0..hypergroup.n{
+    if hypergroup.is_identity(&i) {
+
+        let i_singleton=vec_to_set(&get_subset(&2u32.pow(i), &hypergroup.n));
+        println!("Identity {:?}",i_singleton)
+    }
+}
+for i in 0..hypergroup.n{
+    if hypergroup.is_left_scalar(&i) {
+
+        let i_singleton=vec_to_set(&get_subset(&2u32.pow(i), &hypergroup.n));
+        println!("Left Scalar {:?}",i_singleton)
+    }
+}
+for i in 0..hypergroup.n{
+    if hypergroup.is_right_scalar(&i) {
+
+        let i_singleton=vec_to_set(&get_subset(&2u32.pow(i), &hypergroup.n));
+        println!("Right scalar {:?}",i_singleton)
+    }
+}
+
 /*     let args: Vec<String> = env::args().collect();  
     let number: u32 = match args[1].parse() {
         Ok(n) => {
@@ -75,12 +124,12 @@ println!("H is associativity: {}",new_hg.is_associative());
  */
 /* 
 GET HYPERSTRUCTURE FROM MATRIX */
-
+/* 
 let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
 let hypergroup=HyperGroupoidMat::new_from_matrix(&matrix);
 println!("{}",hypergroup);
 println!("H is hypergroup: {}",hypergroup.is_hypergroup());
-
+ */
 
 /* 
 /*TEST NUMBER OF ISOMORPHISM IN TERMS OF PERMUTATIONS */

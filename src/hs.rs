@@ -54,9 +54,9 @@ impl HyperGroupoidMat {
         n:n as u32
    }
 }
-pub fn new_from_tag(mut tag:u128,cardinality:&u32)->Self{
+pub fn new_from_tag(mut tag:&u128,cardinality:&u32)->Self{
     let vector_of_subsets_as_integers=from_tag_to_vec(&mut tag, &cardinality);
-    let vector_of_subsets_as_integers: Vec<u32>=vector_of_subsets_as_integers.iter().map(|x|binary_to_u32(x)).collect();
+    let vector_of_subsets_as_integers: Vec<u32>=vector_of_subsets_as_integers.iter().rev().map(|x|binary_to_u32(x)).collect();
 
     let hyper_composition_matrix = DMatrix::from_row_slice(*cardinality as usize, *cardinality as usize, &vector_of_subsets_as_integers);
         HyperGroupoidMat::new_from_matrix(&hyper_composition_matrix)
@@ -102,6 +102,33 @@ pub fn is_commutative(&self)->bool{
         }
     }
     true
+}
+pub fn is_left_identity(&self,e:&u32)->bool{
+    if e>=&self.n {panic!("Not an element in hypergroupoid!")}
+    let row_e=self.hyper_composition.row(*e as usize);
+    (0..self.n).into_iter().zip(row_e.iter()).all(|x|x.1>>x.0&1==1)
+}
+pub fn is_right_identity(&self,e:&u32)->bool{
+    if e>=&self.n {panic!("Not an element in hypergroupoid!")}
+    let col_e=self.hyper_composition.column(*e as usize);
+    (0..self.n).into_iter().zip(col_e.iter()).all(|x|x.1>>x.0&1==1)}
+pub fn is_identity(&self,e:&u32)->bool{
+    self.is_left_identity(&e)&&self.is_right_identity(&e)
+}
+pub fn is_left_scalar(&self,s:&u32)->bool{
+    if s>=&self.n {panic!("Not an element in hypergroupoid!")}
+    self.hyper_composition.column(*s as usize).iter().all(|x|x.is_power_of_two())
+}
+pub fn is_right_scalar(&self,s:&u32)->bool{
+    if s>=&self.n {panic!("Not an element in hypergroupoid!")}
+    self.hyper_composition.row(*s as usize).iter().all(|x|x.is_power_of_two())
+}
+pub fn collect_left_identity(&self)->Vec<u32>{
+    self.get_singleton().iter()
+        .filter(|e|self.is_left_identity(e))
+        .map(|e|*e)
+        .collect_vec()
+
 }
 /// Represents the integer $k$ as a subset of the set H={0,1,..,n-1}.
 /// There are 2^n different integer representing subsets of H. It will panic if $k is greater then 2^n.
