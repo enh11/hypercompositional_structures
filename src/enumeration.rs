@@ -1,7 +1,7 @@
 use std::fmt::format;
-
 use itertools::Itertools;
 use permutation::Permutation;
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use crate::utilities::write;
 
 use crate::hs::HyperGroupoidMat;
@@ -10,11 +10,15 @@ use crate::utilities::representing_hypergroupoid;
 
 pub fn collect_hypergroupoid(cardinality:&u32)->Vec<u128>{
     let size = cardinality.pow(3);
-    (2u128.pow(size-cardinality)..2u128.pow(size)).into_iter().filter(|i|representing_hypergroupoid(&mut i.clone(),&cardinality)).collect()
+    (2u128.pow(size-cardinality)..2u128.pow(size)).into_par_iter().filter(|i|representing_hypergroupoid(&mut i.clone(),&cardinality)).collect()
 }
 pub fn collect_hypergroups(cardinality:&u32)->Vec<u128>{
     let size = cardinality.pow(3);
-    (2u128.pow(size-cardinality)..2u128.pow(size)).into_iter().filter(|i|representing_hypergroupoid(&mut i.clone(),&cardinality)&&HyperGroupoidMat::new_from_tag(i, cardinality).is_hypergroup()).collect()
+    (2u128.pow(size-cardinality)..2u128.pow(size)).into_par_iter()
+        .filter(|i|
+                representing_hypergroupoid(&mut i.clone(),&cardinality)&&HyperGroupoidMat::new_from_tag(i, cardinality).is_hypergroup()
+            )
+        .collect()
 
 }
 pub fn enumeration_hypergroups(cardinality:&u32)->Vec<usize>{

@@ -1,4 +1,5 @@
 use core::panic;
+use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
 use std::{collections::HashSet, fmt::Display, vec};
 extern crate nalgebra as na;
 use itertools::Itertools;
@@ -85,8 +86,6 @@ pub fn permutation_of_table(&self,sigma:&Permutation)->Self{
 pub fn isomorphic_hypergroup_from_permutation(&self, sigma:&Permutation)->Self{
     let perm_mat = permutaton_matrix_from_permutation(&self.n, &sigma.clone());
     let isomorphic_matrix=perm_mat.clone()*self.permutation_of_table(sigma).hyper_composition*perm_mat.transpose();
-
-    //let isomorphic_matrix=self.permutation_of_table(sigma).hyper_composition;
     HyperGroupoidMat::new_from_matrix(&isomorphic_matrix)
 }
 pub fn is_hypergroup(&self)->bool{
@@ -129,6 +128,19 @@ pub fn collect_left_identity(&self)->Vec<u32>{
         .map(|e|*e)
         .collect_vec()
 
+}
+pub fn collect_scalars(&self)->Vec<u32>{
+    self.get_singleton().iter()
+        .filter(|s|self.is_left_scalar(&s)&&self.is_right_scalar(&s))
+        .map(|x|*x)
+        .collect::<Vec<u32>>()
+}
+pub fn collect_scalar_identity(&self)->Vec<u32>{
+    self.collect_scalars()
+        .par_iter()
+        .filter(|s|self.is_identity(s))
+        .map(|x|*x)
+        .collect::<Vec<u32>>()
 }
 /// Represents the integer $k$ as a subset of the set H={0,1,..,n-1}.
 /// There are 2^n different integer representing subsets of H. It will panic if $k is greater then 2^n.
@@ -220,46 +232,6 @@ pub fn right_division(&self,a:&u32,b:&u32)->u32{
         false
     }
    }
-pub fn fix_reproductivity(&self)->Self{
-    let h=2u32.pow(self.n)-1;
-    if self.is_reproductive(){return self.clone();}
-    let mut new_hypergroupoid_matrix = self.hyper_composition.clone();
-    let mut missing_terms:u32;
-    let row_sum:Vec<u32> = new_hypergroupoid_matrix.row_iter().map(|x|x.iter().fold(0u32, |acc,element|acc|element)).collect();
-    
-        for j in 0..self.n as usize /*here j is row index*/{
-            if row_sum[j]<h {
-                missing_terms=h-row_sum[j];
-                let position_max = new_hypergroupoid_matrix.row(j).iter().position_max().unwrap();
-                new_hypergroupoid_matrix[(j,position_max as usize)]|=missing_terms;
-            }
-            
-        }            
-
-    let new_hypergroupoid = HyperGroupoidMat{
-        h:self.h.clone(),
-        hyper_composition:new_hypergroupoid_matrix.clone(),
-        n:self.n
-    };
-    if new_hypergroupoid.is_reproductive(){return new_hypergroupoid;}
-    else {
-        let col_sum:Vec<u32> = new_hypergroupoid_matrix.column_iter().map(|x|x.iter().fold(0u32, |acc,element|acc|element)).collect();
-    
-        for j in 0..self.n as usize{
-            if col_sum[j]<h {
-                missing_terms=h-col_sum[j];
-                let position_max = new_hypergroupoid_matrix.column(j).iter().position_max().unwrap();
-                new_hypergroupoid_matrix[(position_max as usize,j as usize)]|=missing_terms;
-            }         
-    }
-
-    }
-    HyperGroupoidMat{
-        h:self.h.clone(),
-        hyper_composition:new_hypergroupoid_matrix,
-        n:self.n
-    }
-}
 pub fn assert_associativity(&self)->bool{
     for a in &self.get_singleton(){
         for b in &self.get_singleton(){
@@ -267,17 +239,12 @@ pub fn assert_associativity(&self)->bool{
                 let ab_c=self.mul_by_representation(
                     &self.mul_by_representation(&a, &b),&c);
                 let a_bc = self.mul_by_representation(&a, &self.mul_by_representation(&b, &c));
-                if a_bc==ab_c {continue;} else {
-                        println!("Not associative:");
-                        println!("{}{}_{}= {}",a,b,c,ab_c);
-                        println!("{}_{}{}= {}",a,b,c, a_bc);
-                    }
+                assert_eq!(a_bc,ab_c)
             }
         }
     }
 true
 }
-
 pub fn is_associative(&self)->bool{
     for a in &self.get_singleton(){
         for b in &self.get_singleton(){

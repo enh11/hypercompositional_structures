@@ -15,8 +15,12 @@ use std::collections:: HashSet;
 use permutation::Permutation;
 
 fn main(){
-
-    let tag =25830028u128;
+    let now = Instant::now();
+    let e= enumeration_hypergroups(&4u32);
+    println!("{:?}",e);
+let end = now.elapsed();
+println!("Elapsed:{:?}",end);
+ /*    let tag =25830028u128;
     let cardinality=3u32;
     println!("starting tag {}",tag);
     let hypergroup=HyperGroupoidMat::new_from_tag(&tag,&cardinality);
@@ -61,6 +65,7 @@ for i in 0..hypergroup.n{
     }
 }
 
+ */
 /*     let args: Vec<String> = env::args().collect();  
     let number: u32 = match args[1].parse() {
         Ok(n) => {
