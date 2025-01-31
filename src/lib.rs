@@ -8,5 +8,5 @@ pub mod utilities;
 pub mod hg2;
 pub mod hg3;
 pub mod enumeration;
-
-
+pub mod unital_magma_3;
+pub mod unital_magma;

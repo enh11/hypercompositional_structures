@@ -2,8 +2,12 @@ use core::num;
 use std::env;
 use std::vec;
 use std::time::Instant;
-use hyperstruc::enumeration::{collect_hypergroups, enumeration_hypergroups};
+use hyperstruc::enumeration::collect_hypergroupoid_with_scalar_identity;
+use hyperstruc::enumeration::enumeration_hyperstructure;
+use hyperstruc::hg3::TAG_3;
 use hyperstruc::hs::HyperGroupoidMat;
+use hyperstruc::unital_magma::UnitalMagma;
+use hyperstruc::unital_magma_3::TAG_UNITAL_MAGMATA_3;
 use hyperstruc::utilities::collect_n_digits;
 use hyperstruc::utilities::from_tag_to_vec;
 use hyperstruc::utilities::{cartesian_product, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, power_set, representation_permutation_subset, subset_as_u32, vec_to_set};
@@ -11,16 +15,49 @@ use itertools::Itertools;
 use nalgebra::coordinates::X;
 use nalgebra::DMatrix;
 use rand::Rng;
+use rayon::iter::IntoParallelRefIterator;
+use rayon::iter::ParallelIterator;
 use std::collections:: HashSet;
 use permutation::Permutation;
 
 fn main(){
-    let now = Instant::now();
+/*      let mut t  =19969297u128;
+ let cardinality=3u32;
+ let h = HyperGroupoidMat::new_from_tag(&t, &cardinality);
+ println!("singleton {:?}",h.get_singleton());
+ println!("{}",h);
+ let magma=UnitalMagma::new_from_tag(&mut t,&cardinality);
+ println!("magma : {}",magma);   */
+
+/*     let t=29360127u128;
+    let cardinality=3u32;
+    let m=HyperGroupoidMat::new_from_tag(&t, &cardinality);
+    println!("{m}");
+    let id=m.collect_identities();
+    println!("id = {:?}",id);
+     */
+
+/*         /*COLLECTING UNITAL MAGMATA */
+    
+let cardinality=3u32;
+let now = Instant::now();
+collect_hypergroupoid_with_scalar_identity(&cardinality); 
+let end = now.elapsed();
+    println!("Computation time:{:?}",end);
+ */
+      /*ISOMORPHIC MAGMATA */
+ let cardinality=4u32;
+
+let c= enumeration_hyperstructure("unital magmata", &cardinality);
+
+/*
+let now = Instant::now();
     let e= enumeration_hypergroups(&4u32);
     println!("{:?}",e);
 let end = now.elapsed();
 println!("Elapsed:{:?}",end);
- /*    let tag =25830028u128;
+ */ 
+/*    let tag =25830028u128;
     let cardinality=3u32;
     println!("starting tag {}",tag);
     let hypergroup=HyperGroupoidMat::new_from_tag(&tag,&cardinality);
