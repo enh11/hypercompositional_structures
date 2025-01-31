@@ -29,13 +29,29 @@ fn main(){
  let magma=UnitalMagma::new_from_tag(&mut t,&cardinality);
  println!("magma : {}",magma);   */
 
-/*     let t=29360127u128;
+    let t=24200465u128;
     let cardinality=3u32;
-    let m=HyperGroupoidMat::new_from_tag(&t, &cardinality);
+    let m=UnitalMagma::new_from_tag(&t, &cardinality);
+    let l_invertible=m.collect_left_invertible();
+    let r_invertible=m.collect_right_invertible();
+
+
     println!("{m}");
-    let id=m.collect_identities();
-    println!("id = {:?}",id);
-     */
+    println!("left invertible are {:?}",l_invertible);
+    println!("right invertible are {:?}",r_invertible);
+
+    for x in [1,2,4]{
+        println!("{} is left invertible {}",x,   m.is_left_invertible(&x));
+    }
+    for x in [1,2,4]{
+        println!("{} is right invertible {}",x,   m.is_right_invertible(&x));
+    }
+    let not_inv_magmata:Vec<u128> = TAG_UNITAL_MAGMATA_3.par_iter().filter(|m|!(UnitalMagma::new_from_tag(m, &cardinality).collect_invertible().is_empty())).map(|x|*x).collect::<Vec<u128>>();
+    
+println!("not invertible magmata: {:?}",not_inv_magmata.len());
+   
+    
+    
 
 /*         /*COLLECTING UNITAL MAGMATA */
     
@@ -46,10 +62,10 @@ let end = now.elapsed();
     println!("Computation time:{:?}",end);
  */
       /*ISOMORPHIC MAGMATA */
- let cardinality=4u32;
+/*  let cardinality=4u32;
 
 let c= enumeration_hyperstructure("unital magmata", &cardinality);
-
+ */
 /*
 let now = Instant::now();
     let e= enumeration_hypergroups(&4u32);
