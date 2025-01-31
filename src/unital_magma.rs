@@ -1,12 +1,9 @@
 use core::panic;
 use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
-use std::{collections::HashSet, fmt::Display, vec};
+use std::fmt::Display;
 extern crate nalgebra as na;
-use itertools::Itertools;
 use nalgebra::DMatrix;
-use permutation::Permutation;
-use rand:: Rng;
-use crate::{hs::HyperGroupoidMat, utilities::{binary_to_u32, cartesian_product, from_tag_to_vec, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid, subset_as_u32, vec_to_set}};
+use crate::{hs::HyperGroupoidMat, utilities::{get_subset, representing_hypergroupoid, vec_to_set}};
 #[derive(Debug, Clone,PartialEq)]
 pub struct UnitalMagma{
     pub h:HyperGroupoidMat,
@@ -22,6 +19,9 @@ impl UnitalMagma {
         let identity=e[0];
         UnitalMagma { h, identity: identity }
     }
+    pub fn is_unital_magma(&self)->bool{
+        self.h.collect_identities().len()==1
+    }
     pub fn is_left_invertible(&self,x:&u32)->bool{
         /*x=1,2,3... is element in H, and they identify the singleton {i},
         therefore, as a subset of H, it is represented by the u32 given by 2.pow(x)
@@ -29,26 +29,47 @@ impl UnitalMagma {
         if !x.is_power_of_two() {panic!("Not an element in hypergroupoid!")}
         let x=x.trailing_zeros();//the number of trailing_zeros in a power of two is equal to the exponent. Also ilog2() works.
         let col_x=self.h.hyper_composition.column(x as usize);
-        col_x.iter().any(|y|self.identity&y==1) //self.identity&y==1 implies identity is in y. 
+        col_x.iter().any(|y|self.identity&y==self.identity) //self.identity&y==self.identity implies identity is in y. 
     
     }
+    pub fn collect_left_inverses(&self,x:&u32)->Vec<u32>{
+        if !x.is_power_of_two() {panic!("Not an element in hypergroupoid!")}
+        let x=x.trailing_zeros();//the number of trailing_zeros in a power of two is equal to the exponent. Also ilog2() works.
+        let col_x=self.h.hyper_composition.column(x as usize);
+        self.h.get_singleton().par_iter().filter(|i|col_x.get(i.trailing_zeros() as usize).unwrap()&self.identity==self.identity).map(|x|*x).collect() 
+    }
     pub fn collect_left_invertible(&self)->Vec<u32>{
-        self.h.get_singleton().iter().filter(|x|(self.is_left_invertible(x))).map(|x|*x).collect::<Vec<u32>>()
+        self.h.get_singleton().par_iter().filter(|x|(self.is_left_invertible(x))).map(|x|*x).collect::<Vec<u32>>()
     }
     pub fn is_right_invertible(&self,x:&u32)->bool{
         if !x.is_power_of_two() {panic!("Not an element in hypergroupoid!")}
         let x=x.trailing_zeros();//the number of trailing_zeros in a power of two is equal to the exponent. Also ilog2() works.
-        let row_x=self.h.hyper_composition.column(x as usize);
-        row_x.iter().any(|y|self.identity&y==1) //self.identity&y==1 implies identity is in y.    
+        let row_x=self.h.hyper_composition.row(x as usize);
+        row_x.iter().any(|y|self.identity&y==self.identity) //self.identity&y==1 implies identity is in y.    
         }
+    pub fn collect_right_inverses(&self,x:&u32)->Vec<u32>{
+        if !x.is_power_of_two() {panic!("Not an element in hypergroupoid!")}
+        let x=x.trailing_zeros();//the number of trailing_zeros in a power of two is equal to the exponent. Also ilog2() works.
+        let row_x=self.h.hyper_composition.row(x as usize);
+        self.h.get_singleton().par_iter().filter(|i|row_x.get(i.trailing_zeros() as usize).unwrap()&self.identity==self.identity).map(|x|*x).collect() 
+    }
+    pub fn collect_inverses(&self,x:&u32)->Vec<u32> {
+        assert!(self.is_invertible(x));
+        let left_inverces=self.collect_left_inverses(x);
+        let right_inverces=self.collect_right_inverses(x);
+        left_inverces.iter().filter(|x|right_inverces.contains(x)).map(|x|*x).collect()
+    }
     pub fn collect_right_invertible(&self)->Vec<u32>{
-        self.h.get_singleton().iter().filter(|x|(self.is_right_invertible(x))).map(|x|*x).collect::<Vec<u32>>()
+        self.h.get_singleton().par_iter().filter(|x|(self.is_right_invertible(x))).map(|x|*x).collect::<Vec<u32>>()
     }
     pub fn is_invertible(&self,x: &u32)->bool{
         self.is_left_invertible(x)&&self.is_right_invertible(x)
     }
     pub fn collect_invertible(&self)->Vec<u32>{
-        self.h.get_singleton().iter().filter(|x|(self.is_invertible(x))).map(|x|*x).collect::<Vec<u32>>()
+        self.h.get_singleton().par_iter().filter(|x|(self.is_invertible(x))).map(|x|*x).collect::<Vec<u32>>()
+    }
+    pub fn is_invertible_unital_magma(&self)->bool{
+        self.h.get_singleton().par_iter().all(|x|self.is_invertible(x)&&self.collect_inverses(x).len()==1)
     }
     
     

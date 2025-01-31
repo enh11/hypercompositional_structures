@@ -2,8 +2,9 @@ use std::fmt::format;
 use itertools::Itertools;
 use permutation::Permutation;
 use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
+use crate::unital_magma::UnitalMagma;
 use crate::unital_magma_3::TAG_UNITAL_MAGMATA_3;
-use crate::utilities::{write, write_hypergroups};
+use crate::utilities::write;
 
 use crate::hs::HyperGroupoidMat;
 use crate::utilities::representing_hypergroupoid;
@@ -15,14 +16,18 @@ pub fn collect_hypergroupoid(cardinality:&u32)->Vec<u128>{
 }
 pub fn collect_hypergroupoid_with_scalar_identity(cardinality:&u32)->Vec<u128>{
     let size = cardinality.pow(3);
-    let unital_magma:Vec<u128>=(2u128.pow(size-cardinality)..2u128.pow(size)).into_par_iter()
+    (2u128.pow(size-cardinality)..2u128.pow(size)).into_par_iter()
         .filter(|i|representing_hypergroupoid(&mut i.clone(),&cardinality)&&!(HyperGroupoidMat::new_from_tag(i, &cardinality).collect_scalar_identity().is_empty()))
-        .collect();
-    let s=format!("{:?}",unital_magma);
+        .collect()
 
-    let name=format!("unital_magma_{}",cardinality);
-    let _ = write(s, &name);
-    unital_magma
+}
+pub fn collect_l_mosaics(cardinality:&u32)->Vec<u128>{
+    //find a way to improve this my looking at binary representation of tag
+    let size = cardinality.pow(3);
+    (2u128.pow(size-cardinality)..2u128.pow(size)).into_par_iter()
+        .filter(|i|representing_hypergroupoid(&mut i.clone(),&cardinality)&&HyperGroupoidMat::new_from_tag(i, &cardinality).collect_scalar_identity().len()==1&&UnitalMagma::new_from_tag(i, &cardinality).is_invertible_unital_magma())
+        .collect()
+
 }
 pub fn collect_hypergroups(cardinality:&u32)->Vec<u128>{
     let size = cardinality.pow(3);
@@ -37,6 +42,7 @@ pub fn enumeration_hyperstructure(structure:&str,cardinality:&u32)->Vec<usize>{
     let tags= match structure {
         "hypergroups"=> collect_hypergroups(&cardinality),
         "unital magmata"=>collect_hypergroupoid_with_scalar_identity(&*cardinality),
+        "L_mosaics"=> collect_l_mosaics(&cardinality),
         _=>panic!("unknown structure!")
     };
     //let tags = collect_hypergroups(&cardinality);

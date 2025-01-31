@@ -185,13 +185,6 @@ pub fn from_tag_to_vec(tag:&u128, n:&u32)->Vec<Vec<u32>>{
     
 
 }
-pub fn write_hypergroups(s:String,name:&str)-> std::io::Result<()> {
-    let file_name=format!("{}.txt",name);
-    let mut file = File::create(file_name)?;
-    
-    file.write(&s.as_bytes())?;
-    Ok(())
-}
 pub fn write(s:String,name:&str)-> std::io::Result<()> {
     let file_name=format!("{}.txt",name);
 

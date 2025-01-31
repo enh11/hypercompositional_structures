@@ -287,8 +287,9 @@ pub fn is_associative(&self)->bool{
     }
 true
 }
-pub fn get_singleton(&self)->DMatrix<u32>{
-    DMatrix::from_row_iterator(1, self.n as usize, (0..self.n).into_iter().map(|i|2u32.pow(i)))
+pub fn get_singleton(&self)->Vec<u32>{
+    //DMatrix::from_row_iterator(1, self.n as usize, (0..self.n).into_iter().map(|i|2u32.pow(i)))
+    (0..self.n).into_par_iter().map(|i|2u32.pow(i)).collect()
 }
 }
 impl Display for HyperGroupoidMat{
