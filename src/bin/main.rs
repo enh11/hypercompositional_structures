@@ -24,7 +24,7 @@ use std::collections:: HashSet;
 use permutation::Permutation;
 
 fn main(){
-
+/* 
 let cardinality = 2;
 let t=185;
 println!("{:b}",t);
@@ -35,7 +35,7 @@ let t= from_tag_to_vec(&t, &cardinality);
 
 println!("{:?}",t);
 println!("{}",new_hyperstructure_from_matrix);
-println!("tag1 {}, tag2 {}", new_hyperstructure_from_matrix.get_integer_tag(),185);
+println!("tag1 {}, tag2 {}", new_hyperstructure_from_matrix.get_integer_tag(),185); */
 /*     let mat=DMatrix::from_row_slice(3, 3, &[1,2,4,2,5,7,4,2,1]);
     let h=HyperGroupoidMat::new_from_matrix(&mat);
     let magma=UnitalMagma{
@@ -75,13 +75,13 @@ println!("magma {}",magma);
     println!("m is invertible {}",m.is_invertible_unital_magma()); */
     
 
-       /* COLLECT INVERTIBLE UNITAL MAGMATA (L-MOSAICS)*/ 
-/*  let cardinality=3u32;
+/*        /* COLLECT INVERTIBLE UNITAL MAGMATA (L-MOSAICS)*/ 
+ let cardinality=2u32;
  let c= enumeration_hyperstructure("L_mosaics", &cardinality);
 println!("c : {:?}",c);
- */
+
  
- /*
+ /* */
  
 
 let cardinality=3u32;
@@ -245,14 +245,14 @@ println!("H is associativity: {}",new_hg.is_associative());
  */
 /* 
 GET HYPERSTRUCTURE FROM MATRIX */
-/* 
+
 let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
 let hypergroup=HyperGroupoidMat::new_from_matrix(&matrix);
 println!("{}",hypergroup);
 println!("H is hypergroup: {}",hypergroup.is_hypergroup());
- */
 
-/* 
+
+
 /*TEST NUMBER OF ISOMORPHISM IN TERMS OF PERMUTATIONS */
 let mut count_isomorphism:u32=0;
 let permut_vec:Vec<Vec<usize>> = (0..hypergroup.n as usize).permutations(hypergroup.n as usize).collect();
@@ -274,7 +274,7 @@ for sigma in permutation {
 
 }
 println!("number of isomorphism {}",count_isomorphism);
- */
+
 /* 
 let now = Instant::now();
 //let cardinality = 3;
