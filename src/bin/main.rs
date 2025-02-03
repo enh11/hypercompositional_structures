@@ -24,7 +24,19 @@ use std::collections:: HashSet;
 use permutation::Permutation;
 
 fn main(){
-    let mat=DMatrix::from_row_slice(3, 3, &[1,2,4,2,5,7,4,2,1]);
+
+let cardinality = 2;
+let t=185;
+println!("{:b}",t);
+let new_hyperstructure_from_tag = HyperGroupoidMat::new_from_tag(&t,&cardinality);
+let new_hyperstructure_from_matrix = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(2usize,2usize,&[2,3,2,1]));
+println!("{}", new_hyperstructure_from_tag);
+let t= from_tag_to_vec(&t, &cardinality);
+
+println!("{:?}",t);
+println!("{}",new_hyperstructure_from_matrix);
+println!("tag1 {}, tag2 {}", new_hyperstructure_from_matrix.get_integer_tag(),185);
+/*     let mat=DMatrix::from_row_slice(3, 3, &[1,2,4,2,5,7,4,2,1]);
     let h=HyperGroupoidMat::new_from_matrix(&mat);
     let magma=UnitalMagma{
         h:h,
@@ -44,7 +56,7 @@ println!("magma {}",magma);
  let right_inverses:Vec<(u32,Vec<u32>)>=right_invertible.iter().map(|x|(*x,magma.collect_right_inverses(x))).collect();
 
  println!("left inverses are {:?}",left_inverses);
- println!("right inverses are {:?}",right_inverses);
+ println!("right inverses are {:?}",right_inverses); */
 /*
     let t=71663230u128;
     let cardinality=3u32;
@@ -96,6 +108,21 @@ let now = Instant::now();
 collect_hypergroupoid_with_scalar_identity(&cardinality); 
 let end = now.elapsed();
     println!("Computation time:{:?}",end);
+ */
+      /*ISOMORPHIC HYPERGROUPS */
+/*   let cardinality=3u32;
+  let now = Instant::now();
+let c= enumeration_hyperstructure("hypergroups", &cardinality);
+let end = now.elapsed();
+println!("Elapsed:{:?}",end);
+
+println!("c : {:?}",c); */
+/* 
+let now = Instant::now();
+    let e= enumeration_hypergroups(&4u32);
+    println!("{:?}",e);
+let end = now.elapsed();
+println!("Elapsed:{:?}",end);
  */
       /*ISOMORPHIC MAGMATA */
 /*   let cardinality=3u32;

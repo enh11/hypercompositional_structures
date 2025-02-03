@@ -1,5 +1,5 @@
 use core::panic;
-use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
+use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
 use std::{collections::HashSet, fmt::Display, vec};
 extern crate nalgebra as na;
 use itertools::Itertools;
@@ -55,20 +55,50 @@ impl HyperGroupoidMat {
         n:n as u32
    }
 }
+
+/// Generate a new hyperstructure given a tag and the cardinality of the set H. If n is the cardinality, then tag is a u128 less than or equal to n^3. 
+/// Its binary representation, divided in groups of n-bits, provide the table of hyperoperation; each group of n-bits corresponds to a subset of H. 
+/// For example, if n=2, then a tag must be less or equal to 2^8. The tag t=185 has binary representation 10111000, divided in groups of 2-bits it is
+/// 10-11-10-01. The bits 10 represent the subset {1}, the bits 11 represents {0,1}, the bits 01 represents {0}.
+/// With this example it follows that 0*0={1}, 0*1={0,1}, 1*0 = {1} and 1*1 = emptyset.
+/// 
+/// # Example
+/// 
+/// ```
+/// use hyperstruc::hs::HyperGroupoidMat;
+/// use nalgebra::DMatrix;
+/// let cardinality = 2;
+/// let t=185;
+/// let new_hyperstructure_from_tag = HyperGroupoidMat::new_from_tag(&t,&cardinality);
+/// let new_hyperstructure_from_matrix = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(2usize,2usize,&[2,3,2,1]));
+/// assert_eq!(new_hyperstructure_from_tag, new_hyperstructure_from_matrix)
+/// 
+/// 
 pub fn new_from_tag(mut tag:&u128,cardinality:&u32)->Self{
     let vector_of_subsets_as_integers=from_tag_to_vec(&mut tag, &cardinality);
-    let vector_of_subsets_as_integers: Vec<u32>=vector_of_subsets_as_integers.iter().rev().map(|x|binary_to_u32(x)).collect();
+    let vector_of_subsets_as_integers: Vec<u32>=vector_of_subsets_as_integers.iter().map(|x|binary_to_u32(x)).collect();
 
     let hyper_composition_matrix = DMatrix::from_row_slice(*cardinality as usize, *cardinality as usize, &vector_of_subsets_as_integers);
         HyperGroupoidMat::new_from_matrix(&hyper_composition_matrix)
 }
+/// # Example
+/// 
+/// ```
+/// use hyperstruc::hs::HyperGroupoidMat;
+/// use nalgebra::DMatrix;
+/// let cardinality = 2;
+/// let t=185;
+/// let new_hyperstructure_from_tag = HyperGroupoidMat::new_from_tag(&t,&cardinality);
+/// let new_hyperstructure_from_matrix = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(2usize,2usize,&[2,3,2,1]));
+/// assert_eq!(new_hyperstructure_from_tag.get_integer_tag(), new_hyperstructure_from_matrix.get_integer_tag())
+/// 
+/// 
 pub fn get_integer_tag(&self)->u32{
 
     binary_to_u32(&self.hyper_composition
         .transpose()//transpose is required because iteration in matrix is by column
         .iter()
         .map(|x|n_to_binary_vec(&(*x as u128), &self.n))
-        .rev()
         .concat())
 
 }
@@ -246,6 +276,16 @@ pub fn right_division(&self,a:&u32,b:&u32)->u32{
    
 
 }
+/// Return true if hyperstructure is reproductive, i.e., xH = H = Hx holds for all x in H.
+/// # Example
+/// ```
+/// use hyperstruc::hs::HyperGroupoidMat;
+/// use nalgebra::DMatrix;
+/// let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
+/// let hyperstructure=HyperGroupoidMat::new_from_matrix(&matrix);
+/// println!("{hyperstructure}");
+/// assert!(hyperstructure.is_reproductive())
+///
    pub fn is_reproductive(&self)->bool{
     let h:Vec<u32>=Vec::from_iter(0..self.n).iter().map(|_|2u32.pow(self.n)-1).collect();
     /*xH is row_sum */
@@ -259,8 +299,22 @@ pub fn right_division(&self,a:&u32,b:&u32)->u32{
         false
     }
    }
+/// Return true if hyperstructure is associative, i.e., (xy)z = x(zy) holds for all x in H.
+/// # Example
+/// ```
+/// use hyperstruc::hs::HyperGroupoidMat;
+/// use nalgebra::DMatrix;
+/// let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
+/// let hyperstructure=HyperGroupoidMat::new_from_matrix(&matrix);
+/// println!("{hyperstructure}");
+/// assert!(hyperstructure.assert_associativity())
+///
 pub fn assert_associativity(&self)->bool{
-    for a in &self.get_singleton(){
+    let binding = self.get_singleton();
+    let x :Vec<((&u32, &u32), &u32)>= binding.iter().zip(binding.iter()).zip(binding.iter()).collect();
+    x.par_iter().all(|((a,b),c)| 
+        self.mul_by_representation(&a, &self.mul_by_representation(&b,&c))==self.mul_by_representation(&self.mul_by_representation(&a,&b),&c))
+    /* for a in &self.get_singleton(){
         for b in &self.get_singleton(){
             for c in &self.get_singleton(){
                 let ab_c=self.mul_by_representation(
@@ -269,11 +323,22 @@ pub fn assert_associativity(&self)->bool{
                 assert_eq!(a_bc,ab_c)
             }
         }
-    }
-true
+    } 
+true*/
 }
+/// Return true if hyperstructure is associative, i.e., (xy)z = x(zy) holds for all x in H.
+/// # Example
+/// ```
+/// use hyperstruc::hs::HyperGroupoidMat;
+/// use nalgebra::DMatrix;
+/// let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
+/// let hyperstructure=HyperGroupoidMat::new_from_matrix(&matrix);
+/// println!("{hyperstructure}");
+/// assert!(hyperstructure.is_associative())
+///
 pub fn is_associative(&self)->bool{
-    for a in &self.get_singleton(){
+ 
+for a in &self.get_singleton(){
         for b in &self.get_singleton(){
             for c in &self.get_singleton(){
                 let ab_c=self.mul_by_representation(
@@ -289,7 +354,7 @@ true
 }
 pub fn get_singleton(&self)->Vec<u32>{
     //DMatrix::from_row_iterator(1, self.n as usize, (0..self.n).into_iter().map(|i|2u32.pow(i)))
-    (0..self.n).into_par_iter().map(|i|2u32.pow(i)).collect()
+    (0..self.n).into_iter().map(|i|2u32.pow(i)).collect()
 }
 }
 impl Display for HyperGroupoidMat{

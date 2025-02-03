@@ -43,7 +43,7 @@ pub fn enumeration_hyperstructure(structure:&str,cardinality:&u32)->Vec<usize>{
         "hypergroups"=> collect_hypergroups(&cardinality),
         "unital magmata"=>collect_hypergroupoid_with_scalar_identity(&*cardinality),
         "L_mosaics"=> collect_l_mosaics(&cardinality),
-        _=>panic!("unknown structure!")
+        _=>panic!("unknown structure! Works with 'hypergroups, unital magmata, L_mosaics'. ")
     };
     //let tags = collect_hypergroups(&cardinality);
     let _= write(format!("{:?}",tags.clone()),&format!("tag_{structure}_{cardinality}"));
