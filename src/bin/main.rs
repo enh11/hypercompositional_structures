@@ -4,10 +4,8 @@ use std::vec;
 use std::time::Instant;
 use hyperstruc::enumeration::collect_hypergroupoid_with_scalar_identity;
 use hyperstruc::enumeration::enumeration_hyperstructure;
-use hyperstruc::hg3::TAG_3;
 use hyperstruc::hs::HyperGroupoidMat;
 use hyperstruc::unital_magma::UnitalMagma;
-use hyperstruc::unital_magma_3::TAG_UNITAL_MAGMATA_3;
 use hyperstruc::utilities::binary_to_u32;
 use hyperstruc::utilities::collect_n_digits;
 use hyperstruc::utilities::from_tag_to_vec;
@@ -75,20 +73,12 @@ println!("magma {}",magma);
     println!("m is invertible {}",m.is_invertible_unital_magma()); */
     
 
-/*        /* COLLECT INVERTIBLE UNITAL MAGMATA (L-MOSAICS)*/ 
- let cardinality=2u32;
- let c= enumeration_hyperstructure("L_mosaics", &cardinality);
+        /* COLLECT INVERTIBLE UNITAL MAGMATA (L-MOSAICS)*/ 
+ let cardinality=3u32;
+ let c= enumeration_hyperstructure("unital magmata", &cardinality);
 println!("c : {:?}",c);
 
  
- /* */
- 
-
-let cardinality=3u32;
-let inv_magmata:Vec<u128> = TAG_UNITAL_MAGMATA_3.par_iter().filter(|m|UnitalMagma::new_from_tag(m, &cardinality).is_invertible_unital_magma()).map(|x|*x).collect::<Vec<u128>>();
-    write(format!("{:?}",inv_magmata), &"invertible_unital_magmata_3");
-println!("invertible magmata: {:?}",inv_magmata.len()); */
-
 /* let cardinality=3u32;
 
 for m in TAG_UNITAL_MAGMATA_3{
@@ -112,7 +102,7 @@ let end = now.elapsed();
       /*ISOMORPHIC HYPERGROUPS */
 /*   let cardinality=3u32;
   let now = Instant::now();
-let c= enumeration_hyperstructure("hypergroups", &cardinality);
+let c= enumeration_hyperstructure("L_mosaics", &cardinality);
 let end = now.elapsed();
 println!("Elapsed:{:?}",end);
 
@@ -207,32 +197,7 @@ for i in 0..hypergroup.n{
     let toset=to_set(&set);
     println!("{} to set is {:?}",i,toset);
     } */
-/*     
-    /*COLLECT ORDER THREE HYPERGROUPOIDS */
     
-    let cardinality = 2u32;
-    
-    let mut hg_tags:Vec<u128>=collect_hypergroups(&cardinality);
-    
-    println!("Funded {} hypergroups", hg_tags.len());
-    let s = format!("{:?}",hg_tags);
-    write(s);
-*/
-    
-/* 
-/*GETTING A HYPERSTRUCTUR FROM INTEGER TAG */
-let mut rng = rand::thread_rng();
-let n: u32=3;
-let mut tag: u128 = rng.gen_range(2u128.pow(26)+1..=2u128.pow(27));
-println!("{:b}",tag);
-let subsets = from_tag_to_vec(&mut tag, &n);
-println!("{:?}",subsets);
-println!("tag is {}",tag);
-let hyperstructure = HyperGroupoidMat::new_from_tag(tag,&n);
-println!("{}",hyperstructure);
-let tag = hyperstructure.get_integer_tag();
-println!("tag is {}",tag);
-*/
 /*
 let h_groupoid=  HyperGroupoidMat::new_random_from_cardinality(&n);
 println!(" A new Hyper Groupoid : {}",h_groupoid);

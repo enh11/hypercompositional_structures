@@ -3,9 +3,7 @@ use itertools::Itertools;
 use permutation::Permutation;
 use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
 use crate::unital_magma::UnitalMagma;
-use crate::unital_magma_3::TAG_UNITAL_MAGMATA_3;
 use crate::utilities::write;
-
 use crate::hs::HyperGroupoidMat;
 use crate::utilities::representing_hypergroupoid;
 
