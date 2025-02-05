@@ -19,7 +19,7 @@ pub fn collect_hypergroupoid_with_scalar_identity(cardinality:&u32)->Vec<u128>{
         .collect()
 
 }
-pub fn collect_l_mosaics(cardinality:&u32)->Vec<u128>{
+pub fn collect_invertible_magmata(cardinality:&u32)->Vec<u128>{
     //find a way to improve this my looking at binary representation of tag
     let size = cardinality.pow(3);
     (2u128.pow(size-cardinality)..2u128.pow(size)).into_par_iter()
@@ -40,8 +40,8 @@ pub fn enumeration_hyperstructure(structure:&str,cardinality:&u32)->Vec<usize>{
     let tags= match structure {
         "hypergroups"=> collect_hypergroups(&cardinality),
         "unital magmata"=>collect_hypergroupoid_with_scalar_identity(&*cardinality),
-        "L_mosaics"=> collect_l_mosaics(&cardinality),
-        _=>panic!("unknown structure! Works with 'hypergroups, unital magmata, L_mosaics'. ")
+        "invertible magmata"=> collect_invertible_magmata(&cardinality),
+        _=>panic!("unknown structure! Works with 'hypergroups, unital magmata,invertible magmata, L_mosaics'. ")
     };
     //let tags = collect_hypergroups(&cardinality);
     let _= write(format!("{:?}",tags.clone()),&format!("tag_{structure}_{cardinality}"));

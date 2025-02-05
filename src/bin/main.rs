@@ -5,6 +5,7 @@ use std::time::Instant;
 use hyperstruc::enumeration::collect_hypergroupoid_with_scalar_identity;
 use hyperstruc::enumeration::enumeration_hyperstructure;
 use hyperstruc::hs::HyperGroupoidMat;
+use hyperstruc::tags::TAG_L_MOSAICS_2;
 use hyperstruc::unital_magma::UnitalMagma;
 use hyperstruc::utilities::binary_to_u32;
 use hyperstruc::utilities::collect_n_digits;
@@ -22,6 +23,10 @@ use std::collections:: HashSet;
 use permutation::Permutation;
 
 fn main(){
+    let cardinality=2u32;
+    for tag in TAG_L_MOSAICS_2 {
+        println!("L_mosaic: {}", UnitalMagma::new_from_tag(&tag, &cardinality))
+    }
 /* 
 let cardinality = 2;
 let t=185;
@@ -74,10 +79,11 @@ println!("magma {}",magma);
     
 
         /* COLLECT INVERTIBLE UNITAL MAGMATA (L-MOSAICS)*/ 
- let cardinality=3u32;
+ let cardinality=4u32;
  let c= enumeration_hyperstructure("unital magmata", &cardinality);
 println!("c : {:?}",c);
 
+ 
  
 /* let cardinality=3u32;
 
@@ -217,7 +223,7 @@ println!("{}",hypergroup);
 println!("H is hypergroup: {}",hypergroup.is_hypergroup());
 
 
-
+/* 
 /*TEST NUMBER OF ISOMORPHISM IN TERMS OF PERMUTATIONS */
 let mut count_isomorphism:u32=0;
 let permut_vec:Vec<Vec<usize>> = (0..hypergroup.n as usize).permutations(hypergroup.n as usize).collect();
@@ -239,7 +245,7 @@ for sigma in permutation {
 
 }
 println!("number of isomorphism {}",count_isomorphism);
-
+ */
 /* 
 let now = Instant::now();
 //let cardinality = 3;
