@@ -5,6 +5,8 @@ use std::time::Instant;
 use hyperstruc::enumeration::collect_hypergroupoid_with_scalar_identity;
 use hyperstruc::enumeration::enumeration_hyperstructure;
 use hyperstruc::hs::HyperGroupoidMat;
+use hyperstruc::tags::TAG_HG_2;
+use hyperstruc::tags::TAG_HG_3;
 use hyperstruc::tags::TAG_L_MOSAICS_2;
 use hyperstruc::unital_magma::UnitalMagma;
 use hyperstruc::utilities::binary_to_u32;
@@ -17,17 +19,71 @@ use nalgebra::coordinates::X;
 use nalgebra::DMatrix;
 use nalgebra::Matrix;
 use rand::Rng;
+use rayon::iter;
 use rayon::iter::IntoParallelRefIterator;
 use rayon::iter::ParallelIterator;
 use std::collections:: HashSet;
 use permutation::Permutation;
 
 fn main(){
-    let cardinality=2u32;
-    for tag in TAG_L_MOSAICS_2 {
-        println!("L_mosaic: {}", UnitalMagma::new_from_tag(&tag, &cardinality))
-    }
-/* 
+    let tag=TAG_HG_2[3];
+    let hg2=HyperGroupoidMat::new_from_tag(&tag, &2u32);
+    println!("core is {:?}",hg2.beta_relation());
+    let tag=TAG_HG_3[100];
+    let hg2=HyperGroupoidMat::new_from_tag(&tag, &3u32);
+    println!("core is {:?}",hg2.beta_relation());
+/*Example 1 Karim ABBASI, Reza AMERI, Yahya TALEBI-ROSTAMI  */
+    let cardinality=  3u32;
+    let hs = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,6,1,6,1,6,1,6,1]));
+    println!("Is hypergroup {}",hs.is_hypergroup());
+    println!("Hypergroupoid : {}",hs);
+let ph :Vec<HashSet<u32>> = hs.collect_ph().iter().map(|x|vec_to_set(&get_subset(x, &cardinality))).collect();
+println!("ph is {:?}",ph);
+let beta:Vec<(HashSet<u32>,HashSet<u32>)> = hs.beta_relation().iter().map(|(x,y)| (vec_to_set(&get_subset(x, &cardinality)),vec_to_set(&get_subset(y, &cardinality)))).collect();
+println!("beta {:?}",beta);
+/*Example 4.2  Pourhaghani, Anvariyen, Davvaz (OK)*/
+/*
+let cardinality=4u32;
+let hypergroupoid = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize,cardinality as usize,&[1,3,5,9,1,3,5,9,1,2,4,8,1,2,4,8]));
+
+println!("Hypergroupoid : {}",hypergroupoid);
+let ph :Vec<HashSet<u32>> = hypergroupoid.collect_ph().iter().map(|x|vec_to_set(&get_subset(x, &cardinality))).collect();
+println!("ph is {:?}",ph); 
+let beta:Vec<(HashSet<u32>,HashSet<u32>)> = hypergroupoid.beta_relation().iter().map(|(x,y)| (vec_to_set(&get_subset(x, &cardinality)),vec_to_set(&get_subset(y, &cardinality)))).collect();
+println!("beta {:?}",beta);*/
+/*     
+ /*Example 4.3 Pourhaghani, Anvariyen, Davvaz (OK)*/
+
+
+let cardinality=4u32;
+let hypergroupoid = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize,cardinality as usize,&[6,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10]));
+
+println!("Hypergroupoid : {}",hypergroupoid);
+let ph :Vec<HashSet<u32>> = hypergroupoid.collect_ph().iter().map(|x|vec_to_set(&get_subset(x, &cardinality))).collect();
+println!("ph is {:?}",ph);
+let beta:Vec<(HashSet<u32>,HashSet<u32>)> = hypergroupoid.beta_relation().iter().map(|(x,y)| (vec_to_set(&get_subset(y, &cardinality)),vec_to_set(&get_subset(x, &cardinality)))).collect();
+println!("beta {:?}",beta);
+
+*/
+
+
+    /*Example 4.4 Pourhaghani, Anvariyen, Davvaz (OK)*/
+    let cardinality=  3u32;
+    let hs = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,3,5,1,2,5,1,3,4]));
+    println!("Hypergroupoid : {}",hs);
+let ph :Vec<HashSet<u32>> = hs.collect_ph().iter().map(|x|vec_to_set(&get_subset(x, &cardinality))).collect();
+println!("ph is {:?}",ph);
+let beta:Vec<(HashSet<u32>,HashSet<u32>)> = hs.beta_relation().iter().map(|(x,y)| (vec_to_set(&get_subset(x, &cardinality)),vec_to_set(&get_subset(y, &cardinality)))).collect();
+println!("beta {:?}",beta);
+
+/* let cardinality=  5u32;
+let hs = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,11,1,11,11,1,2,1,11,11,1,11,9,11,31,1,11,1,11,11,1,11,9,11,31]));
+println!("Hypergroupoid : {}",hs);
+let ph :Vec<HashSet<u32>> = hs.collect_ph().iter().map(|x|vec_to_set(&get_subset(x, &cardinality))).collect();
+println!("ph is {:?}",ph);
+let beta:Vec<(HashSet<u32>,HashSet<u32>)> = hs.beta_relation().iter().map(|(x,y)| (vec_to_set(&get_subset(x, &cardinality)),vec_to_set(&get_subset(x, &cardinality)))).collect();
+println!("beta {:?}",beta); */
+    /* 
 let cardinality = 2;
 let t=185;
 println!("{:b}",t);
@@ -79,10 +135,10 @@ println!("magma {}",magma);
     
 
         /* COLLECT INVERTIBLE UNITAL MAGMATA (L-MOSAICS)*/ 
- let cardinality=4u32;
+/*  let cardinality=4u32;
  let c= enumeration_hyperstructure("unital magmata", &cardinality);
 println!("c : {:?}",c);
-
+ */
  
  
 /* let cardinality=3u32;
@@ -216,12 +272,12 @@ println!("H is associativity: {}",new_hg.is_associative());
  */
 /* 
 GET HYPERSTRUCTURE FROM MATRIX */
-
+/* 
 let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
 let hypergroup=HyperGroupoidMat::new_from_matrix(&matrix);
 println!("{}",hypergroup);
 println!("H is hypergroup: {}",hypergroup.is_hypergroup());
-
+ */
 
 /* 
 /*TEST NUMBER OF ISOMORPHISM IN TERMS OF PERMUTATIONS */

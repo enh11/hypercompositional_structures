@@ -199,6 +199,61 @@ pub fn collect_scalar_identity(&self)->Vec<u32>{
         .map(|x|*x)
         .collect::<Vec<u32>>()
 }
+pub fn collect_ph(&self)->Vec<u32>{
+    //let mut ph: Vec<u32> = Vec::new();
+    let  mut a: Vec<u32>  =self.get_singleton();
+    loop {
+        let ph=a;
+        a=ph.iter().cartesian_product(ph.iter()).map(|(x,y)|self.mul_by_representation(x, y)).unique().collect();
+        for x in self.get_singleton(){
+            a.push(x);
+        }
+        a=a.iter().unique().map(|x|*x).sorted().collect();
+/*         println!("ph is {:?}",ph);
+        println!("a is {:?}",a); */
+        if a==ph {
+            break ph;
+        }
+
+
+    }
+    /* let mut i = 0u32;
+    while ph!=a {
+        i+=1;
+        ph=a.clone();
+        a=Vec::new();
+        let pairs = ph.iter().cartesian_product(ph.iter()).collect_vec();
+            for (x,y) in pairs {
+                a.push(self.mul_by_representation(x, y));
+                a = a.iter().sorted().dedup().map(|a|*a).collect_vec();
+            }
+        a.append(&mut self.get_singleton());
+        a=a.iter().sorted().dedup().map(|x|*x).collect_vec();
+        println!("dedup a {:?}",a);
+        println!("ph {:?}",ph);
+
+
+        
+    }
+    println!("{i}");
+    ph
+ */
+
+}
+pub fn beta_relation(&self)->Vec<(u32,u32)>{
+    let ph=self.collect_ph();
+    println!("ph is {:?}",ph);
+    let ph :Vec<Vec<u32>>= ph.iter().map(|x|ones_positions(*x, &(self.n as usize))).collect();
+    ph.iter().zip(ph.iter())
+        .map(|x|
+            x.0.iter().cartesian_product(x.1.iter())
+            .map(|(x,y)|(*x,*y))
+            .collect_vec())
+            .concat().iter()
+            .unique()
+            .map(|(x,y)|(2u32.pow(*x),2u32.pow(*y))).sorted().collect_vec()
+
+}
 /// Represents the integer $k$ as a subset of the set H={0,1,..,n-1}.
 /// There are 2^n different integer representing subsets of H. It will panic if $k is greater then 2^n.
 /// The subset S represented by k is given by the binary representation of k: 
@@ -310,21 +365,17 @@ pub fn right_division(&self,a:&u32,b:&u32)->u32{
 /// assert!(hyperstructure.assert_associativity())
 ///
 pub fn assert_associativity(&self)->bool{
-    let binding = self.get_singleton();
-    let x :Vec<((&u32, &u32), &u32)>= binding.iter().zip(binding.iter()).zip(binding.iter()).collect();
-    x.par_iter().all(|((a,b),c)| 
-        self.mul_by_representation(&a, &self.mul_by_representation(&b,&c))==self.mul_by_representation(&self.mul_by_representation(&a,&b),&c))
-    /* for a in &self.get_singleton(){
+    for a in &self.get_singleton(){
         for b in &self.get_singleton(){
             for c in &self.get_singleton(){
                 let ab_c=self.mul_by_representation(
                     &self.mul_by_representation(&a, &b),&c);
                 let a_bc = self.mul_by_representation(&a, &self.mul_by_representation(&b, &c));
-                assert_eq!(a_bc,ab_c)
+                assert_eq!(a_bc,ab_c,"{a}{b}_{c},{a}_{b}{c}")
             }
         }
     } 
-true*/
+true
 }
 /// Return true if hyperstructure is associative, i.e., (xy)z = x(zy) holds for all x in H.
 /// # Example
