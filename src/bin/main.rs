@@ -2,6 +2,7 @@ use core::num;
 use std::env;
 use std::vec;
 use std::time::Instant;
+use hyperstruc::enumeration::collect_beta_not_equivalence;
 use hyperstruc::enumeration::collect_hypergroupoid_with_scalar_identity;
 use hyperstruc::enumeration::enumeration_hyperstructure;
 use hyperstruc::hs::HyperGroupoidMat;
@@ -26,12 +27,23 @@ use std::collections:: HashSet;
 use permutation::Permutation;
 
 fn main(){
+/*     let cardinality=3u32;
+    let nbeta = collect_beta_not_equivalence(&cardinality);
+    println!("nbeta : {}",nbeta.len()); */
+/*     /*Example 134 Corsini */
+    let cardinality  =3u32;
+    let hg=HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,2,4,1,2,4,7,7,7]));
+    println!("hg : {}",hg);
+    let id = hg.collect_identities();
+    println!("{:?}", id);
+     */
     let tag=TAG_HG_2[3];
     let hg2=HyperGroupoidMat::new_from_tag(&tag, &2u32);
-    println!("core is {:?}",hg2.beta_relation());
+    println!("core is {:?}",hg2.beta_relation().rel);
     let tag=TAG_HG_3[100];
     let hg2=HyperGroupoidMat::new_from_tag(&tag, &3u32);
     println!("core is {:?}",hg2.beta_relation());
+    println!("beta is equivalence: {}",hg2.beta_relation().is_equivalence());
 /*Example 1 Karim ABBASI, Reza AMERI, Yahya TALEBI-ROSTAMI  */
     let cardinality=  3u32;
     let hs = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,6,1,6,1,6,1,6,1]));
@@ -39,21 +51,26 @@ fn main(){
     println!("Hypergroupoid : {}",hs);
 let ph :Vec<HashSet<u32>> = hs.collect_ph().iter().map(|x|vec_to_set(&get_subset(x, &cardinality))).collect();
 println!("ph is {:?}",ph);
-let beta:Vec<(HashSet<u32>,HashSet<u32>)> = hs.beta_relation().iter().map(|(x,y)| (vec_to_set(&get_subset(x, &cardinality)),vec_to_set(&get_subset(y, &cardinality)))).collect();
+let beta:Vec<(HashSet<u32>,HashSet<u32>)> = hs.beta_relation().rel.iter().map(|(x,y)| (vec_to_set(&get_subset(x, &cardinality)),vec_to_set(&get_subset(y, &cardinality)))).collect();
 println!("beta {:?}",beta);
+println!("beta is equivalence: {}",hs.beta_relation().is_equivalence());
+
 /*Example 4.2  Pourhaghani, Anvariyen, Davvaz (OK)*/
-/*
+println!("Example 4.2  Pourhaghani, Anvariyen, Davvaz");
+
 let cardinality=4u32;
 let hypergroupoid = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize,cardinality as usize,&[1,3,5,9,1,3,5,9,1,2,4,8,1,2,4,8]));
 
 println!("Hypergroupoid : {}",hypergroupoid);
 let ph :Vec<HashSet<u32>> = hypergroupoid.collect_ph().iter().map(|x|vec_to_set(&get_subset(x, &cardinality))).collect();
 println!("ph is {:?}",ph); 
-let beta:Vec<(HashSet<u32>,HashSet<u32>)> = hypergroupoid.beta_relation().iter().map(|(x,y)| (vec_to_set(&get_subset(x, &cardinality)),vec_to_set(&get_subset(y, &cardinality)))).collect();
-println!("beta {:?}",beta);*/
-/*     
- /*Example 4.3 Pourhaghani, Anvariyen, Davvaz (OK)*/
+let beta:Vec<(HashSet<u32>,HashSet<u32>)> = hypergroupoid.beta_relation().rel.iter().map(|(x,y)| (vec_to_set(&get_subset(x, &cardinality)),vec_to_set(&get_subset(y, &cardinality)))).collect();
+println!("beta {:?}",beta);
+println!("beta is equivalence: {}",hypergroupoid.beta_relation().is_equivalence());
 
+    
+ /*Example 4.3 Pourhaghani, Anvariyen, Davvaz (OK)*/
+println!("Example 4.3 Pourhaghani, Anvariyen, Davvaz");
 
 let cardinality=4u32;
 let hypergroupoid = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize,cardinality as usize,&[6,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10]));
@@ -61,20 +78,19 @@ let hypergroupoid = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(c
 println!("Hypergroupoid : {}",hypergroupoid);
 let ph :Vec<HashSet<u32>> = hypergroupoid.collect_ph().iter().map(|x|vec_to_set(&get_subset(x, &cardinality))).collect();
 println!("ph is {:?}",ph);
-let beta:Vec<(HashSet<u32>,HashSet<u32>)> = hypergroupoid.beta_relation().iter().map(|(x,y)| (vec_to_set(&get_subset(y, &cardinality)),vec_to_set(&get_subset(x, &cardinality)))).collect();
+let beta:Vec<(HashSet<u32>,HashSet<u32>)> = hypergroupoid.beta_relation().rel.iter().map(|(x,y)| (vec_to_set(&get_subset(y, &cardinality)),vec_to_set(&get_subset(x, &cardinality)))).collect();
 println!("beta {:?}",beta);
+println!("beta is equivalence: {}",hypergroupoid.beta_relation().is_equivalence());
 
-*/
-
-
-    /*Example 4.4 Pourhaghani, Anvariyen, Davvaz (OK)*/
+/*Example 4.4 Pourhaghani, Anvariyen, Davvaz (OK)*/
     let cardinality=  3u32;
     let hs = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,3,5,1,2,5,1,3,4]));
     println!("Hypergroupoid : {}",hs);
 let ph :Vec<HashSet<u32>> = hs.collect_ph().iter().map(|x|vec_to_set(&get_subset(x, &cardinality))).collect();
 println!("ph is {:?}",ph);
-let beta:Vec<(HashSet<u32>,HashSet<u32>)> = hs.beta_relation().iter().map(|(x,y)| (vec_to_set(&get_subset(x, &cardinality)),vec_to_set(&get_subset(y, &cardinality)))).collect();
+let beta:Vec<(HashSet<u32>,HashSet<u32>)> = hs.beta_relation().rel.iter().map(|(x,y)| (vec_to_set(&get_subset(x, &cardinality)),vec_to_set(&get_subset(y, &cardinality)))).collect();
 println!("beta {:?}",beta);
+println!("beta is equivalence: {}",hs.beta_relation().is_equivalence());
 
 /* let cardinality=  5u32;
 let hs = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,11,1,11,11,1,2,1,11,11,1,11,9,11,31,1,11,1,11,11,1,11,9,11,31]));

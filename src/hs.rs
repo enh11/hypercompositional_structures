@@ -6,7 +6,7 @@ use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
 use rand:: Rng;
-use crate::utilities::{binary_to_u32, cartesian_product, from_tag_to_vec, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid, subset_as_u32, vec_to_set};
+use crate::{relations::Relation, utilities::{binary_to_u32, cartesian_product, from_tag_to_vec, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid, subset_as_u32, vec_to_set}};
 #[derive(Debug, Clone,PartialEq)]
 pub struct HyperGroupoidMat{
     pub h:HashSet<u32>,
@@ -240,18 +240,22 @@ pub fn collect_ph(&self)->Vec<u32>{
  */
 
 }
-pub fn beta_relation(&self)->Vec<(u32,u32)>{
+pub fn beta_relation(&self)->Relation{
     let ph=self.collect_ph();
-    println!("ph is {:?}",ph);
     let ph :Vec<Vec<u32>>= ph.iter().map(|x|ones_positions(*x, &(self.n as usize))).collect();
-    ph.iter().zip(ph.iter())
+    let ph: Vec<(u32, u32)> =ph.iter().zip(ph.iter())
         .map(|x|
             x.0.iter().cartesian_product(x.1.iter())
             .map(|(x,y)|(*x,*y))
             .collect_vec())
             .concat().iter()
             .unique()
-            .map(|(x,y)|(2u32.pow(*x),2u32.pow(*y))).sorted().collect_vec()
+            .map(|(x,y)|(2u32.pow(*x),2u32.pow(*y))).sorted().collect_vec();
+        Relation{
+            a:self.h.clone(),
+            b:self.h.clone(),
+            rel:ph
+        }
 
 }
 /// Represents the integer $k$ as a subset of the set H={0,1,..,n-1}.
