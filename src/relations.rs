@@ -1,4 +1,4 @@
-use std::{arch::x86_64::_xsavec, collections::HashSet, ops::Mul};
+use std::{collections::HashSet, ops::Mul};
 
 use itertools::Itertools;
 
@@ -29,7 +29,10 @@ impl <'a,'b>Mul<&'a Relation> for &'b Relation{
 impl Relation {
     pub fn is_reflexive(&self)->bool{
         assert_eq!(self.a,self.b,"Domain and codomain not coincede!");
-        let pairs=self.a.iter().zip(self.b.clone()).into_iter().map(|(x,y)|(*x,y)).collect_vec();
+        let pairs=self.a.iter().zip(self.b.clone())
+            .into_iter()
+            .map(|(x,y)|(2u32.pow(*x),2u32.pow(y)))
+            .collect_vec();
         pairs.iter().all(|x|self.rel.contains(x))
 
     }
@@ -42,9 +45,8 @@ impl Relation {
     pub fn is_transitive(&self)->bool{
         assert_eq!(self.a,self.b,"Domain and codomain not coincede!");
         let rr=(self*self).rel;
-        println!("rr {:?}",rr );
-        println!("r {:?}",self.rel);
-rr.iter().all(|x|self.rel.contains(x))
+        
+            rr.iter().all(|x|self.rel.contains(x))
     }
     pub fn is_equivalence(&self)->bool{
         self.is_reflexive()&&self.is_symmetric()&&self.is_transitive()

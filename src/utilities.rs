@@ -95,6 +95,7 @@ pub fn cartesian_product(set: &Vec<u32>) -> Vec<(u32, u32)> {
 pub fn subset_as_u32(k:&HashSet<u32>)->u32{
     k.iter().map(|x|2u32.pow(*x)).sum()
 }
+
 pub fn permutaton_matrix_from_permutation(n:&u32,sigma:&Permutation)->DMatrix<u32>{
     let identity: DMatrix<u32>=DMatrix::identity(*n as usize,*n as usize);
     let rows:Vec<Vec<u32>> = identity.row_iter().map(|x|x.iter().map(|z|*z).collect()).collect();

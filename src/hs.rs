@@ -299,6 +299,19 @@ pub fn get_subset_from_k(&self,k:&u32)->HashSet<u32>{
     }
     indexes.iter().fold(0u32, |acc, x| acc|self.hyper_composition[(x.0 as usize,x.1 as usize)])
 }
+/// # Example
+/// ```
+/// use hyperstruc::hs::HyperGroupoidMat;
+/// use nalgebra::DMatrix;
+/// use std::collections::HashSet;
+/// let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
+/// let hyperstructure=HyperGroupoidMat::new_from_matrix(&matrix);
+/// let a:HashSet<u32>=[1].into();
+/// let b:HashSet<u32>=[0].into();
+/// let ab=2u32;
+/// let mul=hyperstructure.mul(&a,&b);
+/// assert_eq!(ab,mul);
+/// 
 pub fn mul(&self,subset_k:&HashSet<u32>,subset_l:&HashSet<u32>)->u32{
     if !subset_k.is_subset(&self.h)||!subset_l.is_subset(&self.h) { panic!("K and L must be a subsets of H!")};
     let int_k=subset_as_u32(&subset_k);

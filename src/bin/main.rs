@@ -53,7 +53,11 @@ let ph :Vec<HashSet<u32>> = hs.collect_ph().iter().map(|x|vec_to_set(&get_subset
 println!("ph is {:?}",ph);
 let beta:Vec<(HashSet<u32>,HashSet<u32>)> = hs.beta_relation().rel.iter().map(|(x,y)| (vec_to_set(&get_subset(x, &cardinality)),vec_to_set(&get_subset(y, &cardinality)))).collect();
 println!("beta {:?}",beta);
-println!("beta is equivalence: {}",hs.beta_relation().is_equivalence());
+println!("beta is rif: {}",hs.beta_relation().is_reflexive());
+println!("beta is symm: {}",hs.beta_relation().is_symmetric());
+
+println!("beta is trans: {}",hs.beta_relation().is_transitive());
+
 
 /*Example 4.2  Pourhaghani, Anvariyen, Davvaz (OK)*/
 println!("Example 4.2  Pourhaghani, Anvariyen, Davvaz");
