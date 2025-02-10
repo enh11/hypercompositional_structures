@@ -318,35 +318,51 @@ pub fn mul(&self,subset_k:&HashSet<u32>,subset_l:&HashSet<u32>)->u32{
     let int_l=subset_as_u32(&subset_l);
 self.mul_by_representation(&int_k, &int_l)   
 }
+/// Compute b\a={x in H : a in bx}.
+/// Input a and b must be type u32, representing non empty subset of H. Therefore, singleton are powers of 2.
+/// 
+/// /// # Example
+/// ```
+/// use hyperstruc::hs::HyperGroupoidMat;
+/// use nalgebra::DMatrix;
+/// use std::collections::HashSet;
+/// let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
+/// let hyperstructure=HyperGroupoidMat::new_from_matrix(&matrix);
+/// let a=2u32;
+/// let b=4u32;
+/// let ab=3u32;
+/// let mul=hyperstructure.left_division(&a,&b);
+/// assert_eq!(ab,mul);
 pub fn left_division(&self,a:&u32,b:&u32)->u32{    
-    let sub_a=vec_to_set(&get_subset(&2u32.pow(*a), &self.n));
-    let sub_b=2u32.pow(*b);
     self.get_singleton().iter()
-    .filter(
-        |x| sub_a.is_subset(
-            &vec_to_set(&get_subset(
-                        &self.mul_by_representation(&sub_b, x), &self.n)
-                    )
-                )
-            ).fold(0, |acc,t|acc|t)
-
-   
+    .filter(|x| 
+        a&(&self.mul_by_representation(&b,&x))==*a
+        )
+        .fold(0, |acc, x| acc|x)
 }
-pub fn right_division(&self,a:&u32,b:&u32)->u32{
-        /*This function compute the value a/b={x in H s.t. a in xb} */
-        let sub_a=vec_to_set(&get_subset(&2u32.pow(*a), &self.n));
-    let sub_b=2u32.pow(*b);
+
+/// Compute a/b={x in H : a in xb}.
+/// Input a and b must be type u32, representing non empty subset of H. Therefore, singleton are powers of 2.
+/// 
+/// /// # Example
+/// ```
+/// use hyperstruc::hs::HyperGroupoidMat;
+/// use nalgebra::DMatrix;
+/// use std::collections::HashSet;
+/// let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
+/// let hyperstructure=HyperGroupoidMat::new_from_matrix(&matrix);
+/// let a=1u32;
+/// let b=2u32;
+/// let ab=6u32;
+/// let mul=hyperstructure.right_division(&a,&b);
+/// assert_eq!(ab,mul);
+/// 
+pub fn right_division(&self,a:&u32,b:&u32)->u32{    
     self.get_singleton().iter()
-    .filter(
-        |x| sub_a.is_subset(
-            &vec_to_set(&get_subset(
-                        &self.mul_by_representation(x,&sub_b), &self.n)
-                    )
-                )
-            ).fold(0, |acc,t|acc|t)
-
-   
-
+        .filter(|x| 
+            a&(&self.mul_by_representation(&x,&b))==*a
+            )
+            .fold(0, |acc, x| acc|x)
 }
 /// Return true if hyperstructure is reproductive, i.e., xH = H = Hx holds for all x in H.
 /// # Example

@@ -37,14 +37,15 @@ fn main(){
     let id = hg.collect_identities();
     println!("{:?}", id);
      */
-    let tag=TAG_HG_2[3];
+ /*    let tag=TAG_HG_2[3];
     let hg2=HyperGroupoidMat::new_from_tag(&tag, &2u32);
     println!("core is {:?}",hg2.beta_relation().rel);
     let tag=TAG_HG_3[100];
     let hg2=HyperGroupoidMat::new_from_tag(&tag, &3u32);
     println!("core is {:?}",hg2.beta_relation());
-    println!("beta is equivalence: {}",hg2.beta_relation().is_equivalence());
-/*Example 1 Karim ABBASI, Reza AMERI, Yahya TALEBI-ROSTAMI  */
+    println!("beta is equivalence: {}",hg2.beta_relation().is_equivalence()); */
+/* 
+    /*Example 1 Karim ABBASI, Reza AMERI, Yahya TALEBI-ROSTAMI  */
     let cardinality=  3u32;
     let hs = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,6,1,6,1,6,1,6,1]));
     println!("Is hypergroup {}",hs.is_hypergroup());
@@ -58,7 +59,8 @@ println!("beta is symm: {}",hs.beta_relation().is_symmetric());
 
 println!("beta is trans: {}",hs.beta_relation().is_transitive());
 
-
+ */
+/* 
 /*Example 4.2  Pourhaghani, Anvariyen, Davvaz (OK)*/
 println!("Example 4.2  Pourhaghani, Anvariyen, Davvaz");
 
@@ -71,8 +73,8 @@ println!("ph is {:?}",ph);
 let beta:Vec<(HashSet<u32>,HashSet<u32>)> = hypergroupoid.beta_relation().rel.iter().map(|(x,y)| (vec_to_set(&get_subset(x, &cardinality)),vec_to_set(&get_subset(y, &cardinality)))).collect();
 println!("beta {:?}",beta);
 println!("beta is equivalence: {}",hypergroupoid.beta_relation().is_equivalence());
-
-    
+ */
+/*     
  /*Example 4.3 Pourhaghani, Anvariyen, Davvaz (OK)*/
 println!("Example 4.3 Pourhaghani, Anvariyen, Davvaz");
 
@@ -85,7 +87,8 @@ println!("ph is {:?}",ph);
 let beta:Vec<(HashSet<u32>,HashSet<u32>)> = hypergroupoid.beta_relation().rel.iter().map(|(x,y)| (vec_to_set(&get_subset(y, &cardinality)),vec_to_set(&get_subset(x, &cardinality)))).collect();
 println!("beta {:?}",beta);
 println!("beta is equivalence: {}",hypergroupoid.beta_relation().is_equivalence());
-
+ */
+/* 
 /*Example 4.4 Pourhaghani, Anvariyen, Davvaz (OK)*/
     let cardinality=  3u32;
     let hs = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,3,5,1,2,5,1,3,4]));
@@ -95,6 +98,7 @@ println!("ph is {:?}",ph);
 let beta:Vec<(HashSet<u32>,HashSet<u32>)> = hs.beta_relation().rel.iter().map(|(x,y)| (vec_to_set(&get_subset(x, &cardinality)),vec_to_set(&get_subset(y, &cardinality)))).collect();
 println!("beta {:?}",beta);
 println!("beta is equivalence: {}",hs.beta_relation().is_equivalence());
+ */
 
 /* let cardinality=  5u32;
 let hs = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,11,1,11,11,1,2,1,11,11,1,11,9,11,31,1,11,1,11,11,1,11,9,11,31]));
@@ -292,12 +296,16 @@ println!("H is associativity: {}",new_hg.is_associative());
  */
 /* 
 GET HYPERSTRUCTURE FROM MATRIX */
-/* 
+
 let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
 let hypergroup=HyperGroupoidMat::new_from_matrix(&matrix);
 println!("{}",hypergroup);
 println!("H is hypergroup: {}",hypergroup.is_hypergroup());
- */
+let a = 1u32;
+let b =2u32;
+let a_right_b=hypergroup.right_division(&a,&b);
+println!("a / b = {}",a_right_b);
+
 
 /* 
 /*TEST NUMBER OF ISOMORPHISM IN TERMS OF PERMUTATIONS */
