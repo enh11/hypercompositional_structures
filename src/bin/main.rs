@@ -44,8 +44,8 @@ fn main(){
     let hg2=HyperGroupoidMat::new_from_tag(&tag, &3u32);
     println!("core is {:?}",hg2.beta_relation());
     println!("beta is equivalence: {}",hg2.beta_relation().is_equivalence()); */
-/* 
-    /*Example 1 Karim ABBASI, Reza AMERI, Yahya TALEBI-ROSTAMI  */
+
+/* /*Example 1 Karim ABBASI, Reza AMERI, Yahya TALEBI-ROSTAMI  */
     let cardinality=  3u32;
     let hs = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,6,1,6,1,6,1,6,1]));
     println!("Is hypergroup {}",hs.is_hypergroup());
@@ -53,13 +53,40 @@ fn main(){
 let ph :Vec<HashSet<u32>> = hs.collect_ph().iter().map(|x|vec_to_set(&get_subset(x, &cardinality))).collect();
 println!("ph is {:?}",ph);
 let beta:Vec<(HashSet<u32>,HashSet<u32>)> = hs.beta_relation().rel.iter().map(|(x,y)| (vec_to_set(&get_subset(x, &cardinality)),vec_to_set(&get_subset(y, &cardinality)))).collect();
+
 println!("beta {:?}",beta);
 println!("beta is rif: {}",hs.beta_relation().is_reflexive());
 println!("beta is symm: {}",hs.beta_relation().is_symmetric());
 
 println!("beta is trans: {}",hs.beta_relation().is_transitive());
-
+let eq_classes=hs.beta_relation().collect_classes();
+println!("classes are {:?}",eq_classes);
  */
+/* /*Example 2 Karim ABBASI, Reza AMERI, Yahya TALEBI-ROSTAMI (OK) */
+let cardinality=  3u32;
+let hs = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,6,6,6,1,1,6,1,1]));
+println!("Is hypergroup {}",hs.is_hypergroup());
+println!("Hypergroupoid : {}",hs);
+let ph :Vec<HashSet<u32>> = hs.collect_ph().iter().map(|x|vec_to_set(&get_subset(x, &cardinality))).collect();
+println!("ph is {:?}",ph);
+let beta:Vec<(HashSet<u32>,HashSet<u32>)> = hs.beta_relation().rel.iter().map(|(x,y)| (vec_to_set(&get_subset(x, &cardinality)),vec_to_set(&get_subset(y, &cardinality)))).collect();
+
+println!("beta {:?}",beta);
+println!("beta is rif: {}",hs.beta_relation().is_reflexive());
+println!("beta is symm: {}",hs.beta_relation().is_symmetric());
+
+println!("beta is trans: {}",hs.beta_relation().is_transitive());
+let eq_classes=hs.beta_relation().collect_classes();
+println!("classes are {:?}",eq_classes);
+ */
+/*Example 3 Karim ABBASI, Reza AMERI, Yahya TALEBI-ROSTAMI (OK) */
+let cardinality=  4u32;
+let hs = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,6,6,8,6,8,8,1,6,8,8,1,8,1,1,6]));
+println!("Is hypergroup {}",hs.is_hypergroup());
+println!("Hypergroupoid : {}",hs);
+let eq_classes=hs.beta_relation().collect_classes();
+println!("classes are {:?}",eq_classes);
+
 /* 
 /*Example 4.2  Pourhaghani, Anvariyen, Davvaz (OK)*/
 println!("Example 4.2  Pourhaghani, Anvariyen, Davvaz");

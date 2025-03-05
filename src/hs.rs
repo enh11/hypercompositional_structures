@@ -340,7 +340,6 @@ pub fn left_division(&self,a:&u32,b:&u32)->u32{
         )
         .fold(0, |acc, x| acc|x)
 }
-
 /// Compute a/b={x in H : a in xb}.
 /// Input a and b must be type u32, representing non empty subset of H. Therefore, singleton are powers of 2.
 /// 

@@ -1,4 +1,4 @@
-use std::{collections::HashSet, ops::Mul};
+use std::{collections::HashSet, ops::Mul, os::unix::process};
 
 use itertools::Itertools;
 
@@ -50,5 +50,29 @@ impl Relation {
     }
     pub fn is_equivalence(&self)->bool{
         self.is_reflexive()&&self.is_symmetric()&&self.is_transitive()
+    }
+   pub fn collect_classes(&self)->Vec<(u32,Vec<u32>)>{
+    assert!(self.is_equivalence());
+    let a:Vec<u32>= self.a.iter().sorted().map(|x|2u32.pow(*x)).collect();
+    let b:Vec<u32>= self.b.iter().sorted().map(|x|2u32.pow(*x)).collect();
+
+        let mut processed:Vec<u32>=Vec::new();
+        let mut classes:Vec<(u32,Vec<u32>)>= Vec::new();
+        
+        for representant in &a {
+            if processed.contains(representant){continue;}
+            let mut class:Vec<u32>=Vec::new();
+                for element in &b {
+                    if self.rel.iter().contains(&(*representant,*element)){
+                        class.push(*element);
+                        processed.push(*element);
+                    }
+                
+                }
+                classes.push((*representant,class.clone()));
+            }
+
+        
+        classes
     }
 }
