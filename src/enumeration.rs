@@ -3,7 +3,7 @@ use itertools::Itertools;
 use permutation::Permutation;
 use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
 use crate::unital_magma::UnitalMagma;
-use crate::utilities::write;
+use crate::utilities::{get_min_max, write};
 use crate::hs::HyperGroupoidMat;
 use crate::utilities::representing_hypergroupoid;
 
@@ -31,12 +31,20 @@ pub fn collect_invertible_magmata(cardinality:&u32)->Vec<u128>{
 
 }
 pub fn collect_hypergroups(cardinality:&u32)->Vec<u128>{
-    let size = cardinality.pow(3);
+    let (min,max)= get_min_max(cardinality);
+    (min..=max).into_par_iter()
+    .filter(|i|
+            representing_hypergroupoid(&mut i.clone(),&cardinality)&&HyperGroupoidMat::new_from_tag(i, cardinality).is_hypergroup()
+        )
+    .collect()
+
+
+/*     let size = cardinality.pow(3);
     (2u128.pow(size-cardinality)..2u128.pow(size)).into_par_iter()
         .filter(|i|
                 representing_hypergroupoid(&mut i.clone(),&cardinality)&&HyperGroupoidMat::new_from_tag(i, cardinality).is_hypergroup()
             )
-        .collect()
+        .collect() */
 
 }
 pub fn enumeration_hyperstructure(structure:&str,cardinality:&u32)->Vec<usize>{

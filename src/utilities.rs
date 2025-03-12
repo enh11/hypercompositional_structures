@@ -194,4 +194,13 @@ pub fn write(s:String,name:&str)-> std::io::Result<()> {
     file.write(&s.as_bytes())?;
     Ok(())
 }
+pub fn get_min_max(cardinality:&u32)->(u128,u128){
+    let size= cardinality.pow(3);
+    let square= cardinality.pow(2);
+let min: u128 = (0..square).into_iter().fold(0, |acc: u128,x: u32|acc+2u128.pow(*cardinality*x));
+
+let max = 2u128.pow(size)-1;
+(min,max)
+
+ }
 

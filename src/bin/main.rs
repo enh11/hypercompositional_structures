@@ -13,6 +13,7 @@ use hyperstruc::unital_magma::UnitalMagma;
 use hyperstruc::utilities::binary_to_u32;
 use hyperstruc::utilities::collect_n_digits;
 use hyperstruc::utilities::from_tag_to_vec;
+use hyperstruc::utilities::get_min_max;
 use hyperstruc::utilities::write;
 use hyperstruc::utilities::{cartesian_product, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, power_set, representation_permutation_subset, subset_as_u32, vec_to_set};
 use itertools::Itertools;
@@ -27,6 +28,12 @@ use std::collections:: HashSet;
 use permutation::Permutation;
 
 fn main(){
+   let (min, max)=get_min_max(&3u32);
+   let range = max-min;
+   println!("min max {:?}", (min,max));
+   println!("range is {}",range);
+
+    
 /*     let cardinality=3u32;
     let nbeta = collect_beta_not_equivalence(&cardinality);
     println!("nbeta : {}",nbeta.len()); */
@@ -79,14 +86,14 @@ println!("beta is trans: {}",hs.beta_relation().is_transitive());
 let eq_classes=hs.beta_relation().collect_classes();
 println!("classes are {:?}",eq_classes);
  */
-/*Example 3 Karim ABBASI, Reza AMERI, Yahya TALEBI-ROSTAMI (OK) */
+/* /*Example 3 Karim ABBASI, Reza AMERI, Yahya TALEBI-ROSTAMI (OK) */
 let cardinality=  4u32;
 let hs = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,6,6,8,6,8,8,1,6,8,8,1,8,1,1,6]));
 println!("Is hypergroup {}",hs.is_hypergroup());
 println!("Hypergroupoid : {}",hs);
 let eq_classes=hs.beta_relation().collect_classes();
 println!("classes are {:?}",eq_classes);
-
+ */
 /* 
 /*Example 4.2  Pourhaghani, Anvariyen, Davvaz (OK)*/
 println!("Example 4.2  Pourhaghani, Anvariyen, Davvaz");
@@ -186,10 +193,14 @@ println!("magma {}",magma);
     
 
         /* COLLECT INVERTIBLE UNITAL MAGMATA (L-MOSAICS)*/ 
-/*  let cardinality=4u32;
- let c= enumeration_hyperstructure("unital magmata", &cardinality);
+        let now = Instant::now();
+
+ let cardinality=3u32;
+ let c= enumeration_hyperstructure("hypergroups", &cardinality);
 println!("c : {:?}",c);
- */
+let end = now.elapsed();
+    println!("Computation time:{:?}",end);
+
  
  
 /* let cardinality=3u32;
@@ -322,7 +333,7 @@ println!("H is associativity: {}",new_hg.is_associative());
 
  */
 /* 
-GET HYPERSTRUCTURE FROM MATRIX */
+/* GET HYPERSTRUCTURE FROM MATRIX */
 
 let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
 let hypergroup=HyperGroupoidMat::new_from_matrix(&matrix);
@@ -332,7 +343,7 @@ let a = 1u32;
 let b =2u32;
 let a_right_b=hypergroup.right_division(&a,&b);
 println!("a / b = {}",a_right_b);
-
+ */
 
 /* 
 /*TEST NUMBER OF ISOMORPHISM IN TERMS OF PERMUTATIONS */
