@@ -28,6 +28,54 @@ use std::collections:: HashSet;
 use permutation::Permutation;
 
 fn main(){
+    println!("{}",(7<<2));
+    println!("{}",7>>2);
+    let cardinality: u32 = 3;
+    let bin = [1,1,1,0,0,1,1,0,0,1,0,1,1,1,0,1,0,0,0,1,0,1,1,1,1,0,0].to_vec();
+    let tag = binary_to_u32(&bin) as u128;
+    let hs = HyperGroupoidMat::new_from_tag(&tag,&cardinality);
+    println!("{}",hs);
+    let tag = hs.get_integer_tag();
+    let bin =n_to_binary_vec(&(tag as u128), &27);
+    println!("tag of hs is {:?}",bin);
+    println!("tag of hs is {}",tag);
+    println!("singleton {:?}",hs.get_singleton());
+    let rid:Vec<HashSet<u32>>=hs.collect_right_identity().iter().map(|x|vec_to_set(&get_subset(x, &cardinality))).collect();
+    println!("right identities {:?},", rid);
+    let lid:Vec<HashSet<u32>>=hs.collect_left_identity().iter().map(|x|vec_to_set(&get_subset(x, &cardinality))).collect();
+    println!("left identities {:?},", lid);
+    let k = 5;
+    for i in (0..=2^5){
+        for j in (0..=2^5){
+            assert_eq!(i|(i&j),i);
+            assert_eq!(i&(i|j),i);  
+            for k in (0..=2^5){
+                assert_eq!((i&j)|k,(i|k)&(j|k));
+                assert_eq!((i|j)&k,(i&k)|(j&k))
+
+            }  
+        }
+    }
+    println!("ok lattice");
+    for i in (0..=1){
+        for j in (0..=1){
+            assert_eq!(i|(i&j),i);
+            assert_eq!(i&(i|j),i);
+
+
+        }
+    }
+    for i in (0..=1){
+        for j in (0..=1){
+            for k in (0..=1){
+                assert_eq!((i&j)|k,(i|k)&(j|k))
+            }
+        }
+    }
+let s:Vec<(u32,u32)>=(0..=1).into_iter().cartesian_product((0..=1).into_iter()).collect();
+for pairs in s {
+    println!("{}", pairs.0|pairs.1)
+}
    let (min, max)=get_min_max(&3u32);
    let range = max-min;
    println!("min max {:?}", (min,max));
@@ -193,14 +241,14 @@ println!("magma {}",magma);
     
 
         /* COLLECT INVERTIBLE UNITAL MAGMATA (L-MOSAICS)*/ 
-        let now = Instant::now();
+/*         let now = Instant::now();
 
  let cardinality=3u32;
  let c= enumeration_hyperstructure("hypergroups", &cardinality);
 println!("c : {:?}",c);
 let end = now.elapsed();
     println!("Computation time:{:?}",end);
-
+ */
  
  
 /* let cardinality=3u32;

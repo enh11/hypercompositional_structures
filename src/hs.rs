@@ -137,7 +137,9 @@ pub fn is_left_identity(&self,e:&u32)->bool{
     let e=e.trailing_zeros();//the number of trailing_zeros in a power of two is equal to the exponent. Also ilog2() works.
     let row_e=self.hyper_composition.row(e as usize);
     //let e=e.trailing_zeros().pow(2);
-    (0..self.n).into_par_iter().all(|x|2u32.pow(x)&row_e.index(x as usize)==2u32.pow(x))
+    (0..self.n).into_iter().all(|x| (row_e.index(x as usize)>>x)&1==1)
+
+    //self.get_singleton().into_iter().all(|x|x&row_e.index(x.ilog2() as usize)==x)
 
     //self.get_singleton().iter().zip(row_e.iter()).all(|(k,ek)|k&ek==*k)
 }
@@ -146,7 +148,8 @@ pub fn is_right_identity(&self,e:&u32)->bool{
     let e=e.trailing_zeros();//the number of trailing_zeros in a power of two is equal to the exponent. Also ilog2() works.
     let col_e=self.hyper_composition.column(e as usize);
     //let e=e.trailing_zeros().pow(2);
-    (0..self.n).into_par_iter().all(|x|2u32.pow(x)&col_e.index(x as usize)==2u32.pow(x))
+    (0..self.n).into_iter().all(|x| (col_e.index(x as usize)>>x)&1==1)
+   // self.get_singleton().into_iter().all(|x|x&col_e.index(x.ilog2() as usize)==x) //this works as well
 
     //(0..self.n).into_iter().zip(col_e.iter()).all(|x|x.0.pow(2)&x.1==x.0)
     }
