@@ -65,7 +65,7 @@ pub fn enumeration_hyperstructure(structure:&str,cardinality:&u32)->Vec<usize>{
 
     for sigma in &permutation {        
         let isomorphic_image_tag = HyperGroupoidMat::new_from_tag(&tag, &cardinality).isomorphic_hypergroup_from_permutation(&sigma).get_integer_tag();
-        isomorphism_classes.push(isomorphic_image_tag);
+        isomorphism_classes.push(isomorphic_image_tag.try_into().unwrap());
 
     }
     isomorphism_classes=isomorphism_classes.iter().sorted().dedup().map(|x|*x).collect();

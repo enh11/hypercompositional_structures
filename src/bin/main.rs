@@ -10,7 +10,7 @@ use hyperstruc::tags::TAG_HG_2;
 use hyperstruc::tags::TAG_HG_3;
 use hyperstruc::tags::TAG_L_MOSAICS_2;
 use hyperstruc::unital_magma::UnitalMagma;
-use hyperstruc::utilities::binary_to_u32;
+use hyperstruc::utilities::binary_to_n;
 use hyperstruc::utilities::collect_n_digits;
 use hyperstruc::utilities::from_tag_to_vec;
 use hyperstruc::utilities::get_min_max;
@@ -28,15 +28,11 @@ use std::collections:: HashSet;
 use permutation::Permutation;
 
 fn main(){
-    println!("{}",(7<<2));
-    println!("{}",7>>2);
-    let cardinality: u32 = 3;
-    let bin = [1,1,1,0,0,1,1,0,0,1,0,1,1,1,0,1,0,0,0,1,0,1,1,1,1,0,0].to_vec();
-    let tag = binary_to_u32(&bin) as u128;
-    let hs = HyperGroupoidMat::new_from_tag(&tag,&cardinality);
+    let cardinality = 5u32;
+    let hs = HyperGroupoidMat::new_random_from_cardinality(&cardinality);
     println!("{}",hs);
     let tag = hs.get_integer_tag();
-    let bin =n_to_binary_vec(&(tag as u128), &27);
+    let bin =n_to_binary_vec(&(tag as u128), &cardinality.pow(3));
     println!("tag of hs is {:?}",bin);
     println!("tag of hs is {}",tag);
     println!("singleton {:?}",hs.get_singleton());

@@ -76,8 +76,8 @@ impl UnitalMagma {
 impl Display for UnitalMagma{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let table:DMatrix<String>=DMatrix::from_iterator(self.h.n as usize, self.h.n as usize, 
-            self.h.hyper_composition.iter().map(|x|format!("{:?}",vec_to_set(&get_subset(x, &self.h.n)))));
-        let identity=vec_to_set(&get_subset(&self.identity, &self.h.n));
+            self.h.hyper_composition.iter().map(|x|format!("{:?}",vec_to_set(&get_subset(x, &(self.h.n as u32))))));
+        let identity=vec_to_set(&get_subset(&self.identity, &(self.h.n as u32)));
         write!(f, "\nH: {:?},\nHypercomposition table:\n{} It is represented by: {} Identity is {:?} Size:{}\n", self.h.h, table, self.h.hyper_composition,identity, self.h.n )
     }
 }

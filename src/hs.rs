@@ -6,7 +6,7 @@ use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
 use rand:: Rng;
-use crate::{relations::Relation, utilities::{binary_to_u32, cartesian_product, from_tag_to_vec, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid, subset_as_u32, vec_to_set}};
+use crate::{relations::Relation, utilities::{binary_to_n, cartesian_product, from_tag_to_vec, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid, subset_as_u32, vec_to_set}};
 #[derive(Debug, Clone,PartialEq)]
 pub struct HyperGroupoidMat{
     pub h:HashSet<u32>,
@@ -76,7 +76,7 @@ impl HyperGroupoidMat {
 /// 
 pub fn new_from_tag(mut tag:&u128,cardinality:&u32)->Self{
     let vector_of_subsets_as_integers=from_tag_to_vec(&mut tag, &cardinality);
-    let vector_of_subsets_as_integers: Vec<u32>=vector_of_subsets_as_integers.iter().map(|x|binary_to_u32(x)).collect();
+    let vector_of_subsets_as_integers: Vec<u32>=vector_of_subsets_as_integers.iter().map(|x|binary_to_n(x).try_into().unwrap()).collect();
 
     let hyper_composition_matrix = DMatrix::from_row_slice(*cardinality as usize, *cardinality as usize, &vector_of_subsets_as_integers);
         HyperGroupoidMat::new_from_matrix(&hyper_composition_matrix)
@@ -93,9 +93,9 @@ pub fn new_from_tag(mut tag:&u128,cardinality:&u32)->Self{
 /// assert_eq!(new_hyperstructure_from_tag.get_integer_tag(), new_hyperstructure_from_matrix.get_integer_tag())
 /// 
 /// 
-pub fn get_integer_tag(&self)->u32{
+pub fn get_integer_tag(&self)->u128{
 
-    binary_to_u32(&self.hyper_composition
+    binary_to_n(&self.hyper_composition
         .transpose()//transpose is required because iteration in matrix is by column
         .iter()
         .map(|x|n_to_binary_vec(&(*x as u128), &self.n))
@@ -106,7 +106,7 @@ pub fn permutation_of_table(&self,sigma:&Permutation)->Self{
     let permutation_hypergroupoids = &self.hyper_composition;
     let alfa =DMatrix::from_iterator(self.n as usize, self.n as usize, 
         permutation_hypergroupoids.iter()
-            .map(|x| representation_permutation_subset(&(*x as u128),&sigma)));
+            .map(|x| representation_permutation_subset(&(*x as u128),&sigma).try_into().unwrap()));
     
     HyperGroupoidMat { 
         h: self.h.clone(), 

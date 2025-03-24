@@ -119,12 +119,12 @@ pub fn n_to_binary_vec(k: &u128, width: &u32) -> Vec<u32> {
 		.map(|x| if x == '1' { 1u32 } else { 0u32 })
 		.collect()
 }
-pub fn binary_to_u32(binary_vec:&Vec<u32>)->u32 {
+pub fn binary_to_n(binary_vec:&Vec<u32>)->u128 {
     let s= binary_vec.iter().map(|x|x.to_string()).collect::<String>();
-    u32::from_str_radix(&s, 2).unwrap()
+    u128::from_str_radix(&s, 2).unwrap()
 
 }
-pub fn representation_permutation_subset (k:&u128,sigma:&Permutation)->u32 {
+pub fn representation_permutation_subset (k:&u128,sigma:&Permutation)->u128 {
     /*
     The input value is k in (0..2^n), therefore it represent a subset of H with |H|=n.
     Any occurrence of 1 in the binary representation of k correspond to an element in the subset S corresponding to k 
@@ -137,7 +137,7 @@ pub fn representation_permutation_subset (k:&u128,sigma:&Permutation)->u32 {
     let binary_k=n_to_binary_vec(&k,&(sigma.len() as u32)).iter().rev().map(|x|*x).collect_vec();
     let x =sigma.apply_slice(&binary_k).iter().rev().map(|x|*x).collect_vec();
     
-    binary_to_u32(&x)
+    binary_to_n(&x)
 }
 pub fn representing_hypergroupoid(n:&mut u128,cardinality:&u32)->bool{
     let mut hypergroupoid = true;
