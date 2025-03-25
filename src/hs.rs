@@ -6,12 +6,12 @@ use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
 use rand:: Rng;
-use crate::{relations::Relation, utilities::{binary_to_n, cartesian_product, from_tag_to_vec, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid, subset_as_u32, vec_to_set}};
+use crate::{relations::Relation, utilities::{binary_to_n, cartesian_product, from_tag_to_vec, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid, subset_as_u64, vec_to_set}};
 #[derive(Debug, Clone,PartialEq)]
 pub struct HyperGroupoidMat{
-    pub h:HashSet<u32>,
-    pub hyper_composition:DMatrix<u32>,
-    pub n:u32
+    pub h:HashSet<u64>,
+    pub hyper_composition:DMatrix<u64>,
+    pub n:u64
 }
 impl HyperGroupoidMat {
 /// Generate a new random hyperstructure with cardinality n.
@@ -19,19 +19,19 @@ impl HyperGroupoidMat {
 /// ```
 /// use hyperstruc::hs::HyperGroupoidMat;
 /// 
-/// let n  =4u32;
+/// let n  =4u64;
 /// let hyperstructure = HyperGroupoidMat::new_random_from_cardinality(&n);
 /// println!("{hyperstructure}");
 ///  
-   pub fn new_random_from_cardinality(n:&u32)->Self{
-    let h_vec=(0..*n as u32).into_iter().collect();
+   pub fn new_random_from_cardinality(n:&u64)->Self{
+    let h_vec=(0..*n as u64).into_iter().collect();
         let ht = get_random_hypercomposition_matrix(&n);
         HyperGroupoidMat { 
             h: h_vec, 
             hyper_composition: ht, 
             n: *n}
    }
-/// Generate a new hyperstructure given a square matrix. Every entry in the matrix are u32 and represent a subset of H={0,1,2,...,n},
+/// Generate a new hyperstructure given a square matrix. Every entry in the matrix are u64 and represent a subset of H={0,1,2,...,n},
 /// where n is the size of the matrix, i.e., the cardinality of the new hyperstructure.
 /// In particular, if x,y are elements of H, then x*y is the entries in position (x,y). 
 /// For more detail about representation, see pub fn get_subset() in utilities.rs.
@@ -43,16 +43,16 @@ impl HyperGroupoidMat {
 /// let hyperstructure=HyperGroupoidMat::new_from_matrix(&matrix);
 /// println!("{hyperstructure}");
 ///
-   pub fn new_from_matrix(matrix:&DMatrix<u32>)->Self{
+   pub fn new_from_matrix(matrix:&DMatrix<u64>)->Self{
     if !matrix.is_square(){panic!("Matrix must be a square matrix!")}
-    let a:Vec<&u32>= matrix.iter().filter(|a|**a==0).collect();
+    let a:Vec<&u64>= matrix.iter().filter(|a|**a==0).collect();
     if !a.is_empty(){panic!("In order to have a hypergroupoid, matrix can't contain zeroes!")}
-    let h:HashSet<u32>= (0..matrix.ncols() as u32).into_iter().collect();
+    let h:HashSet<u64>= (0..matrix.ncols() as u64).into_iter().collect();
     let n=matrix.ncols();
     HyperGroupoidMat{
         h:h,
         hyper_composition:matrix.clone(),
-        n:n as u32
+        n:n as u64
    }
 }
 
@@ -74,9 +74,9 @@ impl HyperGroupoidMat {
 /// assert_eq!(new_hyperstructure_from_tag, new_hyperstructure_from_matrix)
 /// 
 /// 
-pub fn new_from_tag(mut tag:&u128,cardinality:&u32)->Self{
+pub fn new_from_tag(mut tag:&u128,cardinality:&u64)->Self{
     let vector_of_subsets_as_integers=from_tag_to_vec(&mut tag, &cardinality);
-    let vector_of_subsets_as_integers: Vec<u32>=vector_of_subsets_as_integers.iter().map(|x|binary_to_n(x).try_into().unwrap()).collect();
+    let vector_of_subsets_as_integers: Vec<u64>=vector_of_subsets_as_integers.iter().map(|x|binary_to_n(x).try_into().unwrap()).collect();
 
     let hyper_composition_matrix = DMatrix::from_row_slice(*cardinality as usize, *cardinality as usize, &vector_of_subsets_as_integers);
         HyperGroupoidMat::new_from_matrix(&hyper_composition_matrix)
@@ -98,7 +98,7 @@ pub fn get_integer_tag(&self)->u128{
     binary_to_n(&self.hyper_composition
         .transpose()//transpose is required because iteration in matrix is by column
         .iter()
-        .map(|x|n_to_binary_vec(&(*x as u128), &self.n))
+        .map(|x|n_to_binary_vec(&(*x as u128), &(self.n as u64)))
         .concat())
 
 }
@@ -114,7 +114,7 @@ pub fn permutation_of_table(&self,sigma:&Permutation)->Self{
         n: self.n}
 }
 pub fn isomorphic_hypergroup_from_permutation(&self, sigma:&Permutation)->Self{
-    let perm_mat = permutaton_matrix_from_permutation(&self.n, &sigma.clone());
+    let perm_mat = permutaton_matrix_from_permutation(&(self.n as u64), &sigma.clone());
     let isomorphic_matrix=perm_mat.clone()*self.permutation_of_table(sigma).hyper_composition*perm_mat.transpose();
     HyperGroupoidMat::new_from_matrix(&isomorphic_matrix)
 }
@@ -132,7 +132,7 @@ pub fn is_commutative(&self)->bool{
     }
     true
 }
-pub fn is_left_identity(&self,e:&u32)->bool{
+pub fn is_left_identity(&self,e:&u64)->bool{
     if !e.is_power_of_two() {panic!("Not an element in hypergroupoid!")}
     let e=e.trailing_zeros();//the number of trailing_zeros in a power of two is equal to the exponent. Also ilog2() works.
     let row_e=self.hyper_composition.row(e as usize);
@@ -143,7 +143,7 @@ pub fn is_left_identity(&self,e:&u32)->bool{
 
     //self.get_singleton().iter().zip(row_e.iter()).all(|(k,ek)|k&ek==*k)
 }
-pub fn is_right_identity(&self,e:&u32)->bool{
+pub fn is_right_identity(&self,e:&u64)->bool{
     if !e.is_power_of_two() {panic!("Not an element in hypergroupoid!")}
     let e=e.trailing_zeros();//the number of trailing_zeros in a power of two is equal to the exponent. Also ilog2() works.
     let col_e=self.hyper_composition.column(e as usize);
@@ -153,58 +153,58 @@ pub fn is_right_identity(&self,e:&u32)->bool{
 
     //(0..self.n).into_iter().zip(col_e.iter()).all(|x|x.0.pow(2)&x.1==x.0)
     }
-pub fn is_identity(&self,e:&u32)->bool{
+pub fn is_identity(&self,e:&u64)->bool{
     self.is_left_identity(&e)&&self.is_right_identity(&e)
 }
-pub fn collect_left_identity(&self)->Vec<u32>{
+pub fn collect_left_identity(&self)->Vec<u64>{
     self.get_singleton().iter()
         .filter(|e|self.is_left_identity(e))
         .map(|e|*e)
         .collect_vec()
 
 }
-pub fn collect_right_identity(&self)->Vec<u32>{
+pub fn collect_right_identity(&self)->Vec<u64>{
     self.get_singleton().iter()
         .filter(|e|self.is_right_identity(e))
         .map(|e|*e)
         .collect_vec()
 
 }
-pub fn collect_identities(&self)->Vec<u32>{
+pub fn collect_identities(&self)->Vec<u64>{
     self.get_singleton().iter()
         .filter(|e|self.is_right_identity(&e)&&self.is_left_identity(&e))
         .map(|e|*e)
         .collect_vec()
 
 }
-pub fn is_left_scalar(&self,s:&u32)->bool{
+pub fn is_left_scalar(&self,s:&u64)->bool{
     if !s.is_power_of_two() {panic!("Not an element in hypergroupoid!")}
     let s=s.trailing_zeros();//the number of trailing_zeros in a power of two is equal to the exponent. Also ilog2() works.
 
     self.hyper_composition.column(s as usize).iter().all(|x|x.is_power_of_two())
 }
-pub fn is_right_scalar(&self,s:&u32)->bool{
+pub fn is_right_scalar(&self,s:&u64)->bool{
     if !s.is_power_of_two()  {panic!("Not an element in hypergroupoid!")}
     let s=s.trailing_zeros();//the number of trailing_zeros in a power of two is equal to the exponent. Also ilog2() works.
 
     self.hyper_composition.row(s as usize).iter().all(|x|x.is_power_of_two())
 }
-pub fn collect_scalars(&self)->Vec<u32>{
+pub fn collect_scalars(&self)->Vec<u64>{
     self.get_singleton().iter()
         .filter(|s|self.is_left_scalar(&s)&&self.is_right_scalar(&s))
         .map(|x|*x)
-        .collect::<Vec<u32>>()
+        .collect::<Vec<u64>>()
 }
-pub fn collect_scalar_identity(&self)->Vec<u32>{
+pub fn collect_scalar_identity(&self)->Vec<u64>{
     self.collect_scalars()
         .par_iter()
         .filter(|s|self.is_identity(s))
         .map(|x|*x)
-        .collect::<Vec<u32>>()
+        .collect::<Vec<u64>>()
 }
-pub fn collect_ph(&self)->Vec<u32>{
-    //let mut ph: Vec<u32> = Vec::new();
-    let  mut a: Vec<u32>  =self.get_singleton();
+pub fn collect_ph(&self)->Vec<u64>{
+    //let mut ph: Vec<u64> = Vec::new();
+    let  mut a: Vec<u64>  =self.get_singleton();
     loop {
         let ph=a;
         a=ph.iter().cartesian_product(ph.iter()).map(|(x,y)|self.mul_by_representation(x, y)).unique().collect();
@@ -220,7 +220,7 @@ pub fn collect_ph(&self)->Vec<u32>{
 
 
     }
-    /* let mut i = 0u32;
+    /* let mut i = 0u64;
     while ph!=a {
         i+=1;
         ph=a.clone();
@@ -245,15 +245,15 @@ pub fn collect_ph(&self)->Vec<u32>{
 }
 pub fn beta_relation(&self)->Relation{
     let ph=self.collect_ph();
-    let ph :Vec<Vec<u32>>= ph.iter().map(|x|ones_positions(*x, &(self.n as usize))).collect();
-    let ph: Vec<(u32, u32)> =ph.iter().zip(ph.iter())
+    let ph :Vec<Vec<u64>>= ph.iter().map(|x|ones_positions(*x, &(self.n as usize))).collect();
+    let ph: Vec<(u64, u64)> =ph.iter().zip(ph.iter())
         .map(|x|
             x.0.iter().cartesian_product(x.1.iter())
             .map(|(x,y)|(*x,*y))
             .collect_vec())
             .concat().iter()
             .unique()
-            .map(|(x,y)|(2u32.pow(*x),2u32.pow(*y))).sorted().collect_vec();
+            .map(|(x,y)|(2u64.pow(*x as u32),2u64.pow(*y as u32))).sorted().collect_vec();
         Relation{
             a:self.h.clone(),
             b:self.h.clone(),
@@ -265,42 +265,42 @@ pub fn beta_relation(&self)->Relation{
 /// There are 2^n different integer representing subsets of H. It will panic if $k is greater then 2^n.
 /// The subset S represented by k is given by the binary representation of k: 
 /// i is in S if and only if the i-th digit of binary representation of k is a one.
-/// Output is Vec<u32>. Use fn vec_to_set to convert it into a HashSet<u32>.
-/// Reverse function is subset_as_u32() in utilities.rs
+/// Output is Vec<u64>. Use fn vec_to_set to convert it into a HashSet<u64>.
+/// Reverse function is subset_as_u64() in utilities.rs
 /// # Example
 /// ```
 /// use hyperstruc::hs::HyperGroupoidMat;
 /// use std::collections::HashSet;
 /// 
-/// let cardinality = 4u32;
+/// let cardinality = 4u64;
 /// let hyperstructure = HyperGroupoidMat::new_random_from_cardinality(&cardinality);
 /// let k=6;
 /// let subset=hyperstructure.get_subset_from_k(&k);
 /// println!("{:?}",subset);
-/// let test_subset:HashSet<u32>= (1..=2).into_iter().collect();
+/// let test_subset:HashSet<u64>= (1..=2).into_iter().collect();
 /// assert_eq!(subset,test_subset);
 /// 
 /// let k=8;
 /// let subset=hyperstructure.get_subset_from_k(&k);
 /// println!("{:?}",subset);
-/// let test_subset:HashSet<u32>= vec![3].into_iter().collect();
+/// let test_subset:HashSet<u64>= vec![3].into_iter().collect();
 /// assert_eq!(subset,test_subset);
 ///
-pub fn get_subset_from_k(&self,k:&u32)->HashSet<u32>{
-    let cardinality = self.h.len() as u32;
-    let subset: Vec<u32> = get_subset(&k, &cardinality);
+pub fn get_subset_from_k(&self,k:&u64)->HashSet<u64>{
+    let cardinality = self.h.len() as u64;
+    let subset: Vec<u64> = get_subset(&k, &cardinality);
     vec_to_set(&subset)
 }
-   pub fn mul_by_representation(&self,int_k:&u32,int_l:&u32)->u32{
+   pub fn mul_by_representation(&self,int_k:&u64,int_l:&u64)->u64{
     let ones_k=ones_positions(*int_k, &self.h.len());
     let ones_l= ones_positions(*int_l, &self.h.len());
-    let mut indexes:Vec<(u32,u32)>=Vec::new();
+    let mut indexes:Vec<(u64,u64)>=Vec::new();
     for a in &ones_k{
         for b in &ones_l{
                 indexes.push((*a,*b));
         }
     }
-    indexes.iter().fold(0u32, |acc, x| acc|self.hyper_composition[(x.0 as usize,x.1 as usize)])
+    indexes.iter().fold(0u64, |acc, x| acc|self.hyper_composition[(x.0 as usize,x.1 as usize)])
 }
 /// # Example
 /// ```
@@ -309,20 +309,20 @@ pub fn get_subset_from_k(&self,k:&u32)->HashSet<u32>{
 /// use std::collections::HashSet;
 /// let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
 /// let hyperstructure=HyperGroupoidMat::new_from_matrix(&matrix);
-/// let a:HashSet<u32>=[1].into();
-/// let b:HashSet<u32>=[0].into();
-/// let ab=2u32;
+/// let a:HashSet<u64>=[1].into();
+/// let b:HashSet<u64>=[0].into();
+/// let ab=2u64;
 /// let mul=hyperstructure.mul(&a,&b);
 /// assert_eq!(ab,mul);
 /// 
-pub fn mul(&self,subset_k:&HashSet<u32>,subset_l:&HashSet<u32>)->u32{
+pub fn mul(&self,subset_k:&HashSet<u64>,subset_l:&HashSet<u64>)->u64{
     if !subset_k.is_subset(&self.h)||!subset_l.is_subset(&self.h) { panic!("K and L must be a subsets of H!")};
-    let int_k=subset_as_u32(&subset_k);
-    let int_l=subset_as_u32(&subset_l);
+    let int_k=subset_as_u64(&subset_k);
+    let int_l=subset_as_u64(&subset_l);
 self.mul_by_representation(&int_k, &int_l)   
 }
 /// Compute b\a={x in H : a in bx}.
-/// Input a and b must be type u32, representing non empty subset of H. Therefore, singleton are powers of 2.
+/// Input a and b must be type u64, representing non empty subset of H. Therefore, singleton are powers of 2.
 /// 
 /// /// # Example
 /// ```
@@ -331,12 +331,12 @@ self.mul_by_representation(&int_k, &int_l)
 /// use std::collections::HashSet;
 /// let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
 /// let hyperstructure=HyperGroupoidMat::new_from_matrix(&matrix);
-/// let a=2u32;
-/// let b=4u32;
-/// let ab=3u32;
+/// let a=2u64;
+/// let b=4u64;
+/// let ab=3u64;
 /// let mul=hyperstructure.left_division(&a,&b);
 /// assert_eq!(ab,mul);
-pub fn left_division(&self,a:&u32,b:&u32)->u32{    
+pub fn left_division(&self,a:&u64,b:&u64)->u64{    
     self.get_singleton().iter()
     .filter(|x| 
         a&(&self.mul_by_representation(&b,&x))==*a
@@ -344,7 +344,7 @@ pub fn left_division(&self,a:&u32,b:&u32)->u32{
         .fold(0, |acc, x| acc|x)
 }
 /// Compute a/b={x in H : a in xb}.
-/// Input a and b must be type u32, representing non empty subset of H. Therefore, singleton are powers of 2.
+/// Input a and b must be type u64, representing non empty subset of H. Therefore, singleton are powers of 2.
 /// 
 /// /// # Example
 /// ```
@@ -353,13 +353,13 @@ pub fn left_division(&self,a:&u32,b:&u32)->u32{
 /// use std::collections::HashSet;
 /// let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
 /// let hyperstructure=HyperGroupoidMat::new_from_matrix(&matrix);
-/// let a=1u32;
-/// let b=2u32;
-/// let ab=6u32;
+/// let a=1u64;
+/// let b=2u64;
+/// let ab=6u64;
 /// let mul=hyperstructure.right_division(&a,&b);
 /// assert_eq!(ab,mul);
 /// 
-pub fn right_division(&self,a:&u32,b:&u32)->u32{    
+pub fn right_division(&self,a:&u64,b:&u64)->u64{    
     self.get_singleton().iter()
         .filter(|x| 
             a&(&self.mul_by_representation(&x,&b))==*a
@@ -377,11 +377,11 @@ pub fn right_division(&self,a:&u32,b:&u32)->u32{
 /// assert!(hyperstructure.is_reproductive())
 ///
    pub fn is_reproductive(&self)->bool{
-    let h:Vec<u32>=Vec::from_iter(0..self.n).iter().map(|_|2u32.pow(self.n)-1).collect();
+    let h:Vec<u64>=Vec::from_iter(0..self.n).iter().map(|_|2u64.pow(self.n as u32)-1).collect();
     /*xH is row_sum */
-    let row_sum:Vec<u32> = self.hyper_composition.row_iter().map(|x|x.iter().fold(0u32, |acc,element|acc|element)).collect();
+    let row_sum:Vec<u64> = self.hyper_composition.row_iter().map(|x|x.iter().fold(0u64, |acc,element|acc|element)).collect();
     /*Hx is column sum */
-    let col_sum:Vec<u32> = self.hyper_composition.column_iter().map(|x|x.iter().fold(0u32, |acc,element|acc|element)).collect();
+    let col_sum:Vec<u64> = self.hyper_composition.column_iter().map(|x|x.iter().fold(0u64, |acc,element|acc|element)).collect();
     if h==row_sum&&h==col_sum {
         true
     }
@@ -438,9 +438,9 @@ for a in &self.get_singleton(){
     }
 true
 }
-pub fn get_singleton(&self)->Vec<u32>{
-    //DMatrix::from_row_iterator(1, self.n as usize, (0..self.n).into_iter().map(|i|2u32.pow(i)))
-    (0..self.n).into_iter().map(|i|2u32.pow(i)).collect()
+pub fn get_singleton(&self)->Vec<u64>{
+    //DMatrix::from_row_iterator(1, self.n as usize, (0..self.n).into_iter().map(|i|2u64.pow(i)))
+    (0..self.n).into_iter().map(|i|2u64.pow(i as u32)).collect()
 }
 }
 impl Display for HyperGroupoidMat{
@@ -453,20 +453,20 @@ impl Display for HyperGroupoidMat{
 }
 
 
-pub fn get_random_hypercomposition_table(n:&u32)->Vec<Vec<u32>>{
-    let vec: Vec<u32>=(0u32..*n as u32).into_iter().map(|x|x).collect();
+pub fn get_random_hypercomposition_table(n:&u64)->Vec<Vec<u64>>{
+    let vec: Vec<u64>=(0u64..*n as u64).into_iter().map(|x|x).collect();
     let index_cartesian=cartesian_product(&vec);
     let mut rng = rand::thread_rng();
-    let mut hypercomposition_table=vec![vec![0u32;*n as usize];*n as usize];
+    let mut hypercomposition_table=vec![vec![0u64;*n as usize];*n as usize];
     
     for item in index_cartesian {
-        hypercomposition_table[item.0 as usize][item.1 as usize]=rng.gen_range(1..2u32.pow(*n as u32))
+        hypercomposition_table[item.0 as usize][item.1 as usize]=rng.gen_range(1..2u64.pow(*n as u32))
 } 
 hypercomposition_table
 }
-pub fn get_random_hypercomposition_matrix(n:&u32)->DMatrix<u32>{
+pub fn get_random_hypercomposition_matrix(n:&u64)->DMatrix<u64>{
     let mut rng = rand::thread_rng();
-    let m  =DMatrix::from_iterator(*n as usize, *n as usize, (0..n.pow(2)).into_iter().map(|_|rng.gen_range(1..2u32.pow(*n as u32))));
+    let m  =DMatrix::from_iterator(*n as usize, *n as usize, (0..n.pow(2)).into_iter().map(|_|rng.gen_range(1..2u64.pow(*n as u32))));
     m
 } 
 

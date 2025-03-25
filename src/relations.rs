@@ -4,15 +4,15 @@ use itertools::Itertools;
 
 #[derive(Debug)]
 pub struct Relation {
-    pub a: HashSet<u32>,
-    pub b: HashSet<u32>,
-    pub rel: Vec<(u32,u32)>
+    pub a: HashSet<u64>,
+    pub b: HashSet<u64>,
+    pub rel: Vec<(u64,u64)>
 }
 impl <'a,'b>Mul<&'a Relation> for &'b Relation{
     type Output = Relation;
     fn mul(self, rhs: &'a Relation) -> Self::Output {
         assert_eq!(self.b,self.a,"product not define!");
-        let pairs:Vec<(&u32, &u32)> =self.a.iter().cartesian_product(rhs.b.iter()).collect();
+        let pairs:Vec<(&u64, &u64)> =self.a.iter().cartesian_product(rhs.b.iter()).collect();
         let pairs=pairs.iter()
             .filter(|(x,z)|
                     self.b.iter()
@@ -31,7 +31,7 @@ impl Relation {
         assert_eq!(self.a,self.b,"Domain and codomain not coincede!");
         let pairs=self.a.iter().zip(self.b.clone())
             .into_iter()
-            .map(|(x,y)|(2u32.pow(*x),2u32.pow(y)))
+            .map(|(x,y)|(2u64.pow(*x as u32),2u64.pow(y as u32)))
             .collect_vec();
         pairs.iter().all(|x|self.rel.contains(x))
 
@@ -51,17 +51,17 @@ impl Relation {
     pub fn is_equivalence(&self)->bool{
         self.is_reflexive()&&self.is_symmetric()&&self.is_transitive()
     }
-   pub fn collect_classes(&self)->Vec<(u32,Vec<u32>)>{
+   pub fn collect_classes(&self)->Vec<(u64,Vec<u64>)>{
     assert!(self.is_equivalence());
-    let a:Vec<u32>= self.a.iter().sorted().map(|x|2u32.pow(*x)).collect();
-    let b:Vec<u32>= self.b.iter().sorted().map(|x|2u32.pow(*x)).collect();
+    let a:Vec<u64>= self.a.iter().sorted().map(|x|2u64.pow(*x as u32)).collect();
+    let b:Vec<u64>= self.b.iter().sorted().map(|x|2u64.pow(*x as u32)).collect();
 
-        let mut processed:Vec<u32>=Vec::new();
-        let mut classes:Vec<(u32,Vec<u32>)>= Vec::new();
+        let mut processed:Vec<u64>=Vec::new();
+        let mut classes:Vec<(u64,Vec<u64>)>= Vec::new();
         
         for representant in &a {
             if processed.contains(representant){continue;}
-            let mut class:Vec<u32>=Vec::new();
+            let mut class:Vec<u64>=Vec::new();
                 for element in &b {
                     if self.rel.iter().contains(&(*representant,*element)){
                         class.push(*element);
