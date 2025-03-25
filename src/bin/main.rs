@@ -13,8 +13,10 @@ use hyperstruc::unital_magma::UnitalMagma;
 use hyperstruc::utilities::binary_to_n;
 use hyperstruc::utilities::collect_n_digits;
 use hyperstruc::utilities::from_tag_to_vec;
+use hyperstruc::utilities::from_tag_u1024_to_vec;
 use hyperstruc::utilities::get_min_max;
 use hyperstruc::utilities::write;
+use hyperstruc::utilities::U1024;
 use hyperstruc::utilities::{cartesian_product, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, power_set, representation_permutation_subset, subset_as_u64, vec_to_set};
 use itertools::Itertools;
 use nalgebra::coordinates::X;
@@ -28,10 +30,29 @@ use std::collections:: HashSet;
 use permutation::Permutation;
 
 fn main(){
+let card = 6u64;
+let mut hs = HyperGroupoidMat::new_random_from_cardinality(&card);
+loop {
+    if hs.collect_left_identity().len()!=3 {
+        hs = HyperGroupoidMat::new_random_from_cardinality(&card);
+    }else {
+        break;
+    }
+
+}
+let id_sx = hs.collect_left_identity();
+println!("left ids {:?}",id_sx);
+println!("right ids {:?}",id_sx);
+println!("hs is {}",hs);
+
     let cardinality = 5u64;
     let hs = HyperGroupoidMat::new_random_from_cardinality(&cardinality);
     println!("{}",hs);
     let tag = hs.get_integer_tag();
+    let v =from_tag_to_vec(&tag, &cardinality);
+    let w = from_tag_u1024_to_vec(&U1024::from(tag), &cardinality);
+    assert_eq!(v,w);
+    println!("{:?}",v);
     let bin =n_to_binary_vec(&(tag as u128), &cardinality.pow(3));
     println!("tag of hs is {:?}",bin);
     println!("tag of hs is {}",tag);

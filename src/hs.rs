@@ -1,12 +1,12 @@
 use core::panic;
 use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
-use std::{collections::HashSet, fmt::Display, vec};
+use std::{collections::HashSet, fmt::Display, ops::Index, vec};
 extern crate nalgebra as na;
 use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
 use rand:: Rng;
-use crate::{relations::Relation, utilities::{binary_to_n, cartesian_product, from_tag_to_vec, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid, subset_as_u64, vec_to_set}};
+use crate::{relations::Relation, utilities::{binary_to_n, cartesian_product, from_tag_to_vec, from_tag_u1024_to_vec, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid, subset_as_u64, vec_to_set, U1024}};
 #[derive(Debug, Clone,PartialEq)]
 pub struct HyperGroupoidMat{
     pub h:HashSet<u64>,
@@ -81,6 +81,40 @@ pub fn new_from_tag(mut tag:&u128,cardinality:&u64)->Self{
     let hyper_composition_matrix = DMatrix::from_row_slice(*cardinality as usize, *cardinality as usize, &vector_of_subsets_as_integers);
         HyperGroupoidMat::new_from_matrix(&hyper_composition_matrix)
 }
+/// Generate a new hyperstructure given a tag and the cardinality of the set H. If n is the cardinality, then tag is a u128 less than or equal to n^3. 
+/// Its binary representation, divided in groups of n-bits, provide the table of hyperoperation; each group of n-bits corresponds to a subset of H. 
+/// For example, if n=2, then a tag must be less or equal to 2^8. The tag t=185 has binary representation 10111000, divided in groups of 2-bits it is
+/// 10-11-10-01. The bits 10 represent the subset {1}, the bits 11 represents {0,1}, the bits 01 represents {0}.
+/// With this example it follows that 0*0={1}, 0*1={0,1}, 1*0 = {1} and 1*1 = emptyset.
+/// 
+/// # Example
+/// 
+/// ```
+/// use hyperstruc::hs::HyperGroupoidMat;
+/// use nalgebra::DMatrix;
+/// use hyperstruc::utilities::U1024;
+/// 
+/// let cardinality = 2;
+/// let t=185u128;
+/// let t_u1024=U1024::from(185u32);
+/// let new_hyperstructure_from_tag = HyperGroupoidMat::new_from_tag(&t,&cardinality);
+/// let new_hyperstructure_from_tag_u1024 = HyperGroupoidMat::new_from_tag_u1024(&t_u1024,&cardinality);
+/// let new_hyperstructure_from_matrix = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(2usize,2usize,&[2,3,2,1]));
+/// assert_eq!(new_hyperstructure_from_tag, new_hyperstructure_from_matrix);
+/// assert_eq!(new_hyperstructure_from_tag, new_hyperstructure_from_tag_u1024);
+/// assert_eq!(new_hyperstructure_from_tag, new_hyperstructure_from_matrix);
+/// 
+/// let tag = new_hyperstructure_from_tag_u1024.get_integer_tag_u1024();
+/// assert_eq!(t_u1024,tag);
+/// 
+/// 
+pub fn new_from_tag_u1024(mut tag:&U1024,cardinality:&u64)->Self{
+    let vector_of_subsets_as_integers=from_tag_u1024_to_vec(&mut tag, &cardinality);
+    let vector_of_subsets_as_integers: Vec<u64>=vector_of_subsets_as_integers.iter().map(|x|binary_to_n(x).try_into().unwrap()).collect();
+
+    let hyper_composition_matrix = DMatrix::from_row_slice(*cardinality as usize, *cardinality as usize, &vector_of_subsets_as_integers);
+        HyperGroupoidMat::new_from_matrix(&hyper_composition_matrix)
+}
 /// # Example
 /// 
 /// ```
@@ -101,6 +135,35 @@ pub fn get_integer_tag(&self)->u128{
         .map(|x|n_to_binary_vec(&(*x as u128), &(self.n as u64)))
         .concat())
 
+}
+/// # Example
+/// 
+/// ```
+/// use hyperstruc::hs::HyperGroupoidMat;
+/// use nalgebra::DMatrix;
+/// use hyperstruc::utilities::U1024;
+/// 
+/// let cardinality = 2;
+/// let t=185;
+/// let new_hyperstructure_from_tag = HyperGroupoidMat::new_from_tag(&t,&cardinality);
+/// let new_hyperstructure_from_matrix = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(2usize,2usize,&[2,3,2,1]));
+/// let tag1 = new_hyperstructure_from_tag.get_integer_tag_u1024();
+/// let tag2 = new_hyperstructure_from_matrix.get_integer_tag_u1024();
+/// 
+/// assert_eq!(tag1,tag2);
+/// assert_eq!(new_hyperstructure_from_tag.get_integer_tag_u1024(), U1024::from(t))
+/// 
+pub fn get_integer_tag_u1024(&self)->U1024 {
+    let binary_vector:Vec<u64> = self.hyper_composition
+        .transpose()//transpose is required because iteration in matrix is by column
+        .iter()
+        .map(|x|n_to_binary_vec(&(*x as u128), &(self.n as u64)))
+        .concat()
+        .into_iter()
+        .rev()
+        .collect();
+    (0..binary_vector.len()).into_iter().fold(U1024::zero(), |acc,x|acc+(U1024::from(binary_vector[x]))*U1024::from(2).pow(x.into()))
+    //binary_vector.iter().fold(U1024::from(0u64), |acc,x|acc+U1024::from(2).pow(U1024::from(*x)))
 }
 pub fn permutation_of_table(&self,sigma:&Permutation)->Self{
     let permutation_hypergroupoids = &self.hyper_composition;
