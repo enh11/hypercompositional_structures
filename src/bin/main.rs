@@ -30,19 +30,28 @@ use std::collections:: HashSet;
 use permutation::Permutation;
 
 fn main(){
+
+let cardinality = 2;
+let t=185;
+let new_hyperstructure_from_tag = HyperGroupoidMat::new_from_tag(&t,&cardinality);
+let new_hyperstructure_from_matrix = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(2usize,2usize,&[2,3,2,1]));
+let tag1 = new_hyperstructure_from_tag.get_integer_tag_u1024();
+let tag2 = new_hyperstructure_from_matrix.get_integer_tag_u1024();
+println!("{}",new_hyperstructure_from_matrix);
+println!("{tag1},{:b},{:b}",tag2,t);
 let card = 6u64;
 let mut hs = HyperGroupoidMat::new_random_from_cardinality(&card);
-loop {
-    if hs.collect_left_identity().len()!=3 {
+while hs.collect_left_identity()==hs.collect_right_identity() {
+    {
         hs = HyperGroupoidMat::new_random_from_cardinality(&card);
-    }else {
-        break;
     }
 
 }
 let id_sx = hs.collect_left_identity();
+let id_dx = hs.collect_right_identity();
+
 println!("left ids {:?}",id_sx);
-println!("right ids {:?}",id_sx);
+println!("right ids {:?}",id_dx);
 println!("hs is {}",hs);
 
     let cardinality = 5u64;

@@ -9,16 +9,16 @@ use crate::utilities::representing_hypergroupoid;
 
 pub fn collect_beta_not_equivalence(cardinality:&u64)->Vec<u128>{
     let size = cardinality.pow(3);
-    (2u128.pow((size-cardinality) as u32)..2u128.pow(size as u32)).into_par_iter().filter(|i|representing_hypergroupoid(&mut i.clone(),&cardinality)&&HyperGroupoidMat::new_from_tag(i, cardinality).beta_relation().is_transitive()).collect()
+    (2u128.pow((size-cardinality) as u32)..2u128.pow(size as u32)).into_par_iter().filter(|i|representing_hypergroupoid(i,&cardinality)&&HyperGroupoidMat::new_from_tag(i, cardinality).beta_relation().is_transitive()).collect()
 }
 pub fn collect_hypergroupoid(cardinality:&u64)->Vec<u128>{
     let size = cardinality.pow(3);
-    (2u128.pow((size-cardinality) as u32)..2u128.pow(size as u32)).into_par_iter().filter(|i|representing_hypergroupoid(&mut i.clone(),&cardinality)).collect()
+    (2u128.pow((size-cardinality) as u32)..2u128.pow(size as u32)).into_par_iter().filter(|i|representing_hypergroupoid(i,&cardinality)).collect()
 }
 pub fn collect_hypergroupoid_with_scalar_identity(cardinality:&u64)->Vec<u128>{
     let size = cardinality.pow(3);
     (2u128.pow((size-cardinality) as u32)..2u128.pow(size as u32)).into_par_iter()
-        .filter(|i|representing_hypergroupoid(&mut i.clone(),&cardinality)&&!(HyperGroupoidMat::new_from_tag(i, &cardinality).collect_scalar_identity().is_empty()))
+        .filter(|i|representing_hypergroupoid(&i,&cardinality)&&!(HyperGroupoidMat::new_from_tag(i, &cardinality).collect_scalar_identity().is_empty()))
         .collect()
 
 }

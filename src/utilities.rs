@@ -1,21 +1,25 @@
-use std::{collections::HashSet, default, fs::File, io::Write};
+use std::{collections::HashSet, default, fmt::Binary, fs::File, io::Write};
 use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
 use uint::construct_uint;
-
 construct_uint!{
     pub struct U1024(32);}
     impl U1024 {
-        pub fn u1024_to_binary_vec(&self)->Vec<Vec<u64>>{
-            self.0.iter()
-             .map(|x| u64_to_binary_vec_u64(x, &64))
-             .rev()
-             .collect_vec()
-         
-          }
-        
-    }
+pub fn u1024_to_binary_vec(&self)->Vec<Vec<u64>>{
+    self.0.iter()
+        .map(|x| u64_to_binary_vec_u64(x, &64))
+        .rev()
+        .collect_vec()
+}
+pub fn from_binary_vec(binary_vec:&Vec<u64>)->Self{
+    let length = binary_vec.len();
+    (0..length).into_iter()
+        .fold(U1024::zero(), 
+            |acc,x|
+            acc+(U1024::from(binary_vec[x])<<length-1-x))
+}
+}
 /// Converts a Vec<u64> into a HashSet<u64>
 /// # Example
 /// ```
@@ -160,6 +164,11 @@ pub fn binary_to_u1024(binary_vec:&Vec<Vec<u64>>)->U1024 {
     };
     U1024(bin_to_ret)
 } 
+impl Binary for U1024 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = self.u1024_to_binary_vec().concat().iter().map(|x|x.to_string()).collect_vec().concat();
+write!(f,"{}",s)  }
+}
 
 /// Compute u64 given its binary representation vector.
 /// 
@@ -198,14 +207,15 @@ pub fn representation_permutation_subset (k:&u128,sigma:&Permutation)->u128 {
     
     binary_to_n(&x)
 }
-pub fn representing_hypergroupoid(n:&mut u128,cardinality:&u64)->bool{
+pub fn representing_hypergroupoid(n:&u128,cardinality:&u64)->bool{
+    let mut n = n.clone();
     let mut hypergroupoid = true;
-    while *n>=2u128.pow(*cardinality as u32) {
+    while n>=2u128.pow(*cardinality as u32) {
         if n.trailing_zeros()>=*cardinality as u32 {
             hypergroupoid=false;
             return hypergroupoid;
         }
-        *n>>=cardinality;
+        n>>=cardinality;
     }
     hypergroupoid
 }

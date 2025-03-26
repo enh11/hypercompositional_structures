@@ -6,7 +6,7 @@ use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
 use rand:: Rng;
-use crate::{relations::Relation, utilities::{binary_to_n, cartesian_product, from_tag_to_vec, from_tag_u1024_to_vec, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid, subset_as_u64, vec_to_set, U1024}};
+use crate::{relations::Relation, utilities::{binary_to_n, binary_to_u1024, cartesian_product, from_tag_to_vec, from_tag_u1024_to_vec, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid, subset_as_u64, vec_to_set, U1024}};
 #[derive(Debug, Clone,PartialEq)]
 pub struct HyperGroupoidMat{
     pub h:HashSet<u64>,
@@ -115,7 +115,7 @@ pub fn new_from_tag_u1024(mut tag:&U1024,cardinality:&u64)->Self{
     let hyper_composition_matrix = DMatrix::from_row_slice(*cardinality as usize, *cardinality as usize, &vector_of_subsets_as_integers);
         HyperGroupoidMat::new_from_matrix(&hyper_composition_matrix)
 }
-/// # Example
+ /// # Example
 /// 
 /// ```
 /// use hyperstruc::hs::HyperGroupoidMat;
@@ -151,7 +151,8 @@ pub fn get_integer_tag(&self)->u128{
 /// let tag2 = new_hyperstructure_from_matrix.get_integer_tag_u1024();
 /// 
 /// assert_eq!(tag1,tag2);
-/// assert_eq!(new_hyperstructure_from_tag.get_integer_tag_u1024(), U1024::from(t))
+/// assert_eq!(tag1,U1024::from(t));
+///
 /// 
 pub fn get_integer_tag_u1024(&self)->U1024 {
     let binary_vector:Vec<u64> = self.hyper_composition
@@ -160,10 +161,8 @@ pub fn get_integer_tag_u1024(&self)->U1024 {
         .map(|x|n_to_binary_vec(&(*x as u128), &(self.n as u64)))
         .concat()
         .into_iter()
-        .rev()
         .collect();
-    (0..binary_vector.len()).into_iter().fold(U1024::zero(), |acc,x|acc+(U1024::from(binary_vector[x]))*U1024::from(2).pow(x.into()))
-    //binary_vector.iter().fold(U1024::from(0u64), |acc,x|acc+U1024::from(2).pow(U1024::from(*x)))
+    U1024::from_binary_vec(&binary_vector)    //binary_vector.iter().fold(U1024::from(0u64), |acc,x|acc+U1024::from(2).pow(U1024::from(*x)))
 }
 pub fn permutation_of_table(&self,sigma:&Permutation)->Self{
     let permutation_hypergroupoids = &self.hyper_composition;
