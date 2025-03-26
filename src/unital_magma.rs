@@ -1,5 +1,4 @@
 use core::panic;
-use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
 use std::fmt::Display;
 extern crate nalgebra as na;
 use nalgebra::DMatrix;

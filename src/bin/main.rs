@@ -6,6 +6,7 @@ use hyperstruc::enumeration::collect_beta_not_equivalence;
 use hyperstruc::enumeration::collect_hypergroupoid_with_scalar_identity;
 use hyperstruc::enumeration::enumeration_hyperstructure;
 use hyperstruc::hs::HyperGroupoidMat;
+use hyperstruc::hypergroups::HyperGroup;
 use hyperstruc::tags::TAG_HG_2;
 use hyperstruc::tags::TAG_HG_3;
 use hyperstruc::tags::TAG_L_MOSAICS_2;
@@ -15,6 +16,7 @@ use hyperstruc::utilities::collect_n_digits;
 use hyperstruc::utilities::from_tag_to_vec;
 use hyperstruc::utilities::from_tag_u1024_to_vec;
 use hyperstruc::utilities::get_min_max;
+use hyperstruc::utilities::representing_hypergroupoid;
 use hyperstruc::utilities::write;
 use hyperstruc::utilities::U1024;
 use hyperstruc::utilities::{cartesian_product, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, power_set, representation_permutation_subset, subset_as_u64, vec_to_set};
@@ -24,25 +26,26 @@ use nalgebra::DMatrix;
 use nalgebra::Matrix;
 use rand::Rng;
 use rayon::iter;
+use rayon::iter::IntoParallelIterator;
 use rayon::iter::IntoParallelRefIterator;
 use rayon::iter::ParallelIterator;
 use std::collections:: HashSet;
 use permutation::Permutation;
 
 fn main(){
+    let card = 4u64;
+    let hg =HyperGroup::new_from_matrix(&DMatrix::from_row_slice(card as usize, card as usize, &[1,1,7,11,1,1,7,11,7,7,7,12,11,11,12,11]));
+   
+println!("hs is {}",hg);
+for k in 1..2u64.pow(card as u32) {
+    println!("subhypergroup {:b} = {}",k,hg.is_sub_hypergroup(&k));
+    if hg.is_sub_hypergroup(&k){
+        println!("{} is closed {}",k,hg.is_closed_subhypergroup(&k))
+    }
 
-let card = 3u64;
-let tag = U1024::from(22150143u128);
-let hs = HyperGroupoidMat::new_from_tag_u1024(&tag,&card);
-println!("{}",hs.is_hypergroup());
-  
-let id_sx = hs.collect_left_identity();
-let id_dx = hs.collect_right_identity();
+}
 
-println!("left ids {:?}",id_sx);
-println!("right ids {:?}",id_dx);
-println!("hs is {}",hs);
-
+/* 
     let cardinality = 5u64;
     let hs = HyperGroupoidMat::new_random_from_cardinality(&cardinality);
     println!("{}",hs);
@@ -96,7 +99,7 @@ for pairs in s {
    println!("min max {:?}", (min,max));
    println!("range is {}",range);
 
-    
+ */    
 /*     let cardinality=3u64;
     let nbeta = collect_beta_not_equivalence(&cardinality);
     println!("nbeta : {}",nbeta.len()); */

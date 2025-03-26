@@ -2,6 +2,7 @@
 //!
 #[macro_use]
 pub mod hs;
+pub mod hypergroups;
 pub mod utilities;
 pub mod tags;
 pub mod enumeration;

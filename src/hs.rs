@@ -74,8 +74,8 @@ impl HyperGroupoidMat {
 /// assert_eq!(new_hyperstructure_from_tag, new_hyperstructure_from_matrix)
 /// 
 /// 
-pub fn new_from_tag(mut tag:&u128,cardinality:&u64)->Self{
-    let vector_of_subsets_as_integers=from_tag_to_vec(&mut tag, &cardinality);
+pub fn new_from_tag(tag:&u128,cardinality:&u64)->Self{
+    let vector_of_subsets_as_integers=from_tag_to_vec(&tag, &cardinality);
     let vector_of_subsets_as_integers: Vec<u64>=vector_of_subsets_as_integers.iter().map(|x|binary_to_n(x)).collect();
 
     let hyper_composition_matrix = DMatrix::from_row_slice(*cardinality as usize, *cardinality as usize, &vector_of_subsets_as_integers);
@@ -278,7 +278,6 @@ pub fn collect_scalar_identity(&self)->Vec<u64>{
         .collect::<Vec<u64>>()
 }
 pub fn collect_ph(&self)->Vec<u64>{
-    //let mut ph: Vec<u64> = Vec::new();
     let  mut a: Vec<u64>  =self.get_singleton();
     loop {
         let ph=a;
@@ -287,40 +286,16 @@ pub fn collect_ph(&self)->Vec<u64>{
             a.push(x);
         }
         a=a.iter().unique().map(|x|*x).sorted().collect();
-/*         println!("ph is {:?}",ph);
-        println!("a is {:?}",a); */
         if a==ph {
             break ph;
         }
 
 
     }
-    /* let mut i = 0u64;
-    while ph!=a {
-        i+=1;
-        ph=a.clone();
-        a=Vec::new();
-        let pairs = ph.iter().cartesian_product(ph.iter()).collect_vec();
-            for (x,y) in pairs {
-                a.push(self.mul_by_representation(x, y));
-                a = a.iter().sorted().dedup().map(|a|*a).collect_vec();
-            }
-        a.append(&mut self.get_singleton());
-        a=a.iter().sorted().dedup().map(|x|*x).collect_vec();
-        println!("dedup a {:?}",a);
-        println!("ph {:?}",ph);
-
-
-        
-    }
-    println!("{i}");
-    ph
- */
-
 }
 pub fn beta_relation(&self)->Relation{
     let ph=self.collect_ph();
-    let ph :Vec<Vec<u64>>= ph.iter().map(|x|ones_positions(*x, &(self.n as usize))).collect();
+    let ph :Vec<Vec<u64>>= ph.iter().map(|x|ones_positions(x, &self.n)).collect();
     let ph: Vec<(u64, u64)> =ph.iter().zip(ph.iter())
         .map(|x|
             x.0.iter().cartesian_product(x.1.iter())
@@ -367,8 +342,8 @@ pub fn get_subset_from_k(&self,k:&u64)->HashSet<u64>{
     vec_to_set(&subset)
 }
    pub fn mul_by_representation(&self,int_k:&u64,int_l:&u64)->u64{
-    let ones_k=ones_positions(*int_k, &self.h.len());
-    let ones_l= ones_positions(*int_l, &self.h.len());
+    let ones_k=ones_positions(int_k, &(self.h.len() as u64));
+    let ones_l= ones_positions(int_l, &(self.h.len() as u64));
     let mut indexes:Vec<(u64,u64)>=Vec::new();
     for a in &ones_k{
         for b in &ones_l{

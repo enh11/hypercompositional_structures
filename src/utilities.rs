@@ -74,8 +74,29 @@ pub fn get_subset(k:&u64,cardinality:&u64)->Vec<u64>{
     }
     subset.iter().map(|x|*x).collect()
 }
-pub fn ones_positions(k:u64,n:&usize)->Vec<u64>{
-    (0..*n as u64).into_iter().filter(|x|(k>>x)&1==1).collect()
+pub fn get_complement_subset(k:&u64,cardinality:&u64)->u64 {
+    let total_set =2u64.pow(*cardinality as u32)-1;
+    total_set-*k
+
+}
+
+///
+/// Collects position of 1s in the binary representation of an integer k in [0,2^n] into a Vec<64>.
+/// For example, for k=5='101' and n = 3 it will return (0,2).
+/// 
+/// # Example
+/// ```
+/// use hyperstruc::utilities::ones_positions;
+/// 
+/// let cardinality = 3u64;
+/// let subset_representation = 5u64;
+/// let expected_ones_positions = [0,2].to_vec();
+/// let ones = ones_positions(&subset_representation, &cardinality);
+/// 
+/// assert_eq!(ones, expected_ones_positions)
+/// 
+pub fn ones_positions(k:&u64,n:&u64)->Vec<u64>{
+    (0..*n).into_iter().filter(|x|(k>>x)&1==1).collect()
 
 }
 
