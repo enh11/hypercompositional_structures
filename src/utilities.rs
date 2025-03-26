@@ -1,4 +1,5 @@
-use std::{collections::HashSet, default, fmt::Binary, fs::File, io::Write};
+use std::{collections::HashSet, fmt::Binary, fs::File, io::Write};
+use std::fmt::Debug;
 use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
@@ -160,7 +161,7 @@ pub fn u64_to_binary_vec_u64(k: &u64, width: &u32) -> Vec<u64> {
 pub fn binary_to_u1024(binary_vec:&Vec<Vec<u64>>)->U1024 {
     let mut bin_to_ret = [0u64;32];
     for i in 0..32{
-        bin_to_ret[i]=binary_to_u64(&binary_vec[31-i])   
+        bin_to_ret[i]=binary_to_n(&binary_vec[31-i])   
     };
     U1024(bin_to_ret)
 } 
@@ -175,47 +176,83 @@ write!(f,"{}",s)  }
 /// 
 /// # Example
 /// ```
-/// use hyperstruc::utilities::binary_to_u64;
+/// 
+/// use hyperstruc::utilities::binary_to_n;
+/// 
 /// let binary_vector=[1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0].to_vec();
 /// let n :u64=14987979559888969728;
-/// let x:u64=binary_to_u64(&binary_vector);
+/// let x:u64=binary_to_n(&binary_vector);
 /// assert_eq!(n,x);
 /// 
 /// 
-pub fn binary_to_u64(binary_vec:&Vec<u64>)->u64 {
+pub fn binary_to_n<T: num_traits::Num>(binary_vec:&Vec<u64>)->T where T: num_traits::Num<FromStrRadixErr: Debug> {
     let s= binary_vec.iter().map(|x|x.to_string()).collect::<String>();
-    u64::from_str_radix(&s, 2).unwrap()
+    T::from_str_radix(&s, 2).unwrap()
 
-}
-pub fn binary_to_n(binary_vec:&Vec<u64>)->u128 {
-    let s= binary_vec.iter().map(|x|x.to_string()).collect::<String>();
-    u128::from_str_radix(&s, 2).unwrap()
-
-}
+} 
+/// The input value is k in (0..2^n), therefore it represent a subset of H with |H|=n.
+/// Any occurrence of 1 in the binary representation of k correspond to an element in the subset S corresponding to k 
+/// The input value sigma is a permutation of S_n. We build the corresponding permutation matrix and we make it act on the binary representation of k.   
+/// We prefer to inverse and normalize sigma.
+/// For example for n=3 and k = 6 = '110', the subset corresponding to k is S_k= {1,2}. Let sigma = (1,2,0), meaning 0->1,1->2,2->0.
+/// Then, for k=101, sigmra send the 0th bit into the 1st position, the 1st bit into the 2nd position and the 2nd bit into the 0th position.
+/// Therefore, sigma_k=101, i.e., the subset {0,2}, which corresponds to the integer 5.
+/// 
+/// /// # Example
+/// ```
+/// use hyperstruc::utilities::representation_permutation_subset;
+/// use permutation::Permutation;
+/// 
+/// let sigma= Permutation::oneline([1,2,0].to_vec());
+/// let k =6u128;
+/// let sigma_k=representation_permutation_subset(&k, &sigma);
+/// let expected_subset_representation =5u128;
+/// 
+/// assert_eq!(expected_subset_representation,sigma_k)
+/// 
+/// 
 pub fn representation_permutation_subset (k:&u128,sigma:&Permutation)->u128 {
-    /*
-    The input value is k in (0..2^n), therefore it represent a subset of H with |H|=n.
-    Any occurrence of 1 in the binary representation of k correspond to an element in the subset S corresponding to k 
-    Example: k=5="101"-> S={2,0}. 
-    The input value sigma is a permutation of S_n. We build the corresponding permutation matrix and we make it act on the binary representation of k. 
-    Then, we convert the result into u64.
-    
-    We prefer to inverse and normalize sigma
-    */
+
     let binary_k=n_to_binary_vec(&k,&(sigma.len() as u64)).iter().rev().map(|x|*x).collect_vec();
     let x =sigma.apply_slice(&binary_k).iter().rev().map(|x|*x).collect_vec();
     
     binary_to_n(&x)
 }
-pub fn representing_hypergroupoid(n:&u128,cardinality:&u64)->bool{
-    let mut n = n.clone();
+/// 
+/// # Example
+/// 
+/// ```
+/// use hyperstruc::utilities::U1024;
+/// use hyperstruc::utilities::representing_hypergroupoid_u1024;
+/// 
+/// let card = 3u64;
+/// let tag = U1024::from(22150143u128);
+/// 
+/// assert!(representing_hypergroupoid_u1024(&tag,&card))
+/// 
+/// 
+pub fn representing_hypergroupoid_u1024(tag:&U1024,cardinality:&u64)->bool{
+    let mut clone_tag = tag.clone();
+    let cardinality_u1024=U1024::from(*cardinality);
     let mut hypergroupoid = true;
-    while n>=2u128.pow(*cardinality as u32) {
-        if n.trailing_zeros()>=*cardinality as u32 {
+    while clone_tag>=U1024::from(2).pow(cardinality_u1024) {
+        if clone_tag.trailing_zeros()>=*cardinality as u32 {
             hypergroupoid=false;
             return hypergroupoid;
         }
-        n>>=cardinality;
+        clone_tag>>=*cardinality;
+    }
+    hypergroupoid
+}
+pub fn representing_hypergroupoid(tag:&u128,cardinality:&u64)->bool{
+    let mut clone_tag = tag.clone();
+    let mut hypergroupoid = true;
+    while clone_tag>=2u128.pow(*cardinality as u32) {
+        if clone_tag.trailing_zeros()>=*cardinality as u32 {
+            hypergroupoid=false;
+            return hypergroupoid;
+        }
+        clone_tag>>=cardinality;
     }
     hypergroupoid
 }
@@ -268,13 +305,8 @@ pub fn from_tag_u1024_to_vec(tag:&U1024,n:&u64) ->Vec<Vec<u64>>{
 
             break;}
     }
-    tag_vec.iter().map(|x|x.clone()).rev().collect()
-    
-    
+    tag_vec.iter().map(|x|x.clone()).rev().collect()  
 }
-
-
-
 pub fn from_tag_to_vec(tag:&u128, n:&u64)->Vec<Vec<u64>>{
     let mut tag = tag.clone();
     let mut tag_vec:Vec<Vec<u64>>=Vec::new();
@@ -294,8 +326,6 @@ pub fn from_tag_to_vec(tag:&u128, n:&u64)->Vec<Vec<u64>>{
             break;}
     }
     tag_vec.iter().map(|x|x.clone()).rev().collect()
-    
-
 }
 pub fn write(s:String,name:&str)-> std::io::Result<()> {
     let file_name=format!("{}.txt",name);

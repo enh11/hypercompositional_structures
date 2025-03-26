@@ -76,7 +76,7 @@ impl HyperGroupoidMat {
 /// 
 pub fn new_from_tag(mut tag:&u128,cardinality:&u64)->Self{
     let vector_of_subsets_as_integers=from_tag_to_vec(&mut tag, &cardinality);
-    let vector_of_subsets_as_integers: Vec<u64>=vector_of_subsets_as_integers.iter().map(|x|binary_to_n(x).try_into().unwrap()).collect();
+    let vector_of_subsets_as_integers: Vec<u64>=vector_of_subsets_as_integers.iter().map(|x|binary_to_n(x)).collect();
 
     let hyper_composition_matrix = DMatrix::from_row_slice(*cardinality as usize, *cardinality as usize, &vector_of_subsets_as_integers);
         HyperGroupoidMat::new_from_matrix(&hyper_composition_matrix)
@@ -110,7 +110,7 @@ pub fn new_from_tag(mut tag:&u128,cardinality:&u64)->Self{
 /// 
 pub fn new_from_tag_u1024(mut tag:&U1024,cardinality:&u64)->Self{
     let vector_of_subsets_as_integers=from_tag_u1024_to_vec(&mut tag, &cardinality);
-    let vector_of_subsets_as_integers: Vec<u64>=vector_of_subsets_as_integers.iter().map(|x|binary_to_n(x).try_into().unwrap()).collect();
+    let vector_of_subsets_as_integers: Vec<u64>=vector_of_subsets_as_integers.iter().map(|x|binary_to_n(x)).collect();
 
     let hyper_composition_matrix = DMatrix::from_row_slice(*cardinality as usize, *cardinality as usize, &vector_of_subsets_as_integers);
         HyperGroupoidMat::new_from_matrix(&hyper_composition_matrix)
@@ -180,6 +180,19 @@ pub fn isomorphic_hypergroup_from_permutation(&self, sigma:&Permutation)->Self{
     let isomorphic_matrix=perm_mat.clone()*self.permutation_of_table(sigma).hyper_composition*perm_mat.transpose();
     HyperGroupoidMat::new_from_matrix(&isomorphic_matrix)
 }
+///
+/// 
+/// # Example
+/// 
+/// ```
+/// use hyperstruc::hs::HyperGroupoidMat;
+/// 
+/// let cardinality = 3u64;
+/// let tag = 22150143u128;
+/// let hs = HyperGroupoidMat::new_from_tag(&tag,&cardinality);
+/// 
+/// assert!(hs.is_hypergroup())
+/// 
 pub fn is_hypergroup(&self)->bool{
     self.is_associative()&&self.is_reproductive()
 
