@@ -194,7 +194,7 @@ pub fn isomorphic_hypergroup_from_permutation(&self, sigma:&Permutation)->Self{
 /// assert!(hs.is_hypergroup())
 /// 
 pub fn is_hypergroup(&self)->bool{
-    self.is_associative()&&self.is_reproductive()
+    self.is_associative()&self.is_reproductive()
 
 }
 pub fn is_commutative(&self)->bool{
@@ -229,7 +229,7 @@ pub fn is_right_identity(&self,e:&u64)->bool{
     //(0..self.n).into_iter().zip(col_e.iter()).all(|x|x.0.pow(2)&x.1==x.0)
     }
 pub fn is_identity(&self,e:&u64)->bool{
-    self.is_left_identity(&e)&&self.is_right_identity(&e)
+    self.is_left_identity(&e)&self.is_right_identity(&e)
 }
 pub fn collect_left_identity(&self)->Vec<u64>{
     self.get_singleton().iter()
@@ -247,7 +247,7 @@ pub fn collect_right_identity(&self)->Vec<u64>{
 }
 pub fn collect_identities(&self)->Vec<u64>{
     self.get_singleton().iter()
-        .filter(|e|self.is_right_identity(&e)&&self.is_left_identity(&e))
+        .filter(|e|self.is_right_identity(&e)&self.is_left_identity(&e))
         .map(|e|*e)
         .collect_vec()
 
@@ -266,7 +266,7 @@ pub fn is_right_scalar(&self,s:&u64)->bool{
 }
 pub fn collect_scalars(&self)->Vec<u64>{
     self.get_singleton().iter()
-        .filter(|s|self.is_left_scalar(&s)&&self.is_right_scalar(&s))
+        .filter(|s|self.is_left_scalar(&s)&self.is_right_scalar(&s))
         .map(|x|*x)
         .collect::<Vec<u64>>()
 }
@@ -432,7 +432,7 @@ pub fn right_division(&self,a:&u64,b:&u64)->u64{
     let row_sum:Vec<u64> = self.hyper_composition.row_iter().map(|x|x.iter().fold(0u64, |acc,element|acc|element)).collect();
     /*Hx is column sum */
     let col_sum:Vec<u64> = self.hyper_composition.column_iter().map(|x|x.iter().fold(0u64, |acc,element|acc|element)).collect();
-    if h==row_sum&&h==col_sum {
+    if (h==row_sum) & (h==col_sum) {
         true
     }
     else {
@@ -456,7 +456,7 @@ pub fn assert_associativity(&self)->bool{
                 let ab_c=self.mul_by_representation(
                     &self.mul_by_representation(&a, &b),&c);
                 let a_bc = self.mul_by_representation(&a, &self.mul_by_representation(&b, &c));
-                assert_eq!(a_bc,ab_c,"{a}{b}_{c},{a}_{b}{c}")
+                assert_eq!(ab_c,a_bc,"{a}{b}_{c},{a}_{b}{c}")
             }
         }
     } 

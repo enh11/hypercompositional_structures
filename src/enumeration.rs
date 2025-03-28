@@ -14,10 +14,9 @@ pub fn collect_beta_equivalence(cardinality:&u64)->Vec<u128>{
     let size = cardinality.pow(3);
     (2u128.pow((size-cardinality) as u32)..2u128.pow(size as u32)).
         into_par_iter().filter(|i|
-            representing_hypergroupoid(i,&cardinality)
-            &&
-            HyperGroupoidMat::new_from_tag(i, cardinality).beta_relation()
-                .is_transitive()
+            (representing_hypergroupoid(i,&cardinality))
+            &
+            (HyperGroupoidMat::new_from_tag(i, cardinality).beta_relation().is_transitive())
         )
         .collect()
 }
@@ -36,7 +35,7 @@ pub fn collect_hypergroupoid_with_scalar_identity(cardinality:&u64)->Vec<u128>{
         .into_par_iter()
         .filter(|i|
             representing_hypergroupoid(&i,&cardinality)
-            &&
+            &
             !(HyperGroupoidMat::new_from_tag(i, &cardinality).collect_scalar_identity().is_empty())
         )
         .collect()
@@ -49,10 +48,10 @@ pub fn collect_invertible_magmata(cardinality:&u64)->Vec<u128>{
         .into_par_iter()
         .filter(|i|
             representing_hypergroupoid(&mut i.clone(),&cardinality)
-            &&
-            HyperGroupoidMat::new_from_tag(i, &cardinality).collect_scalar_identity().len()==1
-            &&
-            UnitalMagma::new_from_tag(i, &cardinality).is_invertible_unital_magma()
+            &
+            (HyperGroupoidMat::new_from_tag(i, &cardinality).collect_scalar_identity().len()==1)
+            &
+            (UnitalMagma::new_from_tag(i, &cardinality).is_invertible_unital_magma())
         )
         .collect()
 
@@ -61,7 +60,9 @@ pub fn collect_hypergroups(cardinality:&u64)->Vec<u128>{
     let (min,max)= get_min_max(cardinality);
     (min..=max).into_par_iter()
         .filter(|i|
-            representing_hypergroupoid(&mut i.clone(),&cardinality)&&HyperGroupoidMat::new_from_tag(i, cardinality).is_hypergroup()
+            (representing_hypergroupoid(&mut i.clone(),&cardinality))
+            &&
+            (HyperGroupoidMat::new_from_tag(i, cardinality).is_hypergroup())
         )
         .collect()
 }

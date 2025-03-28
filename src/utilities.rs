@@ -315,8 +315,7 @@ pub fn from_tag_u1024_to_vec(tag:&U1024,n:&u64) ->Vec<Vec<u64>>{
 
     loop{
         if tag.trailing_zeros()>=*n as u32{
-            println!("{} zeroes found",tag.trailing_zeros());
-            panic!("Can't be an hypergroupoid");
+            panic!("Can't be an hypergroupoid. {} zeroes found",tag.trailing_zeros());
         } else {
             tag_vec.push(collect_n_digits_u1024(n, &tag));
             tag>>=*n as u128;
@@ -335,8 +334,8 @@ pub fn from_tag_to_vec(tag:&u128, n:&u64)->Vec<Vec<u64>>{
 
     loop{
         if tag.trailing_zeros()>=*n as u32{
-            println!("{} zeroes found",tag.trailing_zeros());
-            panic!("Can't be an hypergroupoid");
+            panic!("Can't be an hypergroupoid. {} zeroes found",tag.trailing_zeros());
+
         } else {
             tag_vec.push(collect_n_digits(n, &tag));
             tag>>=*n as u128;
