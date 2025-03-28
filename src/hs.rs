@@ -492,6 +492,10 @@ pub fn get_singleton(&self)->Vec<u64>{
     //DMatrix::from_row_iterator(1, self.n as usize, (0..self.n).into_iter().map(|i|2u64.pow(i)))
     (0..self.n).into_iter().map(|i|2u64.pow(i as u32)).collect()
 }
+pub fn distance(&self,other:&HyperGroupoidMat)->u64 {
+    assert_eq!(self.n,other.n);
+    distance_tags(&self.get_integer_tag(), &other.get_integer_tag(), &self.n)
+}
 }
 impl Display for HyperGroupoidMat{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -501,8 +505,6 @@ impl Display for HyperGroupoidMat{
         write!(f, "\nH: {:?},\nHypercomposition table:\n{} It is represented by: {}Size:{}\n", self.h, table, self.hyper_composition, self.n )
     }
 }
-
-
 pub fn get_random_hypercomposition_table(n:&u64)->Vec<Vec<u64>>{
     let vec: Vec<u64>=(0u64..*n as u64).into_iter().map(|x|x).collect();
     let index_cartesian=cartesian_product(&vec);
@@ -519,4 +521,11 @@ pub fn get_random_hypercomposition_matrix(n:&u64)->DMatrix<u64>{
     let m  =DMatrix::from_iterator(*n as usize, *n as usize, (0..n.pow(2)).into_iter().map(|_|rng.gen_range(1..2u64.pow(*n as u32))));
     m
 } 
+pub fn distance_tags(tag1:&u128,tag2:&u128,cardinality:&u64)->u64 {
+    let width = cardinality.pow(3);
+    let binary_tag1 = n_to_binary_vec(tag1, &width);
+    let binary_tag2 = n_to_binary_vec(tag2, &width);
+
+    binary_tag1.iter().zip(binary_tag2).into_iter().filter(|(x,y)|*x!=y).count() as u64
+}
 

@@ -1,12 +1,16 @@
 use core::num;
 use std::env;
+use std::fs::File;
+use std::io::Write;
 use std::vec;
 use std::time::Instant;
-use hyperstruc::enumeration::collect_beta_not_equivalence;
+use hyperstruc::enumeration::collect_beta_equivalence;
 use hyperstruc::enumeration::collect_hypergroupoid_with_scalar_identity;
 use hyperstruc::enumeration::enumeration_hyperstructure;
+use hyperstruc::hs::distance_tags;
 use hyperstruc::hs::HyperGroupoidMat;
 use hyperstruc::hypergroups::HyperGroup;
+use hyperstruc::tags;
 use hyperstruc::tags::TAG_HG_2;
 use hyperstruc::tags::TAG_HG_3;
 use hyperstruc::tags::TAG_L_MOSAICS_2;
@@ -24,6 +28,8 @@ use itertools::Itertools;
 use nalgebra::coordinates::X;
 use nalgebra::DMatrix;
 use nalgebra::Matrix;
+use num_cpus::get;
+use rand::Error;
 use rand::Rng;
 use rayon::iter;
 use rayon::iter::IntoParallelIterator;
@@ -31,20 +37,25 @@ use rayon::iter::IntoParallelRefIterator;
 use rayon::iter::ParallelIterator;
 use std::collections:: HashSet;
 use permutation::Permutation;
-
 fn main(){
-    let card = 4u64;
-    let hg =HyperGroup::new_from_matrix(&DMatrix::from_row_slice(card as usize, card as usize, &[1,1,7,11,1,1,7,11,7,7,7,12,11,11,12,11]));
-   
-println!("hs is {}",hg);
-for k in 1..2u64.pow(card as u32) {
-    println!("subhypergroup {:b} = {}",k,hg.is_sub_hypergroup(&k));
-    if hg.is_sub_hypergroup(&k){
-        println!("{} is closed {}",k,hg.is_closed_subhypergroup(&k))
+    let cardinality =2u64;
+    let mut dist :Vec<(u64,Vec<u128>)> = Vec::new();
+    for i in (0..cardinality.pow(3)) {
+        let tag_i_from_first= TAG_HG_2.iter().filter(|x|distance_tags(&TAG_HG_2[0], &x, &cardinality) ==i).map(|x|*x).collect_vec();
+        dist.push((i,tag_i_from_first));
     }
-
+    println!("{:?}",dist);
+    let cardinality =3u64;
+let mut dist :Vec<(u64,Vec<u128>)> = Vec::new();
+for i in (0..cardinality.pow(3)) {
+    let tag_i_from_first= TAG_HG_3.iter().filter(|x|distance_tags(&TAG_HG_3[0], &x, &cardinality) ==i).map(|x|*x).collect_vec();
+    dist.push((i,tag_i_from_first));
 }
-
+println!("{:?}",dist[1]);
+let v1: [u128; 6]=[20749812, 25020900, 31960177, 33006930, 39137148, 74559292];
+let v2: [u128;6]=[20758004, 25029092, 31960181, 33006934, 55914364, 91336508];
+let dist:Vec<u64>= v1.iter().zip(v2).map(|(x,y)|distance_tags(x, &y, &cardinality)).collect();
+println!("dist classes {:?}",dist);
 /* 
     let cardinality = 5u64;
     let hs = HyperGroupoidMat::new_random_from_cardinality(&cardinality);
