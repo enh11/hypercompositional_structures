@@ -1,6 +1,6 @@
 use core::panic;
 use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
-use std::{collections::HashSet, fmt::Display, ops::Index, vec};
+use std::{collections::HashSet, fmt::Display, ops::Index, usize::MAX, vec};
 extern crate nalgebra as na;
 use itertools::Itertools;
 use nalgebra::DMatrix;
@@ -15,6 +15,7 @@ pub struct HyperGroupoidMat{
 }
 impl HyperGroupoidMat {
 /// Generate a new random hyperstructure with cardinality n.
+/// 
 /// # Example
 /// ```
 /// use hyperstruc::hs::HyperGroupoidMat;
@@ -91,21 +92,13 @@ pub fn new_from_tag(tag:&u128,cardinality:&u64)->Self{
 /// 
 /// ```
 /// use hyperstruc::hs::HyperGroupoidMat;
-/// use nalgebra::DMatrix;
 /// use hyperstruc::utilities::U1024;
 /// 
-/// let cardinality = 2;
-/// let t=185u128;
-/// let t_u1024=U1024::from(185u32);
-/// let new_hyperstructure_from_tag = HyperGroupoidMat::new_from_tag(&t,&cardinality);
-/// let new_hyperstructure_from_tag_u1024 = HyperGroupoidMat::new_from_tag_u1024(&t_u1024,&cardinality);
-/// let new_hyperstructure_from_matrix = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(2usize,2usize,&[2,3,2,1]));
-/// assert_eq!(new_hyperstructure_from_tag, new_hyperstructure_from_matrix);
-/// assert_eq!(new_hyperstructure_from_tag, new_hyperstructure_from_tag_u1024);
-/// assert_eq!(new_hyperstructure_from_tag, new_hyperstructure_from_matrix);
-/// 
-/// let tag = new_hyperstructure_from_tag_u1024.get_integer_tag_u1024();
-/// assert_eq!(t_u1024,tag);
+/// let cardinality = 6u64;
+/// let hs = HyperGroupoidMat::new_random_from_cardinality(&cardinality);
+/// let tag_hs = hs.get_integer_tag_u1024();
+/// let check_hs = HyperGroupoidMat::new_from_tag_u1024(&tag_hs, &cardinality);
+/// assert_eq!(check_hs,hs)
 /// 
 /// 
 pub fn new_from_tag_u1024(mut tag:&U1024,cardinality:&u64)->Self{
@@ -492,9 +485,27 @@ pub fn get_singleton(&self)->Vec<u64>{
     //DMatrix::from_row_iterator(1, self.n as usize, (0..self.n).into_iter().map(|i|2u64.pow(i)))
     (0..self.n).into_iter().map(|i|2u64.pow(i as u32)).collect()
 }
-pub fn distance(&self,other:&HyperGroupoidMat)->u64 {
+/// Calculate the distance between two hyperstructures. The distance is defined as the the 
+/// Hamming distance between binary representations of hyperstructure's tags, i.e., 
+/// the number of positions at which the corresponding binary tags are different.
+/// 
+/// # Example
+/// ```
+/// use hyperstruc::hs::HyperGroupoidMat;
+/// use nalgebra::DMatrix;
+/// let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
+/// let hyperstructure=HyperGroupoidMat::new_from_matrix(&matrix);
+/// println!("{hyperstructure}");
+/// assert!(hyperstructure.is_associative())
+///
+pub fn hamming_distance(&self,other:&HyperGroupoidMat)->usize {
     assert_eq!(self.n,other.n);
-    distance_tags(&self.get_integer_tag(), &other.get_integer_tag(), &self.n)
+    (self.get_integer_tag()^other.get_integer_tag()).count_ones() as usize
+}
+pub fn hamming_distance_u1024(&self, other:&HyperGroupoidMat)->usize{
+    assert_eq!(self.n, other.n);
+    let dist:u32 = (self.get_integer_tag_u1024()^other.get_integer_tag_u1024()).to_little_endian().iter().map(|x|x.count_ones()).sum();
+    dist as usize
 }
 }
 impl Display for HyperGroupoidMat{
@@ -527,5 +538,12 @@ pub fn distance_tags(tag1:&u128,tag2:&u128,cardinality:&u64)->u64 {
     let binary_tag2 = n_to_binary_vec(tag2, &width);
 
     binary_tag1.iter().zip(binary_tag2).into_iter().filter(|(x,y)|*x!=y).count() as u64
+}
+pub fn distance_tags_u1024(tag1:&U1024,tag2:&U1024,cardinality:&u64)->usize{
+    let width = cardinality.pow(3);
+    let binary_tag1 = from_tag_u1024_to_vec(tag1, &width).concat();
+    let binary_tag2 =from_tag_u1024_to_vec(tag2, &width).concat();
+
+    binary_tag1.iter().zip(binary_tag2).into_iter().filter(|(x,y)|*x!=y).count()
 }
 

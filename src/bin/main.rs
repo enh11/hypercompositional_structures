@@ -1,53 +1,32 @@
-use core::num;
-use std::env;
-use std::fs::File;
-use std::io::Write;
-use std::vec;
-use std::time::Instant;
-use hyperstruc::enumeration::collect_beta_equivalence;
-use hyperstruc::enumeration::collect_hypergroupoid_with_scalar_identity;
-use hyperstruc::enumeration::collect_hypergroups;
-use hyperstruc::enumeration::enumeration_hyperstructure;
+
+use std::ops::BitOr;
+
 use hyperstruc::hs::distance_tags;
 use hyperstruc::hs::HyperGroupoidMat;
-use hyperstruc::hypergroups;
-use hyperstruc::hypergroups::HyperGroup;
-use hyperstruc::tags;
 use hyperstruc::tags::TAG_HG_2;
 use hyperstruc::tags::TAG_HG_3;
-use hyperstruc::tags::TAG_L_MOSAICS_2;
-use hyperstruc::unital_magma::UnitalMagma;
-use hyperstruc::utilities::binary_to_n;
-use hyperstruc::utilities::collect_n_digits;
-use hyperstruc::utilities::from_tag_to_vec;
 use hyperstruc::utilities::from_tag_u1024_to_vec;
 use hyperstruc::utilities::get_min_max;
-use hyperstruc::utilities::representing_hypergroupoid;
-use hyperstruc::utilities::write;
-use hyperstruc::utilities::U1024;
-use hyperstruc::utilities::{cartesian_product, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, power_set, representation_permutation_subset, subset_as_u64, vec_to_set};
 use itertools::Itertools;
-use nalgebra::coordinates::X;
-use nalgebra::DMatrix;
-use nalgebra::Matrix;
-use num_cpus::get;
-use rand::Error;
-use rand::Rng;
-use rayon::iter;
-use rayon::iter::IntoParallelIterator;
-use rayon::iter::IntoParallelRefIterator;
-use rayon::iter::ParallelIterator;
-use std::collections:: HashSet;
-use permutation::Permutation;
+#[allow(unused)]
 fn main(){
-  let cardinality =4u64;
+    let cardinality = 6u64;
+    let hs1  =HyperGroupoidMat::new_random_from_cardinality(&cardinality);
+    println!("hs1 {}",hs1);
+    let hs2= HyperGroupoidMat::new_random_from_cardinality(&cardinality);
+    let tag1 = hs1.get_integer_tag_u1024();
+    let tag2 = hs2.get_integer_tag_u1024();
+    println!("tag2 {}",tag2);
+let dist = hs1.hamming_distance_u1024(&hs2);
+println!("dist {}",dist);
+    /*   let cardinality =4u64;
   let min = 2305843009213693951;
   let some = 4575657221408423935;
   let max = get_min_max(&cardinality).1;
   let dist = distance_tags(&min, &max, &cardinality);
   println!("dist {}",dist);
   println!("log2dist = {}",dist.ilog2());
-    let any  =(2305843009213693951 +1..some).into_par_iter().find_any(|x|(representing_hypergroupoid(x, &cardinality))&&(HyperGroupoidMat::new_from_tag(&*x, &cardinality).is_hypergroup()));    /*Some Tests With Metric */
+    let any  =(2305843009213693951 +1..some).into_par_iter().find_first(|x|(representing_hypergroupoid(x, &cardinality))&&(HyperGroupoidMat::new_from_tag(&*x, &cardinality).is_hypergroup()));    /*Some Tests With Metric */
     let any_hg= HyperGroupoidMat::new_from_tag(&any.unwrap(), &cardinality);
     println!("tag of any is {}",any_hg.get_integer_tag());
     println!("tag of max is {}",max);
@@ -58,26 +37,41 @@ fn main(){
     println!("log2dist = {}",dist.ilog2());
     println!("{}",any_hg.is_hypergroup());
     any_hg.assert_associativity();
-    any_hg.is_reproductive(); 
-    /*   
+    any_hg.is_reproductive();  */
+  /*  
   let cardinality =2u64;
     let mut dist :Vec<(u64,Vec<u128>)> = Vec::new();
-    for i in (0..cardinality.pow(3)) {
+    for i in 0..cardinality.pow(3) {
         let tag_i_from_first= TAG_HG_2.iter().filter(|x|distance_tags(&TAG_HG_2[0], &x, &cardinality) ==i).map(|x|*x).collect_vec();
         dist.push((i,tag_i_from_first));
     }
     println!("{:?}",dist);
+    let min = get_min_max(&cardinality);
+    let dist_last = distance_tags(&min.1, &TAG_HG_2[0], &cardinality);
+    println!("dist last 2  ={}",dist_last);
+    let dist_first = distance_tags(&min.0, &TAG_HG_2[0], &cardinality);
+    println!("dist first 2  ={}",dist_first);
+    let second = 107u128;
+    let second_dist_min=distance_tags(&second, &min.0, &cardinality);
+    let second_dist_max=distance_tags(&second, &min.1, &cardinality);
+    println!("second dist min = {} second dist max = {}",second_dist_min,second_dist_max);
+
     let cardinality =3u64;
-let mut dist :Vec<(u64,Vec<u128>)> = Vec::new();
-for i in (0..cardinality.pow(3)) {
+let mut dist :Vec<(u64,usize)> = Vec::new();
+for i in 0..cardinality.pow(3) {
     let tag_i_from_first= TAG_HG_3.iter().filter(|x|distance_tags(&TAG_HG_3[0], &x, &cardinality) ==i).map(|x|*x).collect_vec();
-    dist.push((i,tag_i_from_first));
+    dist.push((i,tag_i_from_first.len()));
 }
-println!("{:?}",dist[1]);
+println!("{:?}",dist);
+let min = get_min_max(&cardinality);
+    let dist_first = distance_tags(&min.0, &TAG_HG_3[0], &cardinality);
+    let dist_last = distance_tags(&min.1, &TAG_HG_3[0], &cardinality);
+    println!("dist last 2  ={}",dist_last);
+    println!("dist first 2  ={}",dist_first);
 let v1: [u128; 6]=[20749812, 25020900, 31960177, 33006930, 39137148, 74559292];
 let v2: [u128;6]=[20758004, 25029092, 31960181, 33006934, 55914364, 91336508];
 let dist:Vec<u64>= v1.iter().zip(v2).map(|(x,y)|distance_tags(x, &y, &cardinality)).collect();
-println!("dist classes {:?}",dist); */
+println!("dist classes {:?}",dist);  */
 /* 
     let cardinality = 5u64;
     let hs = HyperGroupoidMat::new_random_from_cardinality(&cardinality);
@@ -555,55 +549,4 @@ new_new.check_associativity();
 println!("THE END\n");
 
 
-}
-
-fn singleton(v:&Vec<u64>)->Vec<Vec<u64>>{
-    v.iter().map(|x| vec![*x]).collect()
-}
-
-fn random_hypercomposition_table(h:&Vec<u64>)->Vec<((u64,u64),Vec<u64>)>{
-    /*
-    This builds a random Cayley table containing the products
-    ab for any a,b in H  */
-    let cartesian = cartesian_product(&h);
-    let mut hyper_operation_table: Vec<((u64,u64),Vec<u64>)>=Vec::new();
-    let mut rng = rand::thread_rng();
-    let n=h.len() as u64;
-    let k  =2u64.pow(n.try_into().unwrap());
-
-    for item in cartesian {
-        let n_subset: u64 =rng.gen_range(0u64..k);
-        let ab=get_subset(&n_subset, &n);
-        hyper_operation_table.push((item,ab) );
-    }
-    hyper_operation_table
-}
-fn hypercomposition(ht:Vec<((u64,u64),Vec<u64>)>)->Vec<Vec<u64>>{
-    /*
-    Elements here are elements of the hyperproduct table. 
-    To access the element ab use ht[3a+b]*/
-    ht.iter().map(|x|x.1.clone()).collect()
-}
-fn set_hypercomposition(h:&Vec<u64>,a:&Vec<u64>,b:&Vec<u64>)->HashSet<u64>{
-    /*
-    Let A,B be subset of H. Then, the product AB is define as the union of 
-    ab with a in A and b in B */
-    let h_set=vec_to_set(&h);
-    let a_set=vec_to_set(&a);
-    let b_set=vec_to_set(&b);
-
-    if !a_set.is_subset(&h_set)|!b_set.is_subset(&h_set){panic!("A and B must be subsets of H")}
-    
-    let ht=random_hypercomposition_table(h);
-    let hyper_prod= hypercomposition(ht);
-    let mut prod: Vec<_>=Vec::new();
-    for x in a {
-        for y in b{
-            let c =hyper_prod.get((3*x+y) as usize).expect("No elements here");
-    
-            prod.push(c.to_vec());
-            prod.concat();
-        }
-    }
-    vec_to_set(&prod.concat())
 }
