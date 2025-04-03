@@ -489,14 +489,6 @@ pub fn get_singleton(&self)->Vec<u64>{
 /// Hamming distance between binary representations of hyperstructure's tags, i.e., 
 /// the number of positions at which the corresponding binary tags are different.
 /// 
-/// # Example
-/// ```
-/// use hyperstruc::hs::HyperGroupoidMat;
-/// use nalgebra::DMatrix;
-/// let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
-/// let hyperstructure=HyperGroupoidMat::new_from_matrix(&matrix);
-/// println!("{hyperstructure}");
-/// assert!(hyperstructure.is_associative())
 ///
 pub fn hamming_distance(&self,other:&HyperGroupoidMat)->usize {
     assert_eq!(self.n,other.n);
