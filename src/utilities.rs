@@ -303,29 +303,46 @@ pub fn representation_permutation_subset (k:&u128,sigma:&Permutation)->u128 {
 /// 
 /// 
 pub fn representing_hypergroupoid_u1024(tag:&U1024,cardinality:&u64)->bool{
-    let mut clone_tag = tag.clone();
     let cardinality_u1024=U1024::from(*cardinality);
-    let mut hypergroupoid = true;
-    while clone_tag>=U1024::from(2).pow(cardinality_u1024) {
+    let (min,max) = get_min_max_u1024(cardinality);
+    let mut clone_tag = tag.clone();
+    let power_set = U1024::from(2).pow(cardinality_u1024);
+    if tag<&min||tag>&max{return false;}
+    while clone_tag>=power_set {
         if clone_tag.trailing_zeros()>=*cardinality as u32 {
-            hypergroupoid=false;
-            return hypergroupoid;
+            
+            return false;
         }
         clone_tag>>=*cardinality;
     }
-    hypergroupoid
+    true
 }
+/// 
+/// # Example
+/// 
+/// ```
+/// use hyperstruc::utilities::representing_hypergroupoid;
+/// 
+/// let card = 3u64;
+/// let tag = 22150143u128;
+/// 
+/// assert!(representing_hypergroupoid(&tag,&card))
+/// 
+/// 
 pub fn representing_hypergroupoid(tag:&u128,cardinality:&u64)->bool{
+    let (min,max) = get_min_max(cardinality);
     let mut clone_tag = tag.clone();
-    let mut hypergroupoid = true;
-    while clone_tag>=2u128.pow(*cardinality as u32) {
+    let power_set = 2u128.pow(*cardinality as u32);
+    if tag<&min||tag>&max{return false;}
+
+    while clone_tag>=power_set {
         if clone_tag.trailing_zeros()>=*cardinality as u32 {
-            hypergroupoid=false;
-            return hypergroupoid;
+            
+            return false;
         }
         clone_tag>>=cardinality;
     }
-    hypergroupoid
+    true
 }
 pub fn collect_n_digits(width: &u64,m_representation_hypergroupoid:&u128)->Vec<u64>{
     let binary_n = n_to_binary_vec(m_representation_hypergroupoid, &(*width as u64));

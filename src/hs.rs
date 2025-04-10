@@ -6,7 +6,7 @@ use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
 use rand::{Error,  Rng};
-use crate::{relations::Relation, utilities::{binary_to_n, binary_to_u1024, cartesian_product, from_tag_to_vec, from_tag_u1024_to_vec, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid, subset_as_u64, vec_to_set, U1024}};
+use crate::{relations::Relation, utilities::{binary_to_n, binary_to_u1024, cartesian_product, from_tag_to_vec, from_tag_u1024_to_vec, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid, representing_hypergroupoid_u1024, subset_as_u64, vec_to_set, U1024}};
 #[derive(Debug, Clone,PartialEq)]
 pub struct HyperGroupoidMat{
     pub h:HashSet<u64>,
@@ -538,5 +538,22 @@ pub fn distance_tags_u1024(tag1:&U1024,tag2:&U1024,cardinality:&u64)->usize{
     let binary_tag2 =from_tag_u1024_to_vec(tag2, &width).concat();
 
     binary_tag1.iter().zip(binary_tag2).into_iter().filter(|(x,y)|*x!=y).count()
+}
+pub fn circunference_radius_d(tag:&U1024,d:&usize,cardinality:&u64)->Vec<U1024>{
+    let width = cardinality.pow(3u32);
+    let circunference:Vec<_> = (0..width).into_iter().combinations(*d)
+    .into_iter()
+    .map(|pos|
+        pos
+            .iter()
+            .fold(*tag,
+                |acc,x| acc^(U1024::from(U1024::one()<<*x))
+            )).collect();
+
+    circunference
+}
+pub fn circunference_radius_d_filtered(tag:&U1024,d:&usize,cardinality:&u64)->Vec<U1024>{
+    circunference_radius_d(tag, d, cardinality).par_iter().filter(|x|representing_hypergroupoid_u1024(&x, cardinality))
+    .map(|x|*x).collect::<Vec<U1024>>()
 }
 

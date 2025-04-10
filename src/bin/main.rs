@@ -5,6 +5,7 @@ use std::time::Instant;
 use hyperstruc::enumeration::collect_hypergroups_u1024;
 use hyperstruc::enumeration::enumeration_hyperstructure;
 use hyperstruc::enumeration::enumeration_hyperstructure_u1024;
+use hyperstruc::hs::circunference_radius_d_filtered;
 use hyperstruc::hs::distance_tags;
 use hyperstruc::hs::HyperGroupoidMat;
 use hyperstruc::hypergroups::HyperGroup;
@@ -21,18 +22,39 @@ use hyperstruc::utilities::vec_to_set;
 use hyperstruc::utilities::U1024RangeExt;
 use hyperstruc::utilities::U1024;
 use itertools::Itertools;
+use nalgebra::distance;
 use rayon::iter::IntoParallelIterator;
+use rayon::iter::IntoParallelRefIterator;
+use rayon::iter::ParallelBridge;
 use rayon::iter::ParallelIterator;
 
 
 fn main(){
-    let cardinality = 2u64;let now = Instant::now();
+    let cardinality =2u64;
+    let max_dist_2=TAG_HG_2.iter().cartesian_product(TAG_HG_2).map(|(x,y)|(distance_tags(&x, &y,&cardinality),x,y)).filter(|s|s.0==8).collect_vec();
+    println!("max dist is {:?}",max_dist_2);
+    let top=150u128;
+    let bottom = 105u128;
+    let one_top = TAG_HG_2.iter().filter(|x|distance_tags(&top,x,&cardinality)==1).collect_vec();
+    let one_bottom = TAG_HG_2.iter().filter(|x|distance_tags(&bottom,x,&cardinality)==1).collect_vec();
+println!("one_top {:?}",one_top);
+println!("one_bottom {:?}",one_bottom);
+let from_top = (1..8).into_iter().map(|d|TAG_HG_2.iter().filter(move |x|distance_tags(&top, &x, &cardinality)==d).collect_vec()).collect_vec();
+let from_bottom = (1..8).into_iter().map(|d|TAG_HG_2.iter().filter(move |x|distance_tags(&bottom, &x, &cardinality)==d).collect_vec()).collect_vec();
+println!("one_from top {:?}",from_top);
+println!("one_from bottom {:?}",from_bottom);
+let a=255u128;
+let b = 214u128;
+let c = 254u128;
+let distaB=distance_tags(&a, &b, &cardinality);
+let distaC=distance_tags(&a, &c, &cardinality);
+println!("dist ab {} ac {}",distaB,distaC);
+/*     let tag = get_min_max_u1024(&cardinality).1;
+    let d = 20usize;
 
-let test = enumeration_hyperstructure_u1024("hypergroups",&cardinality);
-println!("{:?}",test);
-println!("{:?}",test.len());
-let end = now.elapsed();
-println!("Elapsed:{:?}",end);
+    let circ = circunference_radius_d_filtered(&tag, &d, &cardinality);
+    println!("circ {:?}",circ);  */   
+
 
 
 /*     let cardinality = 3u64;
