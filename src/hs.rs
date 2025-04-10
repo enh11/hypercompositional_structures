@@ -539,7 +539,7 @@ pub fn distance_tags_u1024(tag1:&U1024,tag2:&U1024,cardinality:&u64)->usize{
 
     binary_tag1.iter().zip(binary_tag2).into_iter().filter(|(x,y)|*x!=y).count()
 }
-pub fn circunference_radius_d(tag:&U1024,d:&usize,cardinality:&u64)->Vec<U1024>{
+pub fn circumference_radius_d(tag:&U1024,d:&usize,cardinality:&u64)->Vec<U1024>{
     let width = cardinality.pow(3u32);
     let circunference:Vec<_> = (0..width).into_iter().combinations(*d)
     .into_iter()
@@ -552,8 +552,8 @@ pub fn circunference_radius_d(tag:&U1024,d:&usize,cardinality:&u64)->Vec<U1024>{
 
     circunference
 }
-pub fn circunference_radius_d_filtered(tag:&U1024,d:&usize,cardinality:&u64)->Vec<U1024>{
-    circunference_radius_d(tag, d, cardinality).par_iter().filter(|x|representing_hypergroupoid_u1024(&x, cardinality))
+pub fn circumference_radius_d_filtered(tag:&U1024,d:&usize,cardinality:&u64)->Vec<U1024>{
+    circumference_radius_d(tag, d, cardinality).par_iter().filter(|x|representing_hypergroupoid_u1024(&x, cardinality))
     .map(|x|*x).collect::<Vec<U1024>>()
 }
 
