@@ -1,3 +1,4 @@
+
 use std::{collections::HashSet, fmt::Binary, fs::File, io::Write};
 use std::fmt::Debug;
 use itertools::Itertools;
@@ -5,8 +6,56 @@ use nalgebra::DMatrix;
 use permutation::Permutation;
 use uint::construct_uint;
 construct_uint!{
-    pub struct U1024(32);}
-    impl U1024 {
+    pub struct U1024(32);
+}
+/*THIS IS A WORK in PROGRESS*/
+#[derive(Clone, Debug)]
+pub struct U1024Range {
+    start: U1024,
+    end: U1024,
+}
+
+impl Iterator for U1024Range {
+    type Item = U1024;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.start < self.end {
+            let current = self.start;
+            self.start += U1024::from(1u8);
+            Some(current)
+        } else {
+            None
+        }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (0, None) // length might not fit usize
+    }
+}
+
+impl DoubleEndedIterator for U1024Range {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        if self.start < self.end {
+            self.end -= U1024::from(1u8);
+            Some(self.end)
+        } else {
+            None
+        }
+    }
+}
+
+pub trait U1024RangeExt {
+    fn to(self, end: U1024) -> U1024Range;
+}
+
+impl U1024RangeExt for U1024 {
+    fn to(self, end: U1024) -> U1024Range {
+        U1024Range { start: self, end }
+    }
+}
+/*MUST BE IMPROVED ALSO WITH PARALLEL ITERATOR */
+
+impl U1024 {
 pub fn u1024_to_binary_vec(&self)->Vec<Vec<u64>>{
     self.0.iter()
         .map(|x| u64_to_binary_vec_u64(x, &64))
@@ -21,6 +70,7 @@ pub fn from_binary_vec(binary_vec:&Vec<u64>)->Self{
             acc+(U1024::from(binary_vec[x])<<length-1-x))
 }
 }
+
 /// Converts a Vec<u64> into a HashSet<u64>
 /// # Example
 /// ```
@@ -361,6 +411,13 @@ let min: u128 = (0..square).into_iter().fold(0, |acc: u128,x: u64|acc+2u128.pow(
 
 let max = 2u128.pow(size as u32)-1;
 (min,max)
+ }
+ pub fn get_min_max_u1024(cardinality:&u64)->(U1024,U1024){
+    let size= cardinality.pow(3);
+    let square= cardinality.pow(2);
+let min: U1024 = (0..square).into_iter().fold(U1024::zero(), |acc: U1024,x: u64|acc+U1024::from(2).pow(U1024::from(cardinality*x)));
 
+let max = U1024::from(2).pow(U1024::from(size))-1;
+(min,max)
  }
 

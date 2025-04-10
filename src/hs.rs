@@ -5,7 +5,7 @@ extern crate nalgebra as na;
 use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
-use rand:: Rng;
+use rand::{Error,  Rng};
 use crate::{relations::Relation, utilities::{binary_to_n, binary_to_u1024, cartesian_product, from_tag_to_vec, from_tag_u1024_to_vec, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid, subset_as_u64, vec_to_set, U1024}};
 #[derive(Debug, Clone,PartialEq)]
 pub struct HyperGroupoidMat{
@@ -409,6 +409,7 @@ pub fn right_division(&self,a:&u64,b:&u64)->u64{
             )
             .fold(0, |acc, x| acc|x)
 }
+
 /// Return true if hyperstructure is reproductive, i.e., xH = H = Hx holds for all x in H.
 /// # Example
 /// ```

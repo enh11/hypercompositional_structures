@@ -1,24 +1,83 @@
 
+use std::collections::HashSet;
 use std::ops::BitOr;
-
+use std::time::Instant;
+use hyperstruc::enumeration::collect_hypergroups_u1024;
+use hyperstruc::enumeration::enumeration_hyperstructure;
+use hyperstruc::enumeration::enumeration_hyperstructure_u1024;
 use hyperstruc::hs::distance_tags;
 use hyperstruc::hs::HyperGroupoidMat;
+use hyperstruc::hypergroups::HyperGroup;
+use hyperstruc::tags;
 use hyperstruc::tags::TAG_HG_2;
 use hyperstruc::tags::TAG_HG_3;
 use hyperstruc::utilities::from_tag_u1024_to_vec;
 use hyperstruc::utilities::get_min_max;
+use hyperstruc::utilities::get_min_max_u1024;
+use hyperstruc::utilities::get_subset;
+use hyperstruc::utilities::representing_hypergroupoid;
+use hyperstruc::utilities::representing_hypergroupoid_u1024;
+use hyperstruc::utilities::vec_to_set;
+use hyperstruc::utilities::U1024RangeExt;
+use hyperstruc::utilities::U1024;
 use itertools::Itertools;
-#[allow(unused)]
+use rayon::iter::IntoParallelIterator;
+use rayon::iter::ParallelIterator;
+
+
 fn main(){
-    let cardinality = 6u64;
-    let hs1  =HyperGroupoidMat::new_random_from_cardinality(&cardinality);
-    println!("hs1 {}",hs1);
-    let hs2= HyperGroupoidMat::new_random_from_cardinality(&cardinality);
-    let tag1 = hs1.get_integer_tag_u1024();
-    let tag2 = hs2.get_integer_tag_u1024();
-    println!("tag2 {}",tag2);
-let dist = hs1.hamming_distance_u1024(&hs2);
-println!("dist {}",dist);
+    let cardinality = 2u64;let now = Instant::now();
+
+let test = enumeration_hyperstructure_u1024("hypergroups",&cardinality);
+println!("{:?}",test);
+println!("{:?}",test.len());
+let end = now.elapsed();
+println!("Elapsed:{:?}",end);
+
+
+/*     let cardinality = 3u64;
+ */  /*   let tag = 33025917u128;
+    let hg = HyperGroup::new_from_tag_u128(&tag, &cardinality);
+    let reflexive = vec_to_set(&get_subset(&hg.find_reflexive_subhypergroup().unwrap(),&cardinality));
+    println!("hg {}",hg);
+    println!("ref {:?}",reflexive);
+ */
+/*     let (min, max)=get_min_max_u1024(&cardinality);
+ *//*     for tag in min.to(max).rev() {
+        if representing_hypergroupoid_u1024(&tag, &cardinality) {
+            let hs  = HyperGroupoidMat::new_from_tag_u1024(&tag, &cardinality);
+            if hs.is_hypergroup() {
+                let hg = HyperGroup::new_from_tag_u1024(&tag, &cardinality);
+                if hg.is_transposition(){
+                    println!("found transposition hg {}",tag);
+                }
+            }
+        }
+    } */
+ /*   let ex :Vec<u128>= TAG_HG_3.into_par_iter().filter(|x|
+    representing_hypergroupoid(x, &cardinality)&&
+HyperGroupoidMat::new_from_tag(x, &cardinality).is_hypergroup()&&
+HyperGroup::new_from_tag_u128(x, &cardinality).is_transposition()&&
+HyperGroup::new_from_tag_u128(x, &cardinality).find_reflexive_subhypergroup().is_some()).collect();
+println!("{:?}",ex);
+println!("{:?}",ex.len());
+let dist:Vec<_> = ex.iter().cartesian_product(ex.clone()).map(|(x,y)|distance_tags(&x, &y, &cardinality)).collect();
+
+println!("dist {:?}",dist); */
+
+/*    for tag in min.to(max).rev() {
+        if representing_hypergroupoid_u1024(&tag, &cardinality) {
+            let hs  = HyperGroupoidMat::new_from_tag_u1024(&tag, &cardinality);
+            if hs.is_hypergroup() {
+                let hg = HyperGroup::new_from_tag_u1024(&tag, &cardinality);
+            if hg.is_transposition()&&hg.find_reflexive_subhypergroup().is_some() {
+                println!("hg is {} and {} is reflexive subhypergroup",hg,hg.find_reflexive_subhypergroup().unwrap())
+            }
+            }
+        }
+    } */
+
+
     /*   let cardinality =4u64;
   let min = 2305843009213693951;
   let some = 4575657221408423935;
@@ -285,16 +344,16 @@ println!("magma {}",magma);
     println!("m is invertible {}",m.is_invertible_unital_magma()); */
     
 
-        /* COLLECT INVERTIBLE UNITAL MAGMATA (L-MOSAICS)*/ 
-/*         let now = Instant::now();
+/*         /* COLLECT INVERTIBLE UNITAL MAGMATA (L-MOSAICS)*/ 
+        let now = Instant::now();
 
  let cardinality=3u64;
  let c= enumeration_hyperstructure("hypergroups", &cardinality);
 println!("c : {:?}",c);
 let end = now.elapsed();
     println!("Computation time:{:?}",end);
- */
- 
+
+  */
  
 /* let cardinality=3u64;
 
