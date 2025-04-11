@@ -5,7 +5,7 @@ use std::time::Instant;
 use hyperstruc::enumeration::collect_hypergroups_u1024;
 use hyperstruc::enumeration::enumeration_hyperstructure;
 use hyperstruc::enumeration::enumeration_hyperstructure_u1024;
-use hyperstruc::hs::circunference_radius_d_filtered;
+use hyperstruc::hs::circumference_radius_d_filtered;
 use hyperstruc::hs::distance_tags;
 use hyperstruc::hs::HyperGroupoidMat;
 use hyperstruc::hypergroups::HyperGroup;
