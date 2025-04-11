@@ -553,7 +553,7 @@ pub fn circumference_radius_d(tag:&U1024,d:&usize,cardinality:&u64)->Vec<U1024>{
     circunference
 }
 pub fn circumference_radius_d_filtered(tag:&U1024,d:&usize,cardinality:&u64)->Vec<U1024>{
-    circumference_radius_d(tag, d, cardinality).par_iter().filter(|x|representing_hypergroupoid_u1024(&x, cardinality))
+    circumference_radius_d(tag, d, cardinality).par_iter().filter(|x|representing_hypergroupoid_u1024(&x, cardinality)&&HyperGroupoidMat::new_from_tag_u1024(x, cardinality).is_hypergroup())
     .map(|x|*x).collect::<Vec<U1024>>()
 }
 

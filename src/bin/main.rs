@@ -7,6 +7,7 @@ use hyperstruc::enumeration::enumeration_hyperstructure;
 use hyperstruc::enumeration::enumeration_hyperstructure_u1024;
 use hyperstruc::hs::circumference_radius_d_filtered;
 use hyperstruc::hs::distance_tags;
+use hyperstruc::hs::distance_tags_u1024;
 use hyperstruc::hs::HyperGroupoidMat;
 use hyperstruc::hypergroups::HyperGroup;
 use hyperstruc::tags;
@@ -22,7 +23,9 @@ use hyperstruc::utilities::vec_to_set;
 use hyperstruc::utilities::U1024RangeExt;
 use hyperstruc::utilities::U1024;
 use itertools::Itertools;
+use nalgebra::center;
 use nalgebra::distance;
+use permutation::Permutation;
 use rayon::iter::IntoParallelIterator;
 use rayon::iter::IntoParallelRefIterator;
 use rayon::iter::ParallelBridge;
@@ -30,25 +33,97 @@ use rayon::iter::ParallelIterator;
 
 
 fn main(){
-    let cardinality =2u64;
-    let max_dist_2=TAG_HG_2.iter().cartesian_product(TAG_HG_2).map(|(x,y)|(distance_tags(&x, &y,&cardinality),x,y)).filter(|s|s.0==8).collect_vec();
-    println!("max dist is {:?}",max_dist_2);
-    let top=150u128;
-    let bottom = 105u128;
-    let one_top = TAG_HG_2.iter().filter(|x|distance_tags(&top,x,&cardinality)==1).collect_vec();
-    let one_bottom = TAG_HG_2.iter().filter(|x|distance_tags(&bottom,x,&cardinality)==1).collect_vec();
-println!("one_top {:?}",one_top);
-println!("one_bottom {:?}",one_bottom);
-let from_top = (1..8).into_iter().map(|d|TAG_HG_2.iter().filter(move |x|distance_tags(&top, &x, &cardinality)==d).collect_vec()).collect_vec();
-let from_bottom = (1..8).into_iter().map(|d|TAG_HG_2.iter().filter(move |x|distance_tags(&bottom, &x, &cardinality)==d).collect_vec()).collect_vec();
-println!("one_from top {:?}",from_top);
-println!("one_from bottom {:?}",from_bottom);
-let a=255u128;
-let b = 214u128;
-let c = 254u128;
-let distaB=distance_tags(&a, &b, &cardinality);
-let distaC=distance_tags(&a, &c, &cardinality);
-println!("dist ab {} ac {}",distaB,distaC);
+ /*2^27-1 */
+    /* println!("total {}",total_hg3);
+    let mut visited:Vec<U1024> = Vec::new();
+    
+    let mut circumf_radius_1 = circumference_radius_d_filtered(&total_hg3, &1usize, &cardinality);
+    println!("hg dist 1 {:?}",circumf_radius_1);
+    println!("hg dist 1 {}",circumf_radius_1.len());
+    let dist =4usize;
+    let mut i=1usize;
+    loop {
+        let x = circumf_radius_1.par_iter().find_first(|x|circumference_radius_d_filtered(&x, &1usize, &cardinality).iter().any(|y|!visited.contains(y)));
+        println!("x is {}",x.unwrap());
+        if i==dist{break println!("hypergroup {} dist from total {}",x.unwrap(),distance_tags_u1024(&total_hg3, x.unwrap(), &cardinality));} 
+        else {
+            visited.append(&mut circumf_radius_1.clone());
+            visited.sort();
+            visited.dedup();
+        circumf_radius_1=circumference_radius_d_filtered(&x.unwrap(), &1usize, &cardinality);
+        
+        println!("circunf {:?}",circumf_radius_1);
+/*         
+        circumf_radius_1.retain(|x|!current_circ.contains(x));
+        println!("circunf  after retain{:?}",circumf_radius_1); */
+        
+
+        println!("visited {:?}",visited);
+        }
+        i+=1;
+    }  */
+
+/*       /*A WAY TO GENERATE HPERGROUPS OF ORDER 6 */
+let cardinality =5u64;
+let total_hg3 = get_min_max_u1024(&cardinality).1;
+let width = cardinality.pow(3u32);
+let dist = 7;
+let comb = (0..width).into_iter().rev().combinations(dist);/*Don't collect vector, to much memory. It will abort! */
+for c in comb {
+    let x = c.iter().fold(total_hg3, |total_hg3: U1024,x| total_hg3^(U1024::one()<<*x));
+    if representing_hypergroupoid_u1024(&x, &cardinality){
+    let hs = HyperGroupoidMat::new_from_tag_u1024(&x, &cardinality);
+        if hs.is_hypergroup() {
+            let hg  = HyperGroup::new_from_tag_u1024(&x, &cardinality);
+
+
+            println!("{}",x);
+        }
+    }
+} */
+/*TEST IN HG 6 */
+/*This are tags of hypergroups of order 6 in the ball of radius 7 centered in the total_hg_7 */
+let cardinality = 5u64;
+let tag1 = U1024::from_dec_str("1495381495258030357016782942815387647").expect("error");
+let tag2 = U1024::from_dec_str("1972423769135917645388022293062483967").expect("error");
+let tag3 = U1024::from_dec_str("2315754257701731296489389389206519807").expect("error");
+let tag4 = U1024::from_dec_str("2492135162217487135413640673202536447").expect("error");
+
+let hg1= HyperGroup::new_from_tag_u1024(&tag1, &cardinality);
+println!("hg1 {}",hg1);
+let permut  = (0..cardinality as usize).permutations(cardinality as usize).into_iter().map(|x|Permutation::oneline(x));
+let mut isomorphic_to_tag1:Vec<U1024>=permut.into_iter().map(|sigma| hg1.isomorphic_hypergroup_from_permutation(&sigma).get_integer_tag_u1024()).collect();
+isomorphic_to_tag1.dedup();
+println!("iso_tag1 {:?}",isomorphic_to_tag1);
+
+let hg2= HyperGroup::new_from_tag_u1024(&tag2, &cardinality);
+println!("hg1 {}",hg2);
+let permut  = (0..cardinality as usize).permutations(cardinality as usize).into_iter().map(|x|Permutation::oneline(x));
+let mut isomorphic_to_tag2:Vec<U1024>=permut.into_iter().map(|sigma| hg2.isomorphic_hypergroup_from_permutation(&sigma).get_integer_tag_u1024()).collect();
+isomorphic_to_tag2.dedup();
+println!("iso_tag1 {:?}",isomorphic_to_tag2.len());
+
+let hg3= HyperGroup::new_from_tag_u1024(&tag2, &cardinality);
+println!("hg3 {}",hg3);
+let permut  = (0..cardinality as usize).permutations(cardinality as usize).into_iter().map(|x|Permutation::oneline(x));
+let mut isomorphic_to_tag3:Vec<U1024>=permut.into_iter().map(|sigma| hg3.isomorphic_hypergroup_from_permutation(&sigma).get_integer_tag_u1024()).collect();
+isomorphic_to_tag3.dedup();
+println!("iso_tag1 {:?}",isomorphic_to_tag3.len());
+
+
+let hg4= HyperGroup::new_from_tag_u1024(&tag2, &cardinality);
+println!("hg3 {}",hg4);
+let permut  = (0..cardinality as usize).permutations(cardinality as usize).into_iter().map(|x|Permutation::oneline(x));
+let mut isomorphic_to_tag4:Vec<U1024>=permut.into_iter().map(|sigma| hg4.isomorphic_hypergroup_from_permutation(&sigma).get_integer_tag_u1024()).collect();
+isomorphic_to_tag4.dedup();
+println!("iso_tag1 {:?}",isomorphic_to_tag4.len());
+
+
+
+/* for tag in TAG_HG_3 {
+    let one_from_tag:Vec<_> = TAG_HG_3.par_iter().filter(|x|distance_tags(&x, &tag, &cardinality)==1).collect();
+println!("one_from_{} = {:?}",tag,one_from_tag);
+} */
 /*     let tag = get_min_max_u1024(&cardinality).1;
     let d = 20usize;
 
