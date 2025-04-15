@@ -17,6 +17,7 @@ use hyperstruc::utilities::from_tag_u1024_to_vec;
 use hyperstruc::utilities::get_min_max;
 use hyperstruc::utilities::get_min_max_u1024;
 use hyperstruc::utilities::get_subset;
+use hyperstruc::utilities::permutaton_matrix_from_permutation;
 use hyperstruc::utilities::representing_hypergroupoid;
 use hyperstruc::utilities::representing_hypergroupoid_u1024;
 use hyperstruc::utilities::vec_to_set;
@@ -24,6 +25,7 @@ use hyperstruc::utilities::U1024RangeExt;
 use hyperstruc::utilities::U1024;
 use itertools::Itertools;
 use nalgebra::center;
+use nalgebra::coordinates::X;
 use nalgebra::distance;
 use permutation::Permutation;
 use rayon::iter::IntoParallelIterator;
@@ -33,26 +35,71 @@ use rayon::iter::ParallelIterator;
 
 
 fn main(){
- /*2^27-1 */
-    /* println!("total {}",total_hg3);
+    let cardinality = 3u64;
+    let total = get_min_max_u1024(&cardinality).1;
+    let mut circumf_radius_1 = circumference_radius_d_filtered(&total, &1usize, &cardinality);
+    let mut classes_dist_1:Vec<_>=circumf_radius_1.iter().map(|tag|HyperGroup::new_from_tag_u1024(tag, &cardinality).collect_isomorphism_class()).collect();
+    classes_dist_1.sort_by(|a, b| a.0.cmp(&b.0));
+    classes_dist_1.dedup();
+    println!("classes distance one are {:?}",classes_dist_1);
+    let mut visited = circumf_radius_1;
+    visited.push(total);
+    let mut circumf_radius_2:Vec<Vec<U1024>>=Vec::new();
+    let representants: Vec<U1024>= classes_dist_1.iter().map(|x|x.0).collect();
+    for tags in representants {
+        let mut circumf_radius_1 = circumference_radius_d_filtered(&tags, &1usize, &cardinality);
+        circumf_radius_1.retain(|x|!visited.contains(x));
+        if circumf_radius_1.is_empty(){continue;}
+        else{
+        circumf_radius_2.push(circumf_radius_1);
+        }
+
+    }
+    let mut classes_dist_2:Vec<_> =circumf_radius_2.iter().map(|x|
+        x.iter()
+        .map(|tag|
+            HyperGroup::new_from_tag_u1024(tag, &cardinality).collect_isomorphism_class()).collect::<Vec<_>>()).collect();
+        classes_dist_2.sort_by(|a, b| a[0].0.cmp(&b[0].0));
+        classes_dist_2.dedup();
+
+            println!("classes dist 2 {:?}",classes_dist_2);
+
+
+    /*     let cardinality = 3u64;
+    let max_dist = TAG_HG_3.iter().combinations(2).map(|x| distance_tags(x[0], x[1], &cardinality)).max();
+    println!("max dist is {}",max_dist.unwrap());
+    let tag_max_dist:Vec<_> = TAG_HG_3.iter().combinations(2).filter(|x| distance_tags(x[0],x[1],&cardinality)==max_dist.unwrap()).collect();
+    println!("tag_max {:?}",tag_max_dist); */
+
+   /*  
+    let cardinality = 2u64;
+let total_hg  =U1024::from(2).pow(U1024::from(cardinality.pow(3)))-1;
+    println!("total {}",total_hg);
     let mut visited:Vec<U1024> = Vec::new();
+    visited.push(total_hg);
+
+    let mut circumf_radius_1 = circumference_radius_d_filtered(&total_hg, &1usize, &cardinality);
     
-    let mut circumf_radius_1 = circumference_radius_d_filtered(&total_hg3, &1usize, &cardinality);
-    println!("hg dist 1 {:?}",circumf_radius_1);
+    visited.append(&mut circumf_radius_1.clone());
+    visited.sort();
+    visited.dedup();println!("hg dist 1 {:?}",circumf_radius_1);
     println!("hg dist 1 {}",circumf_radius_1.len());
     let dist =4usize;
     let mut i=1usize;
     loop {
         let x = circumf_radius_1.par_iter().find_first(|x|circumference_radius_d_filtered(&x, &1usize, &cardinality).iter().any(|y|!visited.contains(y)));
+        visited.append(&mut circumf_radius_1.clone());
+        visited.sort();
+        visited.dedup();
         println!("x is {}",x.unwrap());
-        if i==dist{break println!("hypergroup {} dist from total {}",x.unwrap(),distance_tags_u1024(&total_hg3, x.unwrap(), &cardinality));} 
+        println!("dist from  total is {}",distance_tags_u1024(&total_hg, x.unwrap(), &cardinality));
+
+        if i==dist{break println!("hypergroup {} dist from total {}",x.unwrap(),distance_tags_u1024(&total_hg, x.unwrap(), &cardinality));} 
         else {
-            visited.append(&mut circumf_radius_1.clone());
-            visited.sort();
-            visited.dedup();
+            
         circumf_radius_1=circumference_radius_d_filtered(&x.unwrap(), &1usize, &cardinality);
         
-        println!("circunf {:?}",circumf_radius_1);
+        //println!("circunf {:?}",circumf_radius_1);
 /*         
         circumf_radius_1.retain(|x|!current_circ.contains(x));
         println!("circunf  after retain{:?}",circumf_radius_1); */
@@ -61,7 +108,7 @@ fn main(){
         println!("visited {:?}",visited);
         }
         i+=1;
-    }  */
+    } */ 
 
 /*       /*A WAY TO GENERATE HPERGROUPS OF ORDER 6 */
 let cardinality =5u64;
@@ -81,7 +128,7 @@ for c in comb {
         }
     }
 } */
-/*TEST IN HG 6 */
+/* /*TEST IN HG 6 */
 /*This are tags of hypergroups of order 6 in the ball of radius 7 centered in the total_hg_7 */
 let cardinality = 5u64;
 let tag1 = U1024::from_dec_str("1495381495258030357016782942815387647").expect("error");
@@ -117,7 +164,7 @@ let permut  = (0..cardinality as usize).permutations(cardinality as usize).into_
 let mut isomorphic_to_tag4:Vec<U1024>=permut.into_iter().map(|sigma| hg4.isomorphic_hypergroup_from_permutation(&sigma).get_integer_tag_u1024()).collect();
 isomorphic_to_tag4.dedup();
 println!("iso_tag1 {:?}",isomorphic_to_tag4.len());
-
+ */
 
 
 /* for tag in TAG_HG_3 {
@@ -594,27 +641,25 @@ let a_right_b=hypergroup.right_division(&a,&b);
 println!("a / b = {}",a_right_b);
  */
 
-/* 
-/*TEST NUMBER OF ISOMORPHISM IN TERMS OF PERMUTATIONS */
+/*COLLECT ISOMORPHISM CLASS OF A HYPERGROUPS */ 
+let cardinality= 3u64;
+let tag=U1024::from(20819966u128);
+let hg=HyperGroup::new_from_tag_u1024(&tag, &cardinality);
+let iso=hg.collect_isomorphism_class();
+println!("iso {:?}",iso);
+
+/* /*TEST NUMBER OF ISOMORPHISM IN TERMS OF PERMUTATIONS */
 let mut count_isomorphism:u64=0;
-let permut_vec:Vec<Vec<usize>> = (0..hypergroup.n as usize).permutations(hypergroup.n as usize).collect();
+let cardinality =3u64;
+let tag  =131071999u128;
+let hypergroup = HyperGroup::new_from_tag_u128(&tag, &cardinality);
+let permut_vec:Vec<Vec<usize>> = (0..hypergroup.cardinality() as usize).permutations(hypergroup.cardinality() as usize).collect();
 let permutation:Vec<Permutation> = permut_vec.iter().map(|sigma| Permutation::oneline(sigma.clone())).collect();
 for sigma in permutation {
-    let alpha = sigma;
-    let perm_mat = permutaton_matrix_from_permutation(&hypergroup.n, &alpha);
-    let prova_permut = hypergroup.permutation_of_table(&alpha);
-    let isomorphic_mat=perm_mat.clone()*prova_permut.hyper_composition*perm_mat.transpose();
-    let isomorphic_hypergroup=HyperGroupoidMat::new_from_matrix(&isomorphic_mat);
-    println!("sigma = {:?}",alpha);
-    println!("isomorphic image {}",isomorphic_hypergroup);
-    println!("isomorphic image is associative {}",isomorphic_hypergroup.is_associative());
-
-    isomorphic_hypergroup.assert_associativity();
-    if isomorphic_hypergroup.is_hypergroup() {
-        count_isomorphism+=1;
+    let isomorphic_hg = hypergroup.isomorphic_hypergroup_from_permutation(&sigma);
+    println!("isomorphic image {}",isomorphic_hg);
+    count_isomorphism+=1;
     }
-
-}
 println!("number of isomorphism {}",count_isomorphism);
  */
 /* 

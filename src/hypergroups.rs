@@ -4,7 +4,7 @@ extern crate nalgebra as na;
 use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
-use crate::{hs::HyperGroupoidMat, utilities::{get_complement_subset, get_subset, ones_positions, representing_hypergroupoid, vec_to_set, U1024}};
+use crate::{hs::HyperGroupoidMat, utilities::{get_complement_subset, get_subset, ones_positions, representation_permutation_subset, representing_hypergroupoid, vec_to_set, U1024}};
 #[derive(Debug, Clone,PartialEq)]
 pub struct HyperGroup(HyperGroupoidMat);
 
@@ -24,6 +24,18 @@ impl HyperGroup {
         let hg= HyperGroupoidMat::new_from_tag_u1024(tag,cardinality);
         assert!(hg.is_hypergroup(),"Not an hypergroup!");
         HyperGroup(hg)
+    }
+    pub fn cardinality(&self)->u64{
+        self.0.n
+    }
+    pub fn permutation_of_table(&self,sigma:&Permutation)->Self{
+        let alpha = self.0.permutation_of_table(sigma).get_integer_tag_u1024();
+        HyperGroup::new_from_tag_u1024(&alpha, &self.cardinality())
+
+    }
+    pub fn collect_isomorphism_class(&self)->(U1024,Vec<U1024>){
+        self.0.collect_isomorphism_class()
+        
     }
     pub fn isomorphic_hypergroup_from_permutation(&self, sigma:&Permutation)->Self{
         HyperGroup::new_from_tag_u1024(&self.0.isomorphic_hypergroup_from_permutation(sigma).get_integer_tag_u1024(),&self.0.n)

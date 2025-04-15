@@ -173,6 +173,24 @@ pub fn isomorphic_hypergroup_from_permutation(&self, sigma:&Permutation)->Self{
     let isomorphic_matrix=perm_mat.clone()*self.permutation_of_table(sigma).hyper_composition*perm_mat.transpose();
     HyperGroupoidMat::new_from_matrix(&isomorphic_matrix)
 }
+pub fn collect_isomorphism_class(&self)->(U1024,Vec<U1024>){
+    let mut classes:Vec<(U1024,Vec<U1024>)>=Vec::new();
+    let cardinality = self.n as usize;
+    let permut_vec:Vec<Vec<usize>> = (0..cardinality).permutations(cardinality ).collect();
+    let permutation:Vec<Permutation> = permut_vec.iter().map(|sigma| Permutation::oneline(sigma.clone())).collect();
+    let mut isomorphism_classes:Vec<U1024>=Vec::new();
+
+    for sigma in &permutation {        
+        let isomorphic_image_tag = self.isomorphic_hypergroup_from_permutation(&sigma).get_integer_tag_u1024();
+        isomorphism_classes.push(isomorphic_image_tag.try_into().unwrap());
+
+    }
+    isomorphism_classes=isomorphism_classes.iter().sorted().dedup().map(|x|*x).collect();
+    let representant_of_class=isomorphism_classes.iter().min().unwrap();
+        
+       (*representant_of_class,isomorphism_classes)
+
+}
 ///
 /// 
 /// # Example
