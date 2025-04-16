@@ -173,8 +173,12 @@ pub fn isomorphic_hypergroup_from_permutation(&self, sigma:&Permutation)->Self{
     let isomorphic_matrix=perm_mat.clone()*self.permutation_of_table(sigma).hyper_composition*perm_mat.transpose();
     HyperGroupoidMat::new_from_matrix(&isomorphic_matrix)
 }
+///
+/// Collect isomorphism class of an hypergroup. Elements in the class are obtained by permutation of the set defining the hyperstructure.
+/// The representant of the class is chosen to be the smaller among the tags in the class.
+/// It returns a tuple (representant, class), where class is a vector of tags.
+/// 
 pub fn collect_isomorphism_class(&self)->(U1024,Vec<U1024>){
-    let mut classes:Vec<(U1024,Vec<U1024>)>=Vec::new();
     let cardinality = self.n as usize;
     let permut_vec:Vec<Vec<usize>> = (0..cardinality).permutations(cardinality ).collect();
     let permutation:Vec<Permutation> = permut_vec.iter().map(|sigma| Permutation::oneline(sigma.clone())).collect();
@@ -557,6 +561,11 @@ pub fn distance_tags_u1024(tag1:&U1024,tag2:&U1024,cardinality:&u64)->usize{
 
     binary_tag1.iter().zip(binary_tag2).into_iter().filter(|(x,y)|*x!=y).count()
 }
+///
+/// Collects all binary strings that differ by d bits from the tag binary string.
+/// The distance is intended to be the Hamming's distance. 
+/// 
+/// 
 pub fn circumference_radius_d(tag:&U1024,d:&usize,cardinality:&u64)->Vec<U1024>{
     let width = cardinality.pow(3u32);
     let circunference:Vec<_> = (0..width).into_iter().combinations(*d)
@@ -570,8 +579,24 @@ pub fn circumference_radius_d(tag:&U1024,d:&usize,cardinality:&u64)->Vec<U1024>{
 
     circunference
 }
+///
+/// Collects all binary strings that differ by d bits from the tag binary string and 
+/// filter them to take only those representing hypergroups.
+/// The distance is intended to be the Hamming's distance. 
+/// 
+/// 
 pub fn circumference_radius_d_filtered(tag:&U1024,d:&usize,cardinality:&u64)->Vec<U1024>{
     circumference_radius_d(tag, d, cardinality).par_iter().filter(|x|representing_hypergroupoid_u1024(&x, cardinality)&&HyperGroupoidMat::new_from_tag_u1024(x, cardinality).is_hypergroup())
     .map(|x|*x).collect::<Vec<U1024>>()
 }
+///
+/// Collects all binary strings that differ by 1 bits from the tag binary string and 
+/// filter them to take only those representing hypergroups.
+/// The distance is intended to be the Hamming's distance. 
+/// 
+/// 
+pub fn hg_in_circumference_radius_one(tag:&U1024,cardinality:&u64)->Vec<U1024>{
+    circumference_radius_d_filtered(tag, &1usize, cardinality)
+}
+
 

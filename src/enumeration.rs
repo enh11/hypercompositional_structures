@@ -108,7 +108,6 @@ pub fn enumeration_hyperstructure(structure:&str,cardinality:&u64)->Vec<usize>{
     
         classes.push((*representant_of_class,isomorphism_classes));
 
-    
 }
     let classes:Vec<&(u64, Vec<u64>)>=classes.iter().sorted_by(|x,y|x.0.cmp(&y.0)).dedup().collect();
     let mut c:Vec<usize>=Vec::new();

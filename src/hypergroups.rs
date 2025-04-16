@@ -4,7 +4,8 @@ extern crate nalgebra as na;
 use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
-use crate::{hs::HyperGroupoidMat, utilities::{get_complement_subset, get_subset, ones_positions, representation_permutation_subset, representing_hypergroupoid, vec_to_set, U1024}};
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+use crate::{hs::{hg_in_circumference_radius_one, HyperGroupoidMat}, utilities::{get_complement_subset, get_subset, ones_positions, representation_permutation_subset, representing_hypergroupoid, vec_to_set, U1024}};
 #[derive(Debug, Clone,PartialEq)]
 pub struct HyperGroup(HyperGroupoidMat);
 
@@ -105,4 +106,22 @@ impl Display for HyperGroup {
         write!(f,"{}", self.0)
     }
     
+}
+pub fn collect_classes_from_circumference(center_tag:&U1024,visited_tags:&Vec<U1024>,cardinality:&u64)->(Vec<U1024>,Vec<(U1024,Vec<U1024>)>){
+    let mut circumferences: Vec<Vec<U1024>>=Vec::new();
+    let mut circumference_radius_1=hg_in_circumference_radius_one(center_tag, &cardinality);
+    circumference_radius_1.retain(|x|!visited_tags.contains(x));
+    circumferences.push(circumference_radius_1.clone());
+   
+    let classes_from_circumferences:Vec<_>=circumferences.par_iter().map(
+        |x|x.iter().map(|tag|
+                HyperGroup::new_from_tag_u1024(tag, &cardinality)
+                .collect_isomorphism_class())
+            .collect_vec())
+            .collect();
+    let mut classes_from_circumferences=classes_from_circumferences.concat();
+    classes_from_circumferences.retain(|x|!x.1.is_empty());
+    classes_from_circumferences.sort_by(|x,y|x.0.cmp(&y.0));
+    classes_from_circumferences.dedup();
+    (circumference_radius_1,classes_from_circumferences)
 }
