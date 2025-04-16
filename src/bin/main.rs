@@ -13,8 +13,10 @@ use hyperstruc::hs::HyperGroupoidMat;
 use hyperstruc::hypergroups::collect_classes_from_circumference;
 use hyperstruc::hypergroups::HyperGroup;
 use hyperstruc::tags;
+use hyperstruc::tags::ALMOST_TAG_HG_3_CLASS_3;
 use hyperstruc::tags::TAG_HG_2;
 use hyperstruc::tags::TAG_HG_3;
+use hyperstruc::tags::TAG_HG_3_CLASS_3;
 use hyperstruc::utilities::write;
 use hyperstruc::utilities::get_min_max;
 use hyperstruc::utilities::get_min_max_u1024;
@@ -38,6 +40,58 @@ use rayon::iter::ParallelIterator;
 
 
 fn main(){
+let mut c =TAG_HG_3_CLASS_3.to_vec();
+let mut  a = ALMOST_TAG_HG_3_CLASS_3.to_vec();
+c.retain(|x|!a.contains(x));
+let cardinality = 3u64;
+let total = get_min_max_u1024(&cardinality).1;
+let mut visited_tags: Vec<U1024> = Vec::new();
+visited_tags.push(total);
+
+let mut cl1 = collect_classes_from_circumference(&total, &visited_tags, &cardinality);
+println!("cl1 {:?}",cl1.1);
+let mut classes:Vec<(U1024,Vec<U1024>)> = vec![(total,vec![total])];
+let mut visited_tags: Vec<U1024> = Vec::new();
+    let mut center_tags:Vec<U1024> = Vec::new();
+    /*REPRESENTANT 132120543 IS IN A CIRCUMFERENCE RADIUS ONE FROM  132120575. Why it is not collected???*/
+let unfound_class =[(U1024::from(132120543), [U1024::from(132120543), U1024::from(133954559), U1024::from(134151935)].to_vec())].to_vec();
+let mut distance: Vec<usize> = Vec::new();
+for item in &unfound_class {
+     distance=item.1.iter().map(|x| distance_tags_u1024(x, &total, &cardinality)).collect_vec();
+}
+println!("dista {:?}",distance);
+let tag =U1024::from(132120575u128);
+let circ_1  = hg_in_circumference_radius_one(&tag , &cardinality);
+println!("circ1 {:?}",circ_1);
+
+
+classes.append(&mut cl1.1.clone());
+    println!("classes {:?}",classes);
+    center_tags=cl1.1.iter().map(|x|x.0).collect();
+    for centers in &center_tags {
+        let dist = distance_tags_u1024(centers, &unfound_class[0].0, &cardinality);
+        println!("dist {}. Center is {}",dist,centers);
+    }
+    visited_tags.append(&mut cl1.0);
+    println!("new centers  {:?}",center_tags);
+    let mut centers_and_classes:Vec<(Vec<U1024>,Vec<(U1024,Vec<U1024>)>)>;
+
+    let mut classes_from_circumferences :Vec<Vec<(U1024,Vec<U1024>)>>;
+
+    centers_and_classes=center_tags.par_iter().map(|x|
+        collect_classes_from_circumference(x, &visited_tags, &cardinality)
+        ).collect();
+        classes_from_circumferences = centers_and_classes.iter().map(|y|y.1.clone()).collect();
+        classes_from_circumferences.concat();
+        let bool = classes_from_circumferences.contains(&unfound_class);
+        println!("bool {}",bool);
+
+
+
+/*     
+   /*NEW ENUMERATION ALGORITHM
+   
+   almost working  */ 
     let now = Instant::now();
 let cardinality = 3u64;
     let total = get_min_max_u1024(&cardinality).1;
@@ -102,7 +156,7 @@ let cardinality = 3u64;
     println!("Computation time:{:?}",end);    
     //println!("classes {:?}",classes);
     
-   /*      
+ */   /*      
     classes_dist_1.sort_by(|a, b| a.0.cmp(&b.0));
     classes_dist_1.dedup();
   println!("classes dist 1 {:?}",classes_dist_1);
