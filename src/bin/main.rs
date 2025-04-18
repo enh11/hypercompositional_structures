@@ -11,12 +11,20 @@ use hyperstruc::hs::distance_tags_u1024;
 use hyperstruc::hs::hg_in_circumference_radius_one;
 use hyperstruc::hs::HyperGroupoidMat;
 use hyperstruc::hypergroups::collect_classes_from_circumference;
+use hyperstruc::hypergroups::collect_isomorphism_class;
+use hyperstruc::hypergroups::collect_leafs_from_nodes;
+use hyperstruc::hypergroups::exploring_tree;
+use hyperstruc::hypergroups::find_nodes_not_enumerated;
+use hyperstruc::hypergroups::tag_is_leaf;
 use hyperstruc::hypergroups::HyperGroup;
 use hyperstruc::tags;
 use hyperstruc::tags::ALMOST_TAG_HG_3_CLASS_3;
+use hyperstruc::tags::LEAF_TAGS_3;
+use hyperstruc::tags::OTHERS_DIST_2_FROM_LEAFS_3;
 use hyperstruc::tags::TAG_HG_2;
 use hyperstruc::tags::TAG_HG_3;
 use hyperstruc::tags::TAG_HG_3_CLASS_3;
+use hyperstruc::tags::TRY_ENUMERATION_3;
 use hyperstruc::utilities::write;
 use hyperstruc::utilities::get_min_max;
 use hyperstruc::utilities::get_min_max_u1024;
@@ -31,6 +39,7 @@ use itertools::Itertools;
 use nalgebra::center;
 use nalgebra::coordinates::X;
 use nalgebra::distance;
+use num_traits::float::TotalOrder;
 use permutation::Permutation;
 use rayon::iter::IndexedParallelIterator;
 use rayon::iter::IntoParallelIterator;
@@ -40,102 +49,52 @@ use rayon::iter::ParallelIterator;
 
 
 fn main(){
+/* let cardinality =2u64;
+let tag =U1024::from(111);
+ */
+/* 
+    let cardinality = 3u64;
+    let cardinality = 3u64;
+    let total = get_min_max_u1024(&cardinality).1;
 let mut c =TAG_HG_3_CLASS_3.to_vec();
 let mut  a = ALMOST_TAG_HG_3_CLASS_3.to_vec();
 c.retain(|x|!a.contains(x));
-let cardinality = 3u64;
-let total = get_min_max_u1024(&cardinality).1;
-let mut visited_tags: Vec<U1024> = Vec::new();
-visited_tags.push(total);
-
-let mut cl1 = collect_classes_from_circumference(&total, &visited_tags, &cardinality);
-println!("cl1 {:?}",cl1.1);
-let mut classes:Vec<(U1024,Vec<U1024>)> = vec![(total,vec![total])];
-let mut visited_tags: Vec<U1024> = Vec::new();
-    let mut center_tags:Vec<U1024> = Vec::new();
-    /*REPRESENTANT 132120543 IS IN A CIRCUMFERENCE RADIUS ONE FROM  132120575. Why it is not collected???*/
-let unfound_class =[(U1024::from(132120543), [U1024::from(132120543), U1024::from(133954559), U1024::from(134151935)].to_vec())].to_vec();
-let mut distance: Vec<usize> = Vec::new();
-for item in &unfound_class {
-     distance=item.1.iter().map(|x| distance_tags_u1024(x, &total, &cardinality)).collect_vec();
+println!("not found in a {:?}",c);
+for item in c.iter().map(|x|x.0) {
+    let dist  = distance_tags_u1024(&U1024::from(item), &total, &cardinality);
+    println!("dist {} from {} is {}",item,total,dist)
 }
-println!("dista {:?}",distance);
-let tag =U1024::from(132120575u128);
-let circ_1  = hg_in_circumference_radius_one(&tag , &cardinality);
-println!("circ1 {:?}",circ_1);
+ */
+/* missing representants in classes of order 3 are
+ [22102794, 22239147, 22369620, 22377812, 31021851, 31134601, 57784611, 57784615]*/
+/*Representants 22102794, 22239147,31021851,31134601 have neighborhood hypergroups */
+/*Representant 22369620 has neighborhood hypergroups [22369621, 22377812, 89478484] */
+/*Representant 22377812 has neighborhood hypergroups [22377813, 22369620, 89486676] */
+/*Representant 57784611 has neighborhood hypergroups [57784615, 57780515, 57776419, 41007395, 24230179] */
+/*Representant 57784615 has neighborhood hypergroups [57784611, 57780519, 57776423, 41007399, 24230183] */
+/*Find neighborhood from missing classes */
 
-
-classes.append(&mut cl1.1.clone());
-    println!("classes {:?}",classes);
-    center_tags=cl1.1.iter().map(|x|x.0).collect();
-    for centers in &center_tags {
-        let dist = distance_tags_u1024(centers, &unfound_class[0].0, &cardinality);
-        println!("dist {}. Center is {}",dist,centers);
-    }
-    visited_tags.append(&mut cl1.0);
-    println!("new centers  {:?}",center_tags);
-    let mut centers_and_classes:Vec<(Vec<U1024>,Vec<(U1024,Vec<U1024>)>)>;
-
-    let mut classes_from_circumferences :Vec<Vec<(U1024,Vec<U1024>)>>;
-
-    centers_and_classes=center_tags.par_iter().map(|x|
-        collect_classes_from_circumference(x, &visited_tags, &cardinality)
-        ).collect();
-        classes_from_circumferences = centers_and_classes.iter().map(|y|y.1.clone()).collect();
-        classes_from_circumferences.concat();
-        let bool = classes_from_circumferences.contains(&unfound_class);
-        println!("bool {}",bool);
-
-
-
-/*     
+    
    /*NEW ENUMERATION ALGORITHM
    
-   almost working  */ 
+   almost working....
+   There exist hypergroups which has no neighborhood at distance one.  */ 
     let now = Instant::now();
-let cardinality = 3u64;
-    let total = get_min_max_u1024(&cardinality).1;
-    let mut visited_tags: Vec<U1024> = Vec::new();
-    let mut center_tags:Vec<U1024> = Vec::new();
-    center_tags.push(total);
-    visited_tags.push(total);
-    let mut centers_and_classes:Vec<(Vec<U1024>,Vec<(U1024,Vec<U1024>)>)>;
-    let mut classes_from_circumferences :Vec<Vec<(U1024,Vec<U1024>)>>;
-    let mut classes:Vec<(U1024,Vec<U1024>)> = vec![(total,vec![total])];
-    let mut cl1 = collect_classes_from_circumference(&total, &visited_tags, &cardinality);
-//println!("cl1 {:?}",cl1);
-    classes.append(&mut cl1.1.clone());
-    println!("classes {:?}",classes);
-    center_tags=cl1.1.iter().map(|x|x.0).collect();
-    visited_tags.append(&mut cl1.0);
-// println!("new centers  {:?}",center_tags);
+let cardinality = 2u64;
+let total = get_min_max_u1024(&cardinality).1;
 
-    while !center_tags.is_empty() {
-        centers_and_classes=center_tags.par_iter().map(|x|
-            collect_classes_from_circumference(x, &visited_tags, &cardinality)
-            ).collect();
-        classes_from_circumferences = centers_and_classes.iter().map(|y|y.1.clone()).collect();
-        classes_from_circumferences.concat();
-        classes_from_circumferences.retain(|x|!x.is_empty());
-        classes_from_circumferences.sort();
-        classes_from_circumferences.dedup();
-        //println!("classes_from tags in center {:?}",classes_from_circumferences);
-
-        classes.append(&mut classes_from_circumferences.clone().concat());
-        classes.sort_by(|x,y|x.0.cmp(&y.0));
-        classes.dedup();
-        //println!("update classes {:?}",classes);
-        let visited_tags_vec=centers_and_classes.iter().map(|y|y.0.clone()).collect_vec();
-        center_tags=visited_tags_vec.concat();
-        center_tags.sort();
-        center_tags.dedup();
-        //println!("new centers {:?}",center_tags);
-        visited_tags.append(&mut center_tags.clone());
-        visited_tags.sort();
-        visited_tags.dedup();
-        //println!("visited tags are {:?}",visited_tags);
-        
-    }
+/* let (classes,enumeration)= exploring_tree(&total, &cardinality);
+let leafs2=collect_leafs_from_nodes(&enumeration,&cardinality);
+println!("leafs {:?}",leafs2); */
+// OK let new_nodes = find_nodes_not_enumerated(&leafs2, &enumeration, &1usize,&cardinality);
+let new_nodes = OTHERS_DIST_2_FROM_LEAFS_3.iter().map(|x|U1024::from(*x)).collect_vec();
+let new_classes = exploring_tree(&U1024::from(111), &cardinality);
+/*
+let new_classes:Vec<_>= new_nodes.par_iter().map(|x|exploring_tree(x, &cardinality)).collect();
+ */
+println!("new nodes {:?}",new_classes);
+println!("new nodes {:?}",new_classes.1.len());
+let classes = new_classes.0;
     let permut_vec:Vec<Vec<usize>> = (0..cardinality as usize).permutations(cardinality as usize).collect();
     let mut c:Vec<usize>=Vec::new();
     let mut c_k:Vec<(U1024,Vec<U1024>)>;
@@ -144,19 +103,42 @@ let cardinality = 3u64;
     for k in 1..=permut_vec.len(){
         c_k=classes.iter().filter(|y|(*y.1).len()==k).into_iter().map(|x|x.clone()).collect_vec();
         c.push(c_k.len());
-        let add_str=format!("{:?}\n",c_k);
-        s.push_str(&add_str);
+       
     }
-    let _ = write(s.clone(),&format!("try_enumeration"));
+   
     println!("c {:?}",c);
     
-    let enumeration = classes.iter().map(|x|x.1.clone()).concat();
-    //println!("enum {}",enumeration.len());
-    let end = now.elapsed();
-    println!("Computation time:{:?}",end);    
-    //println!("classes {:?}",classes);
-    
- */   /*      
+
+/* /* GET TAGS HG AT DIST " FROM LEAFS" */
+let mut s = String::new();
+let mut  add_str=String::new();
+    let leaf = LEAF_TAGS_3.iter().map(|x|U1024::from(*x)).collect_vec();
+    let enumeration =TRY_ENUMERATION_3.iter().map(|x|U1024::from(*x)).collect_vec();
+
+    let others :Vec<_>=leaf.par_iter().filter(|tag|
+    circumference_radius_d_filtered(&U1024::from(**tag), &2usize, &cardinality).iter().any(|x|
+    !enumeration.contains(&U1024::from(x)))).collect();
+
+    s.clear();
+    add_str.clear();
+    add_str=format!("{:?}\n",others);
+    s.push_str(&add_str);
+
+    let _ = write(s.clone(),&format!("try_others_3_dist_2_from_leafs"));
+
+    println!("others {:?}",others);
+ */
+/* /*COLLECT CLASSES FROM OTHERS */
+let cardinality = 3u64;
+let enumeration = TRY_ENUMERATION_3.iter().map(|x|U1024::from(*x)).collect_vec();
+let others = OTHERS_DIST_2_FROM_LEAFS_3.iter().map(|x|U1024::from(*x)).collect_vec();
+let new_hgs = others.iter().map(|x|hg_in_circumference_radius_one(x, &cardinality)).collect_vec();
+let mut new_classes:Vec<(U1024,Vec<U1024>)> = others.par_iter().map(|tag|collect_isomorphism_class(tag, &cardinality)).collect();
+new_classes.sort_by(|x,y|x.0.cmp(&y.0));
+new_classes.dedup();
+println!("new classes  {:?}",new_classes.len());
+println!("new hgs {:?}",new_hgs); */
+   /*      
     classes_dist_1.sort_by(|a, b| a.0.cmp(&b.0));
     classes_dist_1.dedup();
   println!("classes dist 1 {:?}",classes_dist_1);

@@ -222,61 +222,52 @@ pub fn is_commutative(&self)->bool{
     }
     true
 }
+
 pub fn is_left_identity(&self,e:&u64)->bool{
     if !e.is_power_of_two() {panic!("Not an element in hypergroupoid!")}
-    let e=e.trailing_zeros();//the number of trailing_zeros in a power of two is equal to the exponent. Also ilog2() works.
+    let e=e.trailing_zeros();//the number of trailing_zeros in a power of two integer is equal to the exponent of that power.
     let row_e=self.hyper_composition.row(e as usize);
-    //let e=e.trailing_zeros().pow(2);
-    (0..self.n).into_iter().all(|x| (row_e.index(x as usize)>>x)&1==1)
+    (0..self.n).into_par_iter().all(|x| (row_e.index(x as usize)>>x)&1==1)
 
-    //self.get_singleton().into_iter().all(|x|x&row_e.index(x.ilog2() as usize)==x)
-
-    //self.get_singleton().iter().zip(row_e.iter()).all(|(k,ek)|k&ek==*k)
 }
 pub fn is_right_identity(&self,e:&u64)->bool{
     if !e.is_power_of_two() {panic!("Not an element in hypergroupoid!")}
-    let e=e.trailing_zeros();//the number of trailing_zeros in a power of two is equal to the exponent. Also ilog2() works.
+    let e=e.trailing_zeros();//the number of trailing_zeros in a power of two integer is equal to the exponent of that power.
     let col_e=self.hyper_composition.column(e as usize);
-    //let e=e.trailing_zeros().pow(2);
-    (0..self.n).into_iter().all(|x| (col_e.index(x as usize)>>x)&1==1)
-   // self.get_singleton().into_iter().all(|x|x&col_e.index(x.ilog2() as usize)==x) //this works as well
-
-    //(0..self.n).into_iter().zip(col_e.iter()).all(|x|x.0.pow(2)&x.1==x.0)
+    (0..self.n).into_par_iter().all(|x| (col_e.index(x as usize)>>x)&1==1)
     }
 pub fn is_identity(&self,e:&u64)->bool{
-    self.is_left_identity(&e)&self.is_right_identity(&e)
+    self.is_left_identity(&e)&&self.is_right_identity(&e)
 }
 pub fn collect_left_identity(&self)->Vec<u64>{
-    self.get_singleton().iter()
+    self.get_singleton().par_iter()
         .filter(|e|self.is_left_identity(e))
         .map(|e|*e)
-        .collect_vec()
+        .collect()
 
 }
 pub fn collect_right_identity(&self)->Vec<u64>{
-    self.get_singleton().iter()
+    self.get_singleton().par_iter()
         .filter(|e|self.is_right_identity(e))
         .map(|e|*e)
-        .collect_vec()
+        .collect()
 
 }
 pub fn collect_identities(&self)->Vec<u64>{
     self.get_singleton().iter()
-        .filter(|e|self.is_right_identity(&e)&self.is_left_identity(&e))
+        .filter(|e|self.is_right_identity(&e)&&self.is_left_identity(&e))
         .map(|e|*e)
         .collect_vec()
 
 }
 pub fn is_left_scalar(&self,s:&u64)->bool{
     if !s.is_power_of_two() {panic!("Not an element in hypergroupoid!")}
-    let s=s.trailing_zeros();//the number of trailing_zeros in a power of two is equal to the exponent. Also ilog2() works.
-
+    let s=s.trailing_zeros();
     self.hyper_composition.column(s as usize).iter().all(|x|x.is_power_of_two())
 }
 pub fn is_right_scalar(&self,s:&u64)->bool{
     if !s.is_power_of_two()  {panic!("Not an element in hypergroupoid!")}
-    let s=s.trailing_zeros();//the number of trailing_zeros in a power of two is equal to the exponent. Also ilog2() works.
-
+    let s=s.trailing_zeros();
     self.hyper_composition.row(s as usize).iter().all(|x|x.is_power_of_two())
 }
 pub fn collect_scalars(&self)->Vec<u64>{
