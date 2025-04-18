@@ -434,17 +434,10 @@ pub fn right_division(&self,a:&u64,b:&u64)->u64{
 /// assert!(hyperstructure.is_reproductive())
 ///
    pub fn is_reproductive(&self)->bool{
-    let h:Vec<u64>=Vec::from_iter(0..self.n).iter().map(|_|2u64.pow(self.n as u32)-1).collect();
-    /*xH is row_sum */
-    let row_sum:Vec<u64> = self.hyper_composition.row_iter().map(|x|x.iter().fold(0u64, |acc,element|acc|element)).collect();
-    /*Hx is column sum */
-    let col_sum:Vec<u64> = self.hyper_composition.column_iter().map(|x|x.iter().fold(0u64, |acc,element|acc|element)).collect();
-    if (h==row_sum) & (h==col_sum) {
-        true
-    }
-    else {
-        false
-    }
+    let power_set = 2u64.pow(self.n as u32)-1;
+    self.hyper_composition.row_iter().all(|x|x.iter().fold(0u64, |acc,element|acc|element)==power_set)
+    &&
+    self.hyper_composition.column_iter().all(|x|x.iter().fold(0u64, |acc,element|acc|element)==power_set)
    }
 /// Return true if hyperstructure is associative, i.e., (xy)z = x(zy) holds for all x in H.
 /// # Example
