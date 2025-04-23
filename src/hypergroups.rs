@@ -44,6 +44,7 @@ impl HyperGroup {
     pub fn get_integer_tag_u1024(&self)->U1024{
         self.0.get_integer_tag_u1024()
     }
+    
     pub fn is_transposition(&self)->bool {
         for a in self.0.get_singleton(){
             for b in self.0.get_singleton(){

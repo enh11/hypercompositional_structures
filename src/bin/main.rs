@@ -25,6 +25,7 @@ use hyperstruc::tags::TAG_HG_2;
 use hyperstruc::tags::TAG_HG_3;
 use hyperstruc::tags::TAG_HG_3_CLASS_3;
 use hyperstruc::tags::TRY_ENUMERATION_3;
+use hyperstruc::utilities::ones_positions;
 use hyperstruc::utilities::write;
 use hyperstruc::utilities::get_min_max;
 use hyperstruc::utilities::get_min_max_u1024;
@@ -37,8 +38,10 @@ use hyperstruc::utilities::U1024RangeExt;
 use hyperstruc::utilities::U1024;
 use itertools::Itertools;
 use nalgebra::center;
+use nalgebra::coordinates::M2x3;
 use nalgebra::coordinates::X;
 use nalgebra::distance;
+use nalgebra::DMatrix;
 use num_traits::float::TotalOrder;
 use permutation::Permutation;
 use rayon::iter::IndexedParallelIterator;
@@ -49,6 +52,29 @@ use rayon::iter::ParallelIterator;
 
 
 fn main(){
+
+    /*TRY LEFT DIVISOIOON */
+
+let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
+let hyperstructure=HyperGroupoidMat::new_from_matrix(&matrix);
+let sing = hyperstructure.get_singleton();
+println!("sing {:?}",sing);
+println!("hs_3 {}",hyperstructure);
+let x =hyperstructure.is_associative();
+println!("x {}",x);
+
+
+/*     /*TRY TRANSPOSITION */
+    let cardinality = 4u64;
+    let matrix=DMatrix::from_row_slice(cardinality as usize,cardinality as usize,&[1,3,5,9,3,2,6,10,5,6,4,12,9,10,12,8]);
+let hs = HyperGroupoidMat::new_from_matrix(&matrix);
+let tag  = U1024::from(1970661744247085768u128);
+let hg = HyperGroup::new_from_tag_u1024(&tag, &cardinality);
+println!("hs {}",hs);
+println!("hg {}",hg.is_transposition());    
+let circ = circumference_radius_d_filtered(&tag, &1usize, &cardinality);
+println!("circ {:?}",circ);
+ */
 /* let cardinality =2u64;
 let tag =U1024::from(111);
  */
@@ -75,20 +101,21 @@ for item in c.iter().map(|x|x.0) {
 /*Find neighborhood from missing classes */
 
     
-   /*NEW ENUMERATION ALGORITHM
+ /*   /*NEW ENUMERATION ALGORITHM
    
    almost working....
    There exist hypergroups which has no neighborhood at distance one.  */ 
-    let now = Instant::now();
+let now = Instant::now();
 let cardinality = 2u64;
 let total = get_min_max_u1024(&cardinality).1;
+println!("min hs = {}",total);
 
 /* let (classes,enumeration)= exploring_tree(&total, &cardinality);
 let leafs2=collect_leafs_from_nodes(&enumeration,&cardinality);
 println!("leafs {:?}",leafs2); */
 // OK let new_nodes = find_nodes_not_enumerated(&leafs2, &enumeration, &1usize,&cardinality);
 let new_nodes = OTHERS_DIST_2_FROM_LEAFS_3.iter().map(|x|U1024::from(*x)).collect_vec();
-let new_classes = exploring_tree(&U1024::from(111), &cardinality);
+let new_classes = exploring_tree(&total, &cardinality);
 /*
 let new_classes:Vec<_>= new_nodes.par_iter().map(|x|exploring_tree(x, &cardinality)).collect();
  */
@@ -108,7 +135,7 @@ let classes = new_classes.0;
    
     println!("c {:?}",c);
     
-
+ */
 /* /* GET TAGS HG AT DIST " FROM LEAFS" */
 let mut s = String::new();
 let mut  add_str=String::new();

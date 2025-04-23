@@ -145,8 +145,11 @@ pub fn get_complement_subset(k:&u64,cardinality:&u64)->u64 {
 /// 
 /// assert_eq!(ones, expected_ones_positions)
 /// 
-pub fn ones_positions(k:&u64,n:&u64)->Vec<u64>{
-    (0..*n).into_iter().filter(|x|(k>>x)&1==1).collect()
+pub fn ones_positions(subset_a:&u64,cardinality:&u64)->Vec<usize>{
+    let power_set_cardinality = 1<<cardinality;
+    if subset_a>=&power_set_cardinality
+        {panic!(" {} does not represent a subset of H.\nsubset_a must be between 0 and {}",subset_a,power_set_cardinality-1)}
+    (0..*cardinality as usize).into_iter().filter(|x|(subset_a>>x)&1==1).collect()
 
 }
 

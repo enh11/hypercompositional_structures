@@ -206,7 +206,19 @@ pub fn collect_isomorphism_class(&self)->(U1024,Vec<U1024>){
 /// let tag = 22150143u128;
 /// let hs = HyperGroupoidMat::new_from_tag(&tag,&cardinality);
 /// 
-/// assert!(hs.is_hypergroup())
+/// assert!(hs.is_hypergroup());
+/// 
+/// use hyperstruc::utilities::U1024;
+/// 
+/// let cardinality  =2u64;
+/// use hyperstruc::tags:: TAG_HG_2;
+/// let tag_2:Vec<U1024> = TAG_HG_2.iter().map(|x| U1024::from(*x)).collect();
+/// for tags in tag_2 {
+///     let hg =  HyperGroupoidMat::new_from_tag_u1024(&tags,&cardinality);
+///     assert!(hg.is_hypergroup())
+/// }
+/// 
+/// 
 /// 
 pub fn is_hypergroup(&self)->bool{
     self.is_associative()&self.is_reproductive()
@@ -240,11 +252,10 @@ pub fn is_identity(&self,e:&u64)->bool{
     self.is_left_identity(&e)&&self.is_right_identity(&e)
 }
 pub fn collect_left_identity(&self)->Vec<u64>{
-    self.get_singleton().par_iter()
+    self.get_singleton().iter()
         .filter(|e|self.is_left_identity(e))
         .map(|e|*e)
         .collect()
-
 }
 pub fn collect_right_identity(&self)->Vec<u64>{
     self.get_singleton().par_iter()
@@ -255,10 +266,9 @@ pub fn collect_right_identity(&self)->Vec<u64>{
 }
 pub fn collect_identities(&self)->Vec<u64>{
     self.get_singleton().iter()
-        .filter(|e|self.is_right_identity(&e)&&self.is_left_identity(&e))
+        .filter(|e|self.is_identity(&e))
         .map(|e|*e)
         .collect_vec()
-
 }
 pub fn is_left_scalar(&self,s:&u64)->bool{
     if !s.is_power_of_two() {panic!("Not an element in hypergroupoid!")}
@@ -301,7 +311,7 @@ pub fn collect_ph(&self)->Vec<u64>{
 }
 pub fn beta_relation(&self)->Relation{
     let ph=self.collect_ph();
-    let ph :Vec<Vec<u64>>= ph.iter().map(|x|ones_positions(x, &self.n)).collect();
+    let ph :Vec<Vec<usize>>= ph.iter().map(|x|ones_positions(x, &self.n)).collect();
     let ph: Vec<(u64, u64)> =ph.iter().zip(ph.iter())
         .map(|x|
             x.0.iter().cartesian_product(x.1.iter())
@@ -347,16 +357,27 @@ pub fn get_subset_from_k(&self,k:&u64)->HashSet<u64>{
     let subset: Vec<u64> = get_subset(&k, &cardinality);
     vec_to_set(&subset)
 }
-   pub fn mul_by_representation(&self,int_k:&u64,int_l:&u64)->u64{
-    let ones_k=ones_positions(int_k, &(self.h.len() as u64));
-    let ones_l= ones_positions(int_l, &(self.h.len() as u64));
-    let mut indexes:Vec<(u64,u64)>=Vec::new();
-    for a in &ones_k{
-        for b in &ones_l{
-                indexes.push((*a,*b));
-        }
-    }
-    indexes.iter().fold(0u64, |acc, x| acc|self.hyper_composition[(x.0 as usize,x.1 as usize)])
+/// # Example
+/// ```
+/// use hyperstruc::hs::HyperGroupoidMat;
+/// use nalgebra::DMatrix;
+/// 
+/// let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
+/// let hyperstructure=HyperGroupoidMat::new_from_matrix(&matrix);
+/// let a =2u64;
+/// let b=1u64;
+/// let ab=2u64;
+/// let mul=hyperstructure.mul_by_representation(&a,&b);
+/// assert_eq!(ab,mul);
+pub fn mul_by_representation(&self,subset_a:&u64,subset_b:&u64)->u64{
+    let ones_a=ones_positions(subset_a, &(self.h.len() as u64));
+    let ones_b= ones_positions(subset_b, &(self.h.len() as u64));
+    ones_a.iter().cartesian_product(ones_b)
+        .into_iter()
+        .fold(
+            0u64, 
+            |acc,x|
+                 acc|self.hyper_composition[(*x.0 as usize,x.1 as usize)])
 }
 /// # Example
 /// ```
@@ -395,9 +416,9 @@ self.mul_by_representation(&int_k, &int_l)
 pub fn left_division(&self,a:&u64,b:&u64)->u64{    
     self.get_singleton().iter()
     .filter(|x| 
-        a&(&self.mul_by_representation(&b,&x))==*a
+        a&(&self.mul_by_representation(&b,&x))!=0 //This is equivalent to {a} meets {b}{x}, i.e., {a} intersection {b}{x} not empty. Therefore this algorithm also compute A\B
         )
-        .fold(0, |acc, x| acc|x)
+        .fold(0, |acc, x| acc|x)  
 }
 /// Compute a/b={x in H : a in xb}.
 /// Input a and b must be type u64, representing non empty subset of H. Therefore, singleton are powers of 2.
@@ -418,7 +439,7 @@ pub fn left_division(&self,a:&u64,b:&u64)->u64{
 pub fn right_division(&self,a:&u64,b:&u64)->u64{    
     self.get_singleton().iter()
         .filter(|x| 
-            a&(&self.mul_by_representation(&x,&b))==*a
+            a&(&self.mul_by_representation(&x,&b))!=0
             )
             .fold(0, |acc, x| acc|x)
 }
@@ -433,12 +454,20 @@ pub fn right_division(&self,a:&u64,b:&u64)->u64{
 /// println!("{hyperstructure}");
 /// assert!(hyperstructure.is_reproductive())
 ///
-   pub fn is_reproductive(&self)->bool{
-    let power_set = 2u64.pow(self.n as u32)-1;
-    self.hyper_composition.row_iter().all(|x|x.iter().fold(0u64, |acc,element|acc|element)==power_set)
+pub fn is_reproductive(&self)->bool{
+    let power_set_cardinality = 2u64.pow(self.n as u32)-1;
+    self.hyper_composition
+        .row_iter()
+        .all(|x|
+            x.iter().fold(0u64, |acc,element|
+                acc|element)==power_set_cardinality)
     &&
-    self.hyper_composition.column_iter().all(|x|x.iter().fold(0u64, |acc,element|acc|element)==power_set)
-   }
+    self.hyper_composition
+        .column_iter()
+        .all(|x|
+            x.iter().fold(0u64, |acc,element|
+                acc|element)==power_set_cardinality)
+}
 /// Return true if hyperstructure is associative, i.e., (xy)z = x(zy) holds for all x in H.
 /// # Example
 /// ```
@@ -473,24 +502,22 @@ true
 /// assert!(hyperstructure.is_associative())
 ///
 pub fn is_associative(&self)->bool{
- 
-for a in &self.get_singleton(){
-        for b in &self.get_singleton(){
-            for c in &self.get_singleton(){
-                let ab_c=self.mul_by_representation(
-                    &self.mul_by_representation(&a, &b),&c);
-                let a_bc = self.mul_by_representation(&a, &self.mul_by_representation(&b, &c));
-                if a_bc==ab_c {continue;} else {
-                        return false;
-                    }
-            }
-        }
-    }
-true
+    self.get_singleton().iter().all(|a|
+        self.get_singleton().iter().all(|b|
+            self.get_singleton().iter().all(|c| {
+                self.mul_by_representation(
+                    &self.mul_by_representation(a, b),
+                    c)==
+                self.mul_by_representation(
+                    a,
+                    &self.mul_by_representation(b, c))
+                
+            })
+        )
+    )
 }
 pub fn get_singleton(&self)->Vec<u64>{
-    //DMatrix::from_row_iterator(1, self.n as usize, (0..self.n).into_iter().map(|i|2u64.pow(i)))
-    (0..self.n).into_iter().map(|i|2u64.pow(i as u32)).collect()
+    (0..self.n).into_iter().map(|i|1<<i).collect()
 }
 /// Calculate the distance between two hyperstructures. The distance is defined as the the 
 /// Hamming distance between binary representations of hyperstructure's tags, i.e., 
