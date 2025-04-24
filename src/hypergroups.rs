@@ -50,9 +50,9 @@ impl HyperGroup {
             for b in self.0.get_singleton(){
                 for c in self.0.get_singleton(){
                     for d in self.0.get_singleton(){
-                        if self.0.left_division(&a, &b)&self.0.right_division(&c, &d)==1{
-                            if self.0.mul_by_representation(&a, &d)&self.0.mul_by_representation(&b, &c)!=1{
-                                return  false;
+                        if self.0.left_division(&a, &b)&self.0.right_division(&c, &d)!=0{
+                            if self.0.mul_by_representation(&a, &d)&self.0.mul_by_representation(&b, &c)==0{
+                                return  true;
                             }
                         
                         }

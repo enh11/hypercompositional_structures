@@ -52,16 +52,13 @@ use rayon::iter::ParallelIterator;
 
 
 fn main(){
-
-    /*TRY LEFT DIVISOIOON */
-
-let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
-let hyperstructure=HyperGroupoidMat::new_from_matrix(&matrix);
-let sing = hyperstructure.get_singleton();
-println!("sing {:?}",sing);
-println!("hs_3 {}",hyperstructure);
-let x =hyperstructure.is_associative();
-println!("x {}",x);
+let cardinality =3u64;
+let function = |a:u64,b:u64| 1<<a|1<<b;
+let hs  = HyperGroupoidMat::new_from_function(function, &cardinality);
+println!("hs {}",hs);
+println!("is hypergroup {}",hs.is_hypergroup());
+let hg = HyperGroup::new_from_tag_u1024(&hs.get_integer_tag_u1024(), &cardinality);
+println!("is transpositional {}",hg.is_transposition());
 
 
 /*     /*TRY TRANSPOSITION */

@@ -1,12 +1,12 @@
 use core::panic;
 use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
-use std::{collections::HashSet, fmt::Display, ops::Index, usize::MAX, vec};
+use std::{collections::HashSet, fmt::Display, vec};
 extern crate nalgebra as na;
 use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
-use rand::{Error,  Rng};
-use crate::{relations::Relation, utilities::{binary_to_n, binary_to_u1024, cartesian_product, from_tag_to_vec, from_tag_u1024_to_vec, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid, representing_hypergroupoid_u1024, subset_as_u64, vec_to_set, U1024}};
+use rand::Rng;
+use crate::{relations::Relation, utilities::{self, binary_to_n, binary_to_u1024, cartesian_product, from_tag_to_vec, from_tag_u1024_to_vec, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid, representing_hypergroupoid_u1024, subset_as_u64, vec_to_set, U1024}};
 #[derive(Debug, Clone,PartialEq)]
 pub struct HyperGroupoidMat{
     pub h:HashSet<u64>,
@@ -32,6 +32,52 @@ impl HyperGroupoidMat {
             hyper_composition: ht, 
             n: *n}
    }
+/// Generates a new hyperstructure from a binary function Fn(u64, u64) -> u64.
+///
+/// Each element in the hyperstructure `H` is represented by a number `(a, b)`.
+/// The function is applied to all pairs `(a, b)` in the Cartesian product `H × H`.
+///
+/// For each pair:
+/// - The result of `f(a, b)` is converted to a binary string.
+/// - All binary strings are concatenated into one large binary string.
+/// - A tag is computed from this final string to define the new hyperstructure.
+///
+/// ### Note
+/// If you want to treat elements 'a' and 'b' as **singleton sets** (i.e., `{a}` and `{b}`),
+/// you need to encode them using their power-of-two representation: `2^a` and `2^b`.
+/// This can be computed efficiently with bit shifting:
+/// 
+/// ```rust
+/// let a =0u64;
+/// let b = 1u64;
+/// let singleton_a = 1 << a;
+/// let singleton_b = 1 << b;
+/// ```
+/// Use these in your function if it expects `a` and `b` as sets rather than elements of H.
+/// 
+/// # Example
+/// ```
+/// use hyperstruc::hs::HyperGroupoidMat;
+/// use hyperstruc::hypergroups::HyperGroup;
+/// 
+/// let cardinality =3u64;
+/// let function = |a:u64,b:u64| 1<<a|1<<b;
+/// let hs  = HyperGroupoidMat::new_from_function(function, &cardinality);
+/// println!("hs {}",hs);
+/// assert!(hs.is_hypergroup());
+/// let hg = HyperGroup::new_from_tag_u1024(&hs.get_integer_tag_u1024(), &cardinality);
+/// println!("is transpositional {}",hg.is_transposition());
+/// assert!(hg.is_transposition());
+///
+pub fn new_from_function<F>(function:F,cardinality:&u64)->Self
+    where F: Fn(u64,u64) -> u64{
+        let tag_vec = (0..*cardinality).into_iter().cartesian_product(0..*cardinality).into_iter()
+        .map(|(a,b)|n_to_binary_vec(&(function(a,b) as u128),cardinality)).concat();
+        let tag = U1024::from_binary_vec(&tag_vec);
+
+        HyperGroupoidMat::new_from_tag_u1024(&tag, cardinality)
+}
+
 /// Generate a new hyperstructure given a square matrix. Every entry in the matrix are u64 and represent a subset of H={0,1,2,...,n},
 /// where n is the size of the matrix, i.e., the cardinality of the new hyperstructure.
 /// In particular, if x,y are elements of H, then x*y is the entries in position (x,y). 
@@ -504,15 +550,16 @@ true
 pub fn is_associative(&self)->bool{
     self.get_singleton().iter().all(|a|
         self.get_singleton().iter().all(|b|
-            self.get_singleton().iter().all(|c| {
-                self.mul_by_representation(
+            self.get_singleton().iter()
+                .all(|c| {
+                    self.mul_by_representation(
                     &self.mul_by_representation(a, b),
-                    c)==
-                self.mul_by_representation(
+                    c)
+                    ==
+                    self.mul_by_representation(
                     a,
                     &self.mul_by_representation(b, c))
-                
-            })
+                })  
         )
     )
 }
