@@ -17,6 +17,7 @@ use hyperstruc::hypergroups::exploring_tree;
 use hyperstruc::hypergroups::find_nodes_not_enumerated;
 use hyperstruc::hypergroups::tag_is_leaf;
 use hyperstruc::hypergroups::HyperGroup;
+use hyperstruc::hypergroups::HyperStructureError;
 use hyperstruc::tags;
 use hyperstruc::tags::ALMOST_TAG_HG_3_CLASS_3;
 use hyperstruc::tags::LEAF_TAGS_3;
@@ -52,14 +53,6 @@ use rayon::iter::ParallelIterator;
 
 
 fn main(){
-let cardinality =3u64;
-let function = |a:u64,b:u64| 1<<a|1<<b;
-let hs  = HyperGroupoidMat::new_from_function(function, &cardinality);
-println!("hs {}",hs);
-println!("is hypergroup {}",hs.is_hypergroup());
-let hg = HyperGroup::new_from_tag_u1024(&hs.get_integer_tag_u1024(), &cardinality);
-println!("is transpositional {}",hg.is_transposition());
-
 
 /*     /*TRY TRANSPOSITION */
     let cardinality = 4u64;

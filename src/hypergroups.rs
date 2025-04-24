@@ -1,11 +1,22 @@
 use core::panic;
-use std::fmt::Display;
+use std::fmt::{self, Display, Error};
 extern crate nalgebra as na;
 use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use crate::{hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoidMat}, utilities::{get_complement_subset, get_min_max_u1024, get_subset, ones_positions, representation_permutation_subset, representing_hypergroupoid, vec_to_set, U1024}};
+#[derive(Debug, Clone)]
+pub enum HyperStructureError {
+    NotHypergroup,
+}
+impl fmt::Display for HyperStructureError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            HyperStructureError::NotHypergroup => write!(f, "The structure is not a valid hypergroup."),
+        }
+    }
+}
 #[derive(Debug, Clone,PartialEq)]
 pub struct HyperGroup(HyperGroupoidMat);
 
@@ -25,6 +36,42 @@ impl HyperGroup {
         let hg= HyperGroupoidMat::new_from_tag_u1024(tag,cardinality);
         assert!(hg.is_hypergroup(),"Not an hypergroup!");
         HyperGroup(hg)
+    }
+/// Generates a new hypergroup from a binary function Fn(u64, u64) -> u64.
+///
+/// The function is sent to HyperGroupoids::new_from_function`, which compute the new hyperstructure and check if it is a hypergroup.
+/// If it is, it returns OK(HyperGroup), otherwise an Error;
+///
+/// ### Note
+/// If you want to treat elements 'a' and 'b' as **singleton sets** (i.e., `{a}` and `{b}`),
+/// you need to encode them using their power-of-two representation: `2^a` and `2^b`.
+/// This can be computed efficiently with bit shifting:
+/// 
+/// ```rust
+/// let a =0u64;
+/// let b = 1u64;
+/// let singleton_a = 1 << a;
+/// let singleton_b = 1 << b;
+/// ```
+/// Use these in your function if it expects `a` and `b` as sets rather than elements of H.
+/// 
+/// # Example
+/// ```
+/// use hyperstruc::hypergroups::HyperGroup;
+/// 
+/// let cardinality =3u64;
+/// let function = |a:u64,b:u64| 1<<a|1<<b;
+/// let hg = HyperGroup::new_from_function(function, &cardinality);
+/// assert!(hg.unwrap().is_transposition());
+///
+    pub fn new_from_function<F>(function:F,cardinality:&u64)->Result<Self,HyperStructureError>
+    where F: Fn(u64,u64) -> u64{
+        let hs = HyperGroupoidMat::new_from_function(function, cardinality);
+        match hs.is_hypergroup() {
+            true => Ok(HyperGroup::new_from_tag_u1024(&hs.get_integer_tag_u1024(), cardinality)),
+            false => Err(HyperStructureError::NotHypergroup),            
+        }
+
     }
     pub fn cardinality(&self)->u64{
         self.0.n
@@ -251,3 +298,4 @@ pub fn collect_classes_with_respect_to_cardinality(classes:&Vec<(U1024,Vec<U1024
     }
     (collected_classes,enumeration_classes)
 }
+
