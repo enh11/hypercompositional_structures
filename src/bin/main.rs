@@ -1,4 +1,5 @@
 
+use core::panic;
 use std::collections::HashSet;
 use std::ops::BitOr;
 use std::time::Instant;
@@ -19,13 +20,12 @@ use hyperstruc::hypergroups::tag_is_leaf;
 use hyperstruc::hypergroups::HyperGroup;
 use hyperstruc::hypergroups::HyperStructureError;
 use hyperstruc::tags;
-use hyperstruc::tags::ALMOST_TAG_HG_3_CLASS_3;
 use hyperstruc::tags::LEAF_TAGS_3;
 use hyperstruc::tags::OTHERS_DIST_2_FROM_LEAFS_3;
+use hyperstruc::tags::TAG_3_REPRESENTANTS;
 use hyperstruc::tags::TAG_HG_2;
 use hyperstruc::tags::TAG_HG_3;
 use hyperstruc::tags::TAG_HG_3_CLASS_3;
-use hyperstruc::tags::TRY_ENUMERATION_3;
 use hyperstruc::utilities::ones_positions;
 use hyperstruc::utilities::write;
 use hyperstruc::utilities::get_min_max;
@@ -53,6 +53,28 @@ use rayon::iter::ParallelIterator;
 
 
 fn main(){
+let cardinality =5u64;
+let function = |a:u64,b:u64| 1<<a|1<<b;
+let hg  = HyperGroup::new_from_function(function, &cardinality);
+let hg = match hg {
+    Ok(hg)=>hg,
+    Err(HyperStructureError::NotHypergroup)=> panic!("Not hg")
+    
+};
+let closed = hg.collect_proper_closed();
+for item in closed {
+    let closed = vec_to_set(&get_subset(&item, &cardinality));
+    println!("closed subhg are {:?}",closed);
+}
+
+let cardinality=3u64;
+let hgs= TAG_3_REPRESENTANTS.into_iter().map(|x|HyperGroup::new_from_tag_u128(&x, &cardinality)).collect_vec();
+let hg = hgs.iter().filter(|x|x.collect_proper_subhypergroups().iter().any(|y| x.subhypergroup_is_closed(y))).collect_vec();
+for item in hg {
+    println!("hs with closed {}",item.get_integer_tag_u1024());
+    let closed = item.collect_proper_closed().iter().map(|x|vec_to_set(&get_subset(x, &cardinality))).collect_vec();
+    println!("closed subhg are {:?}",closed);
+}
 
 /*     /*TRY TRANSPOSITION */
     let cardinality = 4u64;

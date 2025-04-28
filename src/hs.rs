@@ -34,7 +34,6 @@ impl HyperGroupoidMat {
    }
 /// Generates a new hyperstructure from a binary function Fn(u64, u64) -> u64.
 ///
-/// Each element in the hyperstructure `H` is represented by a number `(a, b)`.
 /// The function is applied to all pairs `(a, b)` in the Cartesian product `H × H`.
 ///
 /// For each pair:
@@ -68,36 +67,45 @@ impl HyperGroupoidMat {
 /// let hg = HyperGroup::new_from_tag_u1024(&hs.get_integer_tag_u1024(), &cardinality);
 /// println!("is transpositional {}",hg.is_transposition());
 /// assert!(hg.is_transposition());
+/// 
 ///
 pub fn new_from_function<F>(function:F,cardinality:&u64)->Self
     where F: Fn(u64,u64) -> u64{
-        let tag_vec = (0..*cardinality).into_iter().cartesian_product(0..*cardinality).into_iter()
-        .map(|(a,b)|n_to_binary_vec(&(function(a,b) as u128),cardinality)).concat();
+        let tag_vec = (0..*cardinality)
+            .into_iter()
+            .cartesian_product(0..*cardinality)
+                .into_iter()
+                .map(|(a,b)|
+                    n_to_binary_vec(&(function(a,b) as u128),cardinality)
+                ).concat();
         let tag = U1024::from_binary_vec(&tag_vec);
-
         HyperGroupoidMat::new_from_tag_u1024(&tag, cardinality)
 }
 
-/// Generate a new hyperstructure given a square matrix. Every entry in the matrix are u64 and represent a subset of H={0,1,2,...,n},
-/// where n is the size of the matrix, i.e., the cardinality of the new hyperstructure.
-/// In particular, if x,y are elements of H, then x*y is the entries in position (x,y). 
+/// Generate a new hyperstructure given a square matrix. Every entry in the matrix is u64 and represent a subset of `H = {0,1,2,...,n}``,
+/// where `n` is the size of the matrix, i.e., the cardinality of the new hyperstructure.
+/// In particular, if `a`,`b` are elements of `H`, then `xy` is the entry in position `(a,b)`. 
 /// For more detail about representation, see pub fn get_subset() in utilities.rs.
+/// 
 /// # Example
 /// ```
+/// #[should_panic(expected = "Divide result is zero")]
 /// use hyperstruc::hs::HyperGroupoidMat;
 /// use nalgebra::DMatrix;
 /// let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
 /// let hyperstructure=HyperGroupoidMat::new_from_matrix(&matrix);
 /// println!("{hyperstructure}");
+/// 
+/// 
+
 ///
    pub fn new_from_matrix(matrix:&DMatrix<u64>)->Self{
     if !matrix.is_square(){panic!("Matrix must be a square matrix!")}
-    let a:Vec<&u64>= matrix.iter().filter(|a|**a==0).collect();
-    if !a.is_empty(){panic!("In order to have a hypergroupoid, matrix can't contain zeroes!")}
+    if matrix.iter().any(|a|*a==0){panic!("In order to have a hypergroupoid, matrix can't contain zeroes!")}
     let h:HashSet<u64>= (0..matrix.ncols() as u64).into_iter().collect();
     let n=matrix.ncols();
     HyperGroupoidMat{
-        h:h,
+        h,
         hyper_composition:matrix.clone(),
         n:n as u64
    }
@@ -148,11 +156,11 @@ pub fn new_from_tag(tag:&u128,cardinality:&u64)->Self{
 /// 
 /// 
 pub fn new_from_tag_u1024(mut tag:&U1024,cardinality:&u64)->Self{
-    let vector_of_subsets_as_integers=from_tag_u1024_to_vec(&mut tag, &cardinality);
-    let vector_of_subsets_as_integers: Vec<u64>=vector_of_subsets_as_integers.iter().map(|x|binary_to_n(x)).collect();
-
+    let vector_of_subsets_as_integers=from_tag_u1024_to_vec(&mut tag, &cardinality).iter().map(|x|binary_to_n(x)).collect_vec();
+    assert_eq!(vector_of_subsets_as_integers.len(),cardinality.pow(2u32) as usize,"Can't represent an hypergroupoid!");
     let hyper_composition_matrix = DMatrix::from_row_slice(*cardinality as usize, *cardinality as usize, &vector_of_subsets_as_integers);
-        HyperGroupoidMat::new_from_matrix(&hyper_composition_matrix)
+        
+    HyperGroupoidMat::new_from_matrix(&hyper_composition_matrix)
 }
  /// # Example
 /// 
@@ -461,8 +469,8 @@ self.mul_by_representation(&int_k, &int_l)
 /// assert_eq!(ab,mul);
 pub fn left_division(&self,a:&u64,b:&u64)->u64{    
     self.get_singleton().iter()
-    .filter(|x| 
-        a&(&self.mul_by_representation(&b,&x))!=0 //This is equivalent to {a} meets {b}{x}, i.e., {a} intersection {b}{x} not empty. Therefore this algorithm also compute A\B
+        .filter(|x| 
+            a&(&self.mul_by_representation(&b,&x))!=0 //This is equivalent to {a} meets {b}{x}, i.e., {a} intersection {b}{x} not empty. Therefore this algorithm also compute A\B
         )
         .fold(0, |acc, x| acc|x)  
 }
@@ -486,8 +494,8 @@ pub fn right_division(&self,a:&u64,b:&u64)->u64{
     self.get_singleton().iter()
         .filter(|x| 
             a&(&self.mul_by_representation(&x,&b))!=0
-            )
-            .fold(0, |acc, x| acc|x)
+        )            
+        .fold(0, |acc, x| acc|x)
 }
 
 /// Return true if hyperstructure is reproductive, i.e., xH = H = Hx holds for all x in H.

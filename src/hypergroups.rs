@@ -76,6 +76,15 @@ impl HyperGroup {
     pub fn cardinality(&self)->u64{
         self.0.n
     }
+    pub fn mul_by_representation(&self, subset_a:&u64,subset_b:&u64)->u64{
+        self.0.mul_by_representation(subset_a, subset_b)
+    }
+    pub fn left_division(&self, subset_a:&u64,subset_b:&u64)->u64{
+        self.0.left_division(subset_a, subset_b)
+    }
+    pub fn right_division(&self, subset_a:&u64,subset_b:&u64)->u64{
+        self.0.right_division(subset_a, subset_b)
+    }
     pub fn permutation_of_table(&self,sigma:&Permutation)->Self{
         let alpha = self.0.permutation_of_table(sigma).get_integer_tag_u1024();
         HyperGroup::new_from_tag_u1024(&alpha, &self.cardinality())
@@ -97,8 +106,8 @@ impl HyperGroup {
             for b in self.0.get_singleton(){
                 for c in self.0.get_singleton(){
                     for d in self.0.get_singleton(){
-                        if self.0.left_division(&a, &b)&self.0.right_division(&c, &d)!=0{
-                            if self.0.mul_by_representation(&a, &d)&self.0.mul_by_representation(&b, &c)==0{
+                        if self.left_division(&a, &b)&self.right_division(&c, &d)!=0{
+                            if self.mul_by_representation(&a, &d)&self.mul_by_representation(&b, &c)==0{
                                 return  true;
                             }
                         
@@ -110,6 +119,8 @@ impl HyperGroup {
         true
     }
     pub fn is_sub_hypergroup(&self,k:&u64)->bool{
+        let power_set_cardinality = 1<<self.cardinality();
+        assert!(*k<power_set_cardinality,"K is not a subset of H!");
         let ones:Vec<usize> = ones_positions(k, &self.0.n).iter().map(|x|*x as usize).collect();
         let sub_matrix = self.0.hyper_composition.select_columns(&ones).select_rows(&ones);
             sub_matrix.row_iter().all(
@@ -132,15 +143,21 @@ impl HyperGroup {
     pub fn subhypergroup_is_closed(&self,subset_k:&u64)->bool {
         if !self.is_sub_hypergroup(&subset_k) {return false;}
         let kc=get_complement_subset(subset_k, &self.0.n);
-        let kc_k= self.0.mul_by_representation(&kc, subset_k);
-        if kc!=kc_k {return false;}
-        let k_kc= self.0.mul_by_representation(subset_k, &kc);
-        if kc!=k_kc {return false;}
+        let kc_k= self.mul_by_representation(&kc, subset_k);
+            if kc!=kc_k {return false;}
+        let k_kc= self.mul_by_representation(subset_k, &kc);
+            if kc!=k_kc {return false;}
         true
     }
+pub fn collect_proper_closed(&self)->Vec<u64>{
+    self.collect_proper_subhypergroups().iter().filter(|x|self.subhypergroup_is_closed(&x)).map(|y|*y).collect()
+}
 pub fn subhypergroup_is_reflexive(&self,subset_k:u64)->bool {
     if !self.is_sub_hypergroup(&subset_k) {return false;}
-    self.0.get_singleton().iter().all(|x|self.0.right_division(&subset_k, x)==self.0.left_division(&subset_k, x))
+    self.0.get_singleton()
+        .iter()
+        .all(|x|
+            self.right_division(&subset_k, x)==self.left_division(&subset_k, x))
 }
 pub fn collect_reflexive_subhypergroup(&self)->Vec<u64>{
     self.collect_proper_subhypergroups()

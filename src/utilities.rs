@@ -124,10 +124,23 @@ pub fn get_subset(k:&u64,cardinality:&u64)->Vec<u64>{
     }
     subset.iter().map(|x|*x).collect()
 }
+///
+/// Let `k` be the integer which identifies a subset `A` of `H`. This function compute the integer k^c which correspond to the complement of k with respect to H.
+/// For example, for `A = {0,2}` we have `k = 5`, whose binary representation is `101`. Then `A^c  = {1}`, which is represented by the integer `2`.
+/// 
+/// # Example
+/// ```
+/// use hyperstruc::utilities::get_complement_subset;
+/// 
+/// let cardinality = 3u64;
+/// let subset_representation = 5u64;
+/// let expected_complement_representation = 2u64;
+/// let complement = get_complement_subset(&subset_representation, &cardinality);
+/// 
+/// assert_eq!(expected_complement_representation, complement)
+///
 pub fn get_complement_subset(k:&u64,cardinality:&u64)->u64 {
-    let total_set =2u64.pow(*cardinality as u32)-1;
-    total_set-*k
-
+    (1<<*cardinality)-1-*k
 }
 
 ///
