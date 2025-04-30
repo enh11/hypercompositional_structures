@@ -56,6 +56,17 @@ use rayon::iter::ParallelIterator;
 
 
 fn main(){
+    let cardinality = 4u64;
+        let matrix = DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,1,7,11,1,1,7,11,7,7,7,12,11,11,12,11]);
+        let hg = HyperGroup::new_from_matrix(&matrix);
+        let subset_a = 1u64;
+        let subset_b = 7u64;
+        let subset_c = 11u64;
+        println!("hg {}",hg);
+
+        assert!(!hg.subhypergroup_is_closed(&subset_a));
+        assert!(!hg.subhypergroup_is_closed(&subset_b));
+        assert!(!hg.subhypergroup_is_closed(&subset_c));
     let cardinality = 3u64;
     let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,4,1,2,4,7,7,7]);   
     let hg = HyperGroup::new_from_matrix(&matrix);
@@ -64,8 +75,7 @@ fn main(){
     println!("id is {:?}",id_set);
 
     assert!(id.is_empty());
-    let hg_tag = TAG_3_REPRESENTANTS.into_iter().find(|x|!HyperGroup::new_from_tag_u128(&x, &cardinality).collect_identities().is_empty());
-    let tag = hg_tag.unwrap();
+    let tag =24476983u128;
     let hg = HyperGroup::new_from_tag_u128(&tag, &cardinality);
     let identities = hg.collect_identities();
     println!("hg {}",hg);
@@ -77,6 +87,10 @@ fn main(){
             let right_inv = hg.right_inverses_of_x(&a, &u);
             println!("right inverses of {} with respect to {} are {:?}",a,u,right_inv)
     }
+}
+for a in hg.get_singleton(){
+let inv = hg.collect_inverses_of_x(&a);
+println!("inverses of {} are {:?}",a.trailing_zeros(),inv)
 }
 /* let cardinality =5u64;
 let function = |a:u64,b:u64| 1<<a|1<<b;

@@ -3,7 +3,7 @@ use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, IntoParallelRef
 use std::{collections::HashSet, f32::consts::E, fmt::Display, vec};
 extern crate nalgebra as na;
 use itertools::Itertools;
-use nalgebra::DMatrix;
+use nalgebra::{coordinates::X, DMatrix};
 use permutation::Permutation;
 use rand::Rng;
 use crate::{relations::Relation, utilities::{self, binary_to_n, binary_to_u1024, cartesian_product, from_tag_to_vec, from_tag_u1024_to_vec, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid, representing_hypergroupoid_u1024, subset_as_u64, vec_to_set, U1024}};
@@ -293,14 +293,14 @@ pub fn is_left_identity(&self,e:&u64)->bool{
     if !e.is_power_of_two() {panic!("Not an element in hypergroupoid!")}
     let e=e.trailing_zeros();//the number of trailing_zeros in a power of two integer is equal to the exponent of that power.
     let row_e=self.hyper_composition.row(e as usize);
-    (0..self.n).into_par_iter().all(|x| (row_e.index(x as usize)>>x)&1==1)
+    (0..self.n).into_iter().all(|x| (row_e.index(x as usize)>>x)&1==1)
 
 }
 pub fn is_right_identity(&self,e:&u64)->bool{
     if !e.is_power_of_two() {panic!("Not an element in hypergroupoid!")}
     let e=e.trailing_zeros();//the number of trailing_zeros in a power of two integer is equal to the exponent of that power.
     let col_e=self.hyper_composition.column(e as usize);
-    (0..self.n).into_par_iter().all(|x| (col_e.index(x as usize)>>x)&1==1)
+    (0..self.n).into_iter().all(|x| (col_e.index(x as usize)>>x)&1==1)
     }
 pub fn is_identity(&self,e:&u64)->bool{
     self.is_left_identity(&e)&&self.is_right_identity(&e)
@@ -312,7 +312,7 @@ pub fn collect_left_identity(&self)->Vec<u64>{
         .collect()
 }
 pub fn collect_right_identity(&self)->Vec<u64>{
-    self.get_singleton().par_iter()
+    self.get_singleton().iter()
         .filter(|e|self.is_right_identity(e))
         .map(|e|*e)
         .collect()
@@ -379,6 +379,40 @@ pub fn left_inverses_of_x(&self, x:&u64,u:&u64)->u64{
     let u_as_element = u.trailing_zeros();
    i_lu & !(1 << u_as_element)//remove the occurrence of 1 (if there is) in order to remove u from the set of inverses.
    
+}
+///
+/// 
+/// Returns left inverses of `x` in the hyperstructure `H`. Returns a `Vec<(u64,u64)>`, where the first element in the tuple is 
+/// the unit `u` with respect to which the identities are computed, and the second `u64` in the tuple is the integer representation 
+/// of the left identities with respect to `u`. To convert them as HashSet use `u64_to_set()`.
+/// 
+/// 
+pub fn collect_left_inverses_of_x(&self,x:&u64)->Vec<(u64,u64)>{
+    let left_identities_of_x = Vec::new();
+    let units = self.collect_identities();
+    if units.is_empty() {return left_identities_of_x}
+    units.iter().map(|u|(*u,self.left_inverses_of_x(x,u))).collect_vec()
+}
+///
+/// 
+/// Returns right inverses of `x` in the hyperstructure `H`. Returns a `Vec<(u64,u64)>`, where the first element in the tuple is 
+/// the unit `u` with respect to which the identities are computed, and the second `u64` in the tuple is the integer representation 
+/// of the right identities with respect to `u`. To convert them as HashSet `use u64_to_set()`.
+/// 
+/// 
+pub fn collect_right_inverses_of_x(&self,x:&u64)->Vec<(u64,u64)>{
+    let right_identities_of_x = Vec::new();
+    let units = self.collect_identities();
+    if units.is_empty() {return right_identities_of_x}
+    units.iter().map(|u|(*u,self.right_inverses_of_x(x,u))).collect_vec()
+}
+pub fn collect_inverses_of_x(&self,x:&u64)->Vec<(u64,u64)>{
+    self.collect_left_inverses_of_x(x).iter()
+    .filter(|inverses|
+        self.collect_right_inverses_of_x(x)
+        .contains(&inverses))
+    .map(|x|*x)
+    .collect_vec()
 }
 pub fn collect_ph(&self)->Vec<u64>{
     let  mut a: Vec<u64>  =self.get_singleton();

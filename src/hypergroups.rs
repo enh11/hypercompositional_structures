@@ -160,7 +160,7 @@ pub fn is_sub_hypergroup(&self,k:&u64)->bool{
                     .iter()
                     .fold(0,|acc,x|acc|x)==*k)
     }
-    /// 
+/// 
 /// 
 /// Returns the vector of all identities of the hypergroup. They are elements in H and are represented as integers in [0,2^n-1].
 /// Therefore, they are powers of two. To identify them as elements use u.trailing_zeros() ore 
@@ -175,28 +175,36 @@ pub fn is_sub_hypergroup(&self,k:&u64)->bool{
 /// assert!(identities.is_empty())
 /// 
 ///
-    pub fn collect_identities(&self)->Vec<u64>{
-        self.0.collect_identities()
+pub fn collect_identities(&self)->Vec<u64>{
+    self.0.collect_identities()
+}
+pub fn left_inverses_of_x(&self, x:&u64,u:&u64)->u64{
+    self.0.left_inverses_of_x(x, u)
+}
+pub fn right_inverses_of_x(&self,x:&u64,u:&u64)->u64{
+    self.0.right_inverses_of_x(x, u)
+}
+pub fn collect_right_inverses_of_x(&self,x:&u64)->Vec<(u64,u64)>{
+    self.0.collect_right_inverses_of_x(x)
+}
+pub fn collect_left_inverses_of_x(&self,x:&u64)->Vec<(u64,u64)>{
+    self.0.collect_left_inverses_of_x(x)
+}
+pub fn collect_inverses_of_x(&self,x:&u64)->Vec<(u64,u64)>{
+    self.0.collect_inverses_of_x(x)
+}
+pub fn collect_proper_subhypergroups(&self)->Vec<u64> {
+    let power_set_cardinality: u64 =1<<self.cardinality()-1;
+    (1..power_set_cardinality).into_iter().filter(|x|self.is_sub_hypergroup(x)).collect_vec()
     }
-    pub fn left_inverses_of_x(&self, x:&u64,u:&u64)->u64{
-        self.0.left_inverses_of_x(x, u)
-    }
-    pub fn right_inverses_of_x(&self,x:&u64,u:&u64)->u64{
-        self.0.right_inverses_of_x(x, u)
-
-    }
-    pub fn collect_proper_subhypergroups(&self)->Vec<u64> {
-        let power_set_cardinality: u64 =1<<self.cardinality()-1;
-        (1..power_set_cardinality).into_iter().filter(|x|self.is_sub_hypergroup(x)).collect_vec()
-    }
-    pub fn subhypergroup_is_closed(&self,subset_k:&u64)->bool {
-        if !self.is_sub_hypergroup(&subset_k) {return false;}
-        let kc=get_complement_subset(subset_k, &self.cardinality());
-        let kc_k= self.mul_by_representation(&kc, subset_k);
-            if kc!=kc_k {return false;}
-        let k_kc= self.mul_by_representation(subset_k, &kc);
-            if kc!=k_kc {return false;}
-        true
+pub fn subhypergroup_is_closed(&self,subset_k:&u64)->bool {
+    if !self.is_sub_hypergroup(&subset_k) {return false;}
+    let kc=get_complement_subset(subset_k, &self.cardinality());
+    let kc_k= self.mul_by_representation(&kc, subset_k);
+        if kc!=kc_k {return false;}
+    let k_kc= self.mul_by_representation(subset_k, &kc);
+        if kc!=k_kc {return false;}
+    true
     }
 pub fn subhypergroup_is_reflexive(&self,subset_k:&u64)->bool {
     if !self.is_sub_hypergroup(&subset_k) {return false;}
