@@ -2,6 +2,7 @@
 use core::panic;
 use std::collections::HashSet;
 use std::ops::BitOr;
+use std::ops::SubAssign;
 use std::time::Instant;
 use hyperstruc::enumeration::collect_hypergroups_u1024;
 use hyperstruc::enumeration::enumeration_hyperstructure;
@@ -26,7 +27,9 @@ use hyperstruc::tags::TAG_3_REPRESENTANTS;
 use hyperstruc::tags::TAG_HG_2;
 use hyperstruc::tags::TAG_HG_3;
 use hyperstruc::tags::TAG_HG_3_CLASS_3;
+use hyperstruc::utilities::n_to_binary_vec;
 use hyperstruc::utilities::ones_positions;
+use hyperstruc::utilities::u64_to_set;
 use hyperstruc::utilities::write;
 use hyperstruc::utilities::get_min_max;
 use hyperstruc::utilities::get_min_max_u1024;
@@ -53,28 +56,51 @@ use rayon::iter::ParallelIterator;
 
 
 fn main(){
-let cardinality =5u64;
+    let cardinality = 3u64;
+    let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,4,1,2,4,7,7,7]);   
+    let hg = HyperGroup::new_from_matrix(&matrix);
+    let id = hg.collect_identities();
+    let id_set = id.iter().map(|x| u64_to_set(x, &cardinality)).collect_vec();
+    println!("id is {:?}",id_set);
+
+    assert!(id.is_empty());
+    let hg_tag = TAG_3_REPRESENTANTS.into_iter().find(|x|!HyperGroup::new_from_tag_u128(&x, &cardinality).collect_identities().is_empty());
+    let tag = hg_tag.unwrap();
+    let hg = HyperGroup::new_from_tag_u128(&tag, &cardinality);
+    let identities = hg.collect_identities();
+    println!("hg {}",hg);
+    println!("identities are {:?}",identities);
+    for u in identities {
+        for a in hg.get_singleton() {
+            let left_inv = hg.left_inverses_of_x(&a, &u);
+            println!("left inverses of {} with respect to {} are {:?}",a,u,left_inv);
+            let right_inv = hg.right_inverses_of_x(&a, &u);
+            println!("right inverses of {} with respect to {} are {:?}",a,u,right_inv)
+    }
+}
+/* let cardinality =5u64;
 let function = |a:u64,b:u64| 1<<a|1<<b;
-let hg  = HyperGroup::new_from_function(function, &cardinality);
-let hg = match hg {
+let hg = match HyperGroup::new_from_function(function, &cardinality) {
     Ok(hg)=>hg,
     Err(HyperStructureError::NotHypergroup)=> panic!("Not hg")
     
 };
-let closed = hg.collect_proper_closed();
-for item in closed {
-    let closed = vec_to_set(&get_subset(&item, &cardinality));
-    println!("closed subhg are {:?}",closed);
-}
+println!("is canonical {}",hg.is_transposition());
+let normal = hg.collect_proper_normal_subhypergroups();
+let closed = hg.collect_proper_closed_subhypergroups();
+let normal_closed =normal.iter().filter(|x|closed.contains(&x)).collect_vec();
 
-let cardinality=3u64;
+for item in normal {
+    let to_set = vec_to_set(&get_subset(&item, &cardinality));
+    println!("closed subhg are {:?}",item);
+} */
+
+/* let cardinality=3u64;
 let hgs= TAG_3_REPRESENTANTS.into_iter().map(|x|HyperGroup::new_from_tag_u128(&x, &cardinality)).collect_vec();
-let hg = hgs.iter().filter(|x|x.collect_proper_subhypergroups().iter().any(|y| x.subhypergroup_is_closed(y))).collect_vec();
+let hg = hgs.iter().filter(|x|x.is_quasicanonical()).collect_vec();
 for item in hg {
-    println!("hs with closed {}",item.get_integer_tag_u1024());
-    let closed = item.collect_proper_closed().iter().map(|x|vec_to_set(&get_subset(x, &cardinality))).collect_vec();
-    println!("closed subhg are {:?}",closed);
-}
+    println!("hs quasi canonical {}",item);
+} */
 
 /*     /*TRY TRANSPOSITION */
     let cardinality = 4u64;

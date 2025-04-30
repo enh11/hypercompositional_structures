@@ -4,6 +4,7 @@ use std::fmt::Debug;
 use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
+use sets::Set;
 use uint::construct_uint;
 construct_uint!{
     pub struct U1024(32);
@@ -230,6 +231,9 @@ pub fn u64_to_binary_vec_u64(k: &u64, width: &u32) -> Vec<u64> {
 		.chars()
 		.map(|x| if x == '1' { 1u64 } else { 0u64 })
 		.collect()
+}
+pub fn u64_to_set(subset_a:&u64,cardinality:&u64)->HashSet<u64>{
+    vec_to_set(&get_subset(subset_a, cardinality))
 }
 /// Compute U1024 given its vector of 32-binary representation vectors. 
 /// 

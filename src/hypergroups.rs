@@ -2,9 +2,9 @@ use core::panic;
 use std::fmt::{self, Display, Error};
 extern crate nalgebra as na;
 use itertools::Itertools;
-use nalgebra::DMatrix;
+use nalgebra::{coordinates::M2x4, DMatrix};
 use permutation::Permutation;
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+use rayon::{iter::{IntoParallelRefIterator, ParallelIterator}, vec};
 use crate::{hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoidMat}, utilities::{get_complement_subset, get_min_max_u1024, get_subset, ones_positions, representation_permutation_subset, representing_hypergroupoid, vec_to_set, U1024}};
 #[derive(Debug, Clone)]
 pub enum HyperStructureError {
@@ -64,83 +64,130 @@ impl HyperGroup {
 /// let hg = HyperGroup::new_from_function(function, &cardinality);
 /// assert!(hg.unwrap().is_transposition());
 ///
-    pub fn new_from_function<F>(function:F,cardinality:&u64)->Result<Self,HyperStructureError>
+pub fn new_from_function<F>(function:F,cardinality:&u64)->Result<Self,HyperStructureError>
     where F: Fn(u64,u64) -> u64{
         let hs = HyperGroupoidMat::new_from_function(function, cardinality);
         match hs.is_hypergroup() {
             true => Ok(HyperGroup::new_from_tag_u1024(&hs.get_integer_tag_u1024(), cardinality)),
             false => Err(HyperStructureError::NotHypergroup),            
         }
-
-    }
-    pub fn cardinality(&self)->u64{
+}
+pub fn cardinality(&self)->u64{
         self.0.n
-    }
-    pub fn get_singleton(&self)->Vec<u64>{
-        self.0.get_singleton()
-    }
-    pub fn mul_by_representation(&self, subset_a:&u64,subset_b:&u64)->u64{
-        self.0.mul_by_representation(subset_a, subset_b)
-    }
-    pub fn left_division(&self, subset_a:&u64,subset_b:&u64)->u64{
-        self.0.left_division(subset_a, subset_b)
-    }
-    pub fn right_division(&self, subset_a:&u64,subset_b:&u64)->u64{
-        self.0.right_division(subset_a, subset_b)
-    }
-    pub fn permutation_of_table(&self,sigma:&Permutation)->Self{
-        let alpha = self.0.permutation_of_table(sigma).get_integer_tag_u1024();
-        HyperGroup::new_from_tag_u1024(&alpha, &self.cardinality())
-
-    }
-    pub fn collect_isomorphism_class(&self)->(U1024,Vec<U1024>){
-        self.0.collect_isomorphism_class()
-    }
-    pub fn isomorphic_hypergroup_from_permutation(&self, sigma:&Permutation)->Self{
-        HyperGroup::new_from_tag_u1024(&self.0.isomorphic_hypergroup_from_permutation(sigma).get_integer_tag_u1024(),&self.0.n)
-    }
-    pub fn get_integer_tag_u1024(&self)->U1024{
-        self.0.get_integer_tag_u1024()
-    }
-
-    pub fn is_transposition(&self)->bool {
-        for a in self.0.get_singleton(){
-            for b in self.0.get_singleton(){
-                for c in self.0.get_singleton(){
-                    for d in self.0.get_singleton(){
-                        if self.left_division(&a, &b)&self.right_division(&c, &d)!=0{
-                            if self.mul_by_representation(&a, &d)&self.mul_by_representation(&b, &c)==0{
-                                return  true;
-                            }
-                        
+}
+pub fn get_singleton(&self)->Vec<u64>{
+    self.0.get_singleton()
+}
+pub fn mul_by_representation(&self, subset_a:&u64,subset_b:&u64)->u64{
+    self.0.mul_by_representation(subset_a, subset_b)
+}
+pub fn left_division(&self, subset_a:&u64,subset_b:&u64)->u64{
+    self.0.left_division(subset_a, subset_b)
+}
+pub fn right_division(&self, subset_a:&u64,subset_b:&u64)->u64{
+    self.0.right_division(subset_a, subset_b)
+}
+pub fn permutation_of_table(&self,sigma:&Permutation)->Self{
+    let alpha = self.0.permutation_of_table(sigma).get_integer_tag_u1024();
+    HyperGroup::new_from_tag_u1024(&alpha, &self.cardinality())
+}
+pub fn collect_isomorphism_class(&self)->(U1024,Vec<U1024>){
+    self.0.collect_isomorphism_class()
+}
+pub fn isomorphic_hypergroup_from_permutation(&self, sigma:&Permutation)->Self{
+    HyperGroup::new_from_tag_u1024(&self.0.isomorphic_hypergroup_from_permutation(sigma).get_integer_tag_u1024(),&self.cardinality())
+}
+pub fn get_integer_tag_u1024(&self)->U1024{
+    self.0.get_integer_tag_u1024()
+}
+///
+/// 
+/// Return true if the hypergroup is transposition, i.e., if `a\b meets c/d implies ad meets bc`.
+///
+/// 
+/// # Example
+/// 
+/// ```
+/// use hyperstruc::hypergroups::HyperStructureError;
+/// use hyperstruc::hypergroups::HyperGroup;
+/// 
+/// let cardinality =5u64;
+/// let function = |a:u64,b:u64| 1<<a|1<<b;
+/// let hg = match HyperGroup::new_from_function(function, &cardinality) {
+/// Ok(hg)=>hg,
+/// Err(HyperStructureError::NotHypergroup)=> panic!("Not hg")
+/// };
+/// assert!(hg.is_transposition())
+/// 
+/// 
+pub fn is_transposition(&self)->bool {
+    for a in self.get_singleton(){
+        for b in self.get_singleton(){
+            for c in self.get_singleton(){
+                for d in self.get_singleton(){
+                    if self.left_division(&a, &b)&self.right_division(&c, &d)!=0{
+                        if self.mul_by_representation(&a, &d)&self.mul_by_representation(&b, &c)==0{
+                            return  false;
                         }
                     }
                 }
             }
         }
-        true
     }
-    pub fn is_sub_hypergroup(&self,k:&u64)->bool{
-        let power_set_cardinality = 1<<self.cardinality();
-        assert!(*k<power_set_cardinality,"K is not a subset of H!");
-        let ones:Vec<usize> = ones_positions(k, &self.0.n).iter().map(|x|*x as usize).collect();
-        let sub_matrix = self.0.hyper_composition.select_columns(&ones).select_rows(&ones);
-            sub_matrix.row_iter().all(
-                |row|
-                    row
-                        .iter()
-                        .fold(0,|acc,x|acc|x)==*k)
-            &&
-            sub_matrix.row_iter().all(
-                |row|
-                    row
-                        .iter()
-                        .fold(0,|acc,x|acc|x)==*k)
+    true
+}
+pub fn is_quasicanonical(&self)->bool{
+    if !self.is_transposition(){return false;}
+    !self.0.collect_scalar_identity().is_empty()
+}
+pub fn is_canonical(&self)->bool{
+    todo!()
+}
+pub fn is_sub_hypergroup(&self,k:&u64)->bool{
+    let power_set_cardinality = 1<<self.cardinality();
+    assert!(*k<power_set_cardinality,"K is not a subset of H!");
+    let ones:Vec<usize> = ones_positions(k, &self.0.n).iter().map(|x|*x as usize).collect();
+    let sub_matrix = self.0.hyper_composition.select_columns(&ones).select_rows(&ones);
+        sub_matrix.row_iter().all(
+            |row|
+                row
+                    .iter()
+                    .fold(0,|acc,x|acc|x)==*k)
+        &&
+        sub_matrix.row_iter().all(
+            |row|
+                row
+                    .iter()
+                    .fold(0,|acc,x|acc|x)==*k)
+    }
+    /// 
+/// 
+/// Returns the vector of all identities of the hypergroup. They are elements in H and are represented as integers in [0,2^n-1].
+/// Therefore, they are powers of two. To identify them as elements use u.trailing_zeros() ore 
+/// 
+/// # Example
+/// ```
+/// use hyperstruc::hs::HyperGroupoidMat;
+/// use nalgebra::DMatrix;
+/// let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,4,1,2,4,7,7,7]);
+/// let hyperstructure=HyperGroupoidMat::new_from_matrix(&matrix);
+/// let identities = hyperstructure.collect_identities();
+/// assert!(identities.is_empty())
+/// 
+///
+    pub fn collect_identities(&self)->Vec<u64>{
+        self.0.collect_identities()
+    }
+    pub fn left_inverses_of_x(&self, x:&u64,u:&u64)->u64{
+        self.0.left_inverses_of_x(x, u)
+    }
+    pub fn right_inverses_of_x(&self,x:&u64,u:&u64)->u64{
+        self.0.right_inverses_of_x(x, u)
 
     }
     pub fn collect_proper_subhypergroups(&self)->Vec<u64> {
         let power_set_cardinality: u64 =1<<self.cardinality()-1;
-        (1..power_set_cardinality).into_iter().filter(|x|!x.is_power_of_two()&&self.is_sub_hypergroup(x)).collect_vec()
+        (1..power_set_cardinality).into_iter().filter(|x|self.is_sub_hypergroup(x)).collect_vec()
     }
     pub fn subhypergroup_is_closed(&self,subset_k:&u64)->bool {
         if !self.is_sub_hypergroup(&subset_k) {return false;}
@@ -151,33 +198,97 @@ impl HyperGroup {
             if kc!=k_kc {return false;}
         true
     }
-pub fn collect_proper_closed(&self)->Vec<u64>{
-    self.collect_proper_subhypergroups().iter().filter(|x|self.subhypergroup_is_closed(&x)).map(|y|*y).collect()
-}
-pub fn subhypergroup_is_reflexive(&self,subset_k:u64)->bool {
-    if !self.is_sub_hypergroup(&subset_k) {return false;}
-    self.0.get_singleton()
-        .iter()
-        .all(|x|
-            self.right_division(&subset_k, x)==self.left_division(&subset_k, x))
-}
-pub fn subhypergroup_is_normal(&self,subset_k:u64)->bool {
+pub fn subhypergroup_is_reflexive(&self,subset_k:&u64)->bool {
     if !self.is_sub_hypergroup(&subset_k) {return false;}
     self.get_singleton()
         .iter()
         .all(|x|
-            self.mul_by_representation(&subset_k, x)==self.mul_by_representation(&subset_k, x))
+            self.right_division(&subset_k, x)
+            ==
+            self.left_division(&subset_k, x))
 }
-pub fn collect_normal_subhypergroups(&self)->Vec<u64>{
+
+///
+/// 
+/// Return true if the sub-hypergroup is `normal`, i.e., if `aN = Na` hold for any `a` in `H`.
+/// 
+/// # Example
+/// 
+/// ```
+/// use hyperstruc::hypergroups::HyperStructureError;
+/// use hyperstruc::hypergroups::HyperGroup;
+/// 
+/// let cardinality =5u64;
+/// let function = |a:u64,b:u64| 1<<a|1<<b;
+/// let hg = match HyperGroup::new_from_function(function, &cardinality) {
+/// Ok(hg)=>hg,
+/// Err(HyperStructureError::NotHypergroup)=> panic!("Not hg")
+/// };
+/// let subhypergroup = 10u64; //This is the subset K = {1,3} of H = {0,1,2,3,4}
+/// assert!(hg.is_sub_hypergroup(&subhypergroup));
+/// assert!(hg.subhypergroup_is_normal(&subhypergroup));
+/// 
+/// 
+pub fn subhypergroup_is_normal(&self,subset_k:&u64)->bool {
+    if !self.is_sub_hypergroup(&subset_k) {return false;}
+    self.get_singleton()
+        .iter()
+        .all(|x|
+            self.mul_by_representation(&subset_k, x)
+            ==
+            self.mul_by_representation(&subset_k, x))
+}
+pub fn subhypergroup_is_right_invertible(&self,subset_k:&u64)->bool {
+    if !self.is_sub_hypergroup(&subset_k) {return false;}
+    self.get_singleton()
+        .iter()
+        .cartesian_product(self.get_singleton())
+        .into_iter()
+        .all(|(x,y)|
+            ((x&self.mul_by_representation(subset_k, &y))!=*x) 
+            || 
+            ((y&self.mul_by_representation(subset_k, x))==y)
+            )
+}
+pub fn subhypergroup_is_left_invertible(&self,subset_k:&u64)->bool {
+    if !self.is_sub_hypergroup(&subset_k) {return false;}
+    self.get_singleton()
+        .iter()
+        .cartesian_product(self.get_singleton())
+        .into_iter()
+        .all(|(x,y)|
+            ((x&self.mul_by_representation(&y, subset_k))!=*x) 
+            || 
+            ((y&self.mul_by_representation( x,subset_k))==y)
+            )
+}
+pub fn subhypergroup_is_invertible(&self,subset_k:&u64)->bool {
+    self.subhypergroup_is_left_invertible(subset_k)&&self.subhypergroup_is_right_invertible(subset_k)
+}
+pub fn collect_proper_invertible_subhypergroups(&self)->Vec<u64>{
     self.collect_proper_subhypergroups()
         .into_iter()
-        .filter(|x| self.subhypergroup_is_normal(*x))
+        .filter(|x|
+            self.subhypergroup_is_invertible(&x))
         .collect()
 }
-pub fn collect_reflexive_subhypergroups(&self)->Vec<u64>{
+pub fn collect_proper_closed_subhypergroups(&self)->Vec<u64>{
     self.collect_proper_subhypergroups()
         .into_iter()
-        .filter(|x| self.subhypergroup_is_reflexive(*x))
+        .filter(|x|
+            self.subhypergroup_is_closed(&x))
+        .collect()
+}
+pub fn collect_proper_reflexive_subhypergroups(&self)->Vec<u64>{
+    self.collect_proper_subhypergroups()
+        .into_iter()
+        .filter(|x| self.subhypergroup_is_reflexive(x))
+        .collect()
+}
+pub fn collect_proper_normal_subhypergroups(&self)->Vec<u64>{
+    self.collect_proper_subhypergroups()
+        .into_iter()
+        .filter(|x| self.subhypergroup_is_normal(x))
         .collect()
 }
 ///

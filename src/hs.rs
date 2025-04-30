@@ -1,6 +1,6 @@
 use core::panic;
 use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
-use std::{collections::HashSet, fmt::Display, vec};
+use std::{collections::HashSet, f32::consts::E, fmt::Display, vec};
 extern crate nalgebra as na;
 use itertools::Itertools;
 use nalgebra::DMatrix;
@@ -82,6 +82,8 @@ pub fn new_from_function<F>(function:F,cardinality:&u64)->Self
         HyperGroupoidMat::new_from_tag_u1024(&tag, cardinality)
 }
 
+/// 
+/// 
 /// Generate a new hyperstructure given a square matrix. Every entry in the matrix is u64 and represent a subset of `H = {0,1,2,...,n}``,
 /// where `n` is the size of the matrix, i.e., the cardinality of the new hyperstructure.
 /// In particular, if `a`,`b` are elements of `H`, then `xy` is the entry in position `(a,b)`. 
@@ -97,7 +99,6 @@ pub fn new_from_function<F>(function:F,cardinality:&u64)->Self
 /// println!("{hyperstructure}");
 /// 
 /// 
-
 ///
    pub fn new_from_matrix(matrix:&DMatrix<u64>)->Self{
     if !matrix.is_square(){panic!("Matrix must be a square matrix!")}
@@ -288,7 +289,6 @@ pub fn is_commutative(&self)->bool{
     }
     true
 }
-
 pub fn is_left_identity(&self,e:&u64)->bool{
     if !e.is_power_of_two() {panic!("Not an element in hypergroupoid!")}
     let e=e.trailing_zeros();//the number of trailing_zeros in a power of two integer is equal to the exponent of that power.
@@ -334,18 +334,51 @@ pub fn is_right_scalar(&self,s:&u64)->bool{
     let s=s.trailing_zeros();
     self.hyper_composition.row(s as usize).iter().all(|x|x.is_power_of_two())
 }
+pub fn is_scalar(&self,s:&u64)->bool {
+    self.is_left_scalar(s)&&self.is_right_scalar(s)
+}
 pub fn collect_scalars(&self)->Vec<u64>{
     self.get_singleton().iter()
-        .filter(|s|self.is_left_scalar(&s)&self.is_right_scalar(&s))
+        .filter(|s|self.is_scalar(&s))
         .map(|x|*x)
         .collect::<Vec<u64>>()
 }
 pub fn collect_scalar_identity(&self)->Vec<u64>{
     self.collect_scalars()
-        .par_iter()
+        .iter()
         .filter(|s|self.is_identity(s))
         .map(|x|*x)
         .collect::<Vec<u64>>()
+}
+///
+/// 
+/// Return the subset of left inverses of x with respect to the unit u.
+/// Return a u64 representing the subset. To convert it into a HashSet use u64_to_set().
+/// 
+/// 
+pub fn right_inverses_of_x(&self, x:&u64,u:&u64)->u64{
+    let max_subset = 1<<self.n-1;
+    if !x.is_power_of_two()||x>&max_subset {panic!("x is not an element in H")}
+    if !self.is_identity(u) {panic!("u is not and identity in H. Identity in H are {:?}",self.collect_identities())}
+    let i_ru=self.left_division(u, x);
+    let u_as_element = u.trailing_zeros();
+    i_ru & !(1 << u_as_element)//remove the occurrence of 1 (if there is) in order to remove u from the set of inverses.
+
+}
+///
+/// 
+/// Return the subset of left inverses of x with respect to the unit u.
+/// Return a u64 representing the subset. To convert it into a HashSet use u64_to_set().
+/// 
+/// 
+pub fn left_inverses_of_x(&self, x:&u64,u:&u64)->u64{
+    let max_subset = 1<<self.n-1;
+    if !x.is_power_of_two()||x>&max_subset {panic!("{} is not an element in H",x.trailing_zeros())}
+    if !self.is_identity(u) {panic!("u is not and identity in H. Identity in H are {:?}",self.collect_identities())}
+    let i_lu=self.right_division(u, x);
+    let u_as_element = u.trailing_zeros();
+   i_lu & !(1 << u_as_element)//remove the occurrence of 1 (if there is) in order to remove u from the set of inverses.
+   
 }
 pub fn collect_ph(&self)->Vec<u64>{
     let  mut a: Vec<u64>  =self.get_singleton();
