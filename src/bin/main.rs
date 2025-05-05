@@ -56,6 +56,13 @@ use rayon::iter::ParallelIterator;
 
 
 fn main(){
+    let cardinality =5u64;
+        let function = {|a:u64,b:u64| 
+            if a!=b {return 1<<a.max(b)}
+            else {return (0..=a).into_iter().fold(0, |acc,x|acc|1<<x)}};
+        let hg = HyperGroup::new_from_function(function, &cardinality).unwrap();
+        assert!(hg.is_transposition());
+        println!("hg is {}",hg);
     let cardinality = 4u64;
         let matrix = DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,1,7,11,1,1,7,11,7,7,7,12,11,11,12,11]);
         let hg = HyperGroup::new_from_matrix(&matrix);

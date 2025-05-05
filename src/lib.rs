@@ -11,6 +11,7 @@ pub mod relations;
 
 #[cfg(test)]
 mod tests {
+    use itertools::max;
     use nalgebra::DMatrix;
     use crate::hypergroups::HyperGroup;
     #[test]
@@ -38,10 +39,24 @@ mod tests {
         assert!(hg.subhypergroup_is_closed(&subset_b));
 
         assert!(!hg.subhypergroup_is_invertible(&subset_a));
-        assert!(!hg.subhypergroup_is_invertible(&subset_b));
+        assert!(!hg.subhypergroup_is_invertible(&subset_b)); 
+    }
+    #[test]
+    ///
+    /// Generate the transposition hypergroup with hyperoperation defined as 
+    /// `x+y = {max(x,y)} if x != y`
+    /// `x+y = {z ∈ H | z≤x} if x = y`.
+    /// 
+    fn example_transposition_hg() {
+        let cardinality = 5;
+        let function = {
+            |a:u64,b:u64| 
+                if a!=b {return 1<<a.max(b)}
+                else {return (0..=a).into_iter().fold(0, |acc,x|acc|1<<x)}
+            };
+        let hg = HyperGroup::new_from_function(function, &cardinality).unwrap();
+        assert!(hg.is_transposition());
 
-
-        
     }
 }
 
