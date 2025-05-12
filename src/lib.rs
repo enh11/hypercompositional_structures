@@ -12,7 +12,7 @@ pub mod relations;
 #[cfg(test)]
 mod tests {
     use nalgebra::DMatrix;
-    use crate::hypergroups::HyperGroup;
+    use crate::{hypergroups::HyperGroup};
     #[test]
     fn example_corsini_112_1() {
         let cardinality = 4u64;
@@ -39,6 +39,24 @@ mod tests {
 
         assert!(!hg.subhypergroup_is_invertible(&subset_a));
         assert!(!hg.subhypergroup_is_invertible(&subset_b)); 
+    }
+        #[test]
+    fn example_corsini_112_4() {
+        let cardinality = 5u64;
+        let matrix = DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,2,4,8,24,2,3,24,28,28,4,24,5,26,26,8,28,26,31,31,24,28,26,31,31]);
+        let hg = HyperGroup::new_from_matrix(&matrix);
+        let subset_ab = 3u64;
+        let subset_ac = 5u64;
+
+        assert!(hg.subhypergroup_is_invertible(&subset_ab));
+        assert!(hg.subhypergroup_is_invertible(&subset_ac));
+
+        let subset_a=1u64;
+        assert!(hg.subhypergroup_is_closed(&subset_a));
+        assert!(!hg.subhypergroup_is_invertible(&subset_a));
+
+
+
     }
     #[test]
     ///
