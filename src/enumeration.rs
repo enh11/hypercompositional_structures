@@ -1,14 +1,9 @@
-use core::num;
-use std::fmt::format;
-use std::ops::Index;
+
 use itertools::Itertools;
 use permutation::Permutation;
-use rayon::iter::plumbing::{bridge, Consumer, ProducerCallback, UnindexedConsumer};
-use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator, ParallelBridge, ParallelIterator};
-use rayon::range;
-use rayon::str::CharIndices;
+use rayon::iter::{IntoParallelIterator, ParallelBridge, ParallelIterator};
 use crate::unital_magma::UnitalMagma;
-use crate::utilities::{get_min_max, get_min_max_u1024, representing_hypergroupoid_u1024, write, U1024Range, U1024RangeExt, U1024};
+use crate::utilities::{get_min_max, get_min_max_u1024, representing_hypergroupoid_u1024, write, U1024RangeExt, U1024};
 use crate::hs::HyperGroupoidMat;
 use crate::utilities::representing_hypergroupoid;
 

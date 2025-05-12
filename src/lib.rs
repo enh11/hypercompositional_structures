@@ -11,7 +11,6 @@ pub mod relations;
 
 #[cfg(test)]
 mod tests {
-    use itertools::max;
     use nalgebra::DMatrix;
     use crate::hypergroups::HyperGroup;
     #[test]

@@ -1,61 +1,26 @@
 
-use core::panic;
-use std::collections::HashSet;
-use std::ops::BitOr;
-use std::ops::SubAssign;
-use std::time::Instant;
-use hyperstruc::enumeration::collect_hypergroups_u1024;
-use hyperstruc::enumeration::enumeration_hyperstructure;
-use hyperstruc::enumeration::enumeration_hyperstructure_u1024;
-use hyperstruc::hs::circumference_radius_d_filtered;
-use hyperstruc::hs::distance_tags;
-use hyperstruc::hs::distance_tags_u1024;
-use hyperstruc::hs::hg_in_circumference_radius_one;
 use hyperstruc::hs::HyperGroupoidMat;
-use hyperstruc::hypergroups::collect_classes_from_circumference;
-use hyperstruc::hypergroups::collect_isomorphism_class;
-use hyperstruc::hypergroups::collect_leafs_from_nodes;
-use hyperstruc::hypergroups::exploring_tree;
-use hyperstruc::hypergroups::find_nodes_not_enumerated;
-use hyperstruc::hypergroups::tag_is_leaf;
-use hyperstruc::hypergroups::HyperGroup;
-use hyperstruc::hypergroups::HyperStructureError;
-use hyperstruc::tags;
-use hyperstruc::tags::LEAF_TAGS_3;
-use hyperstruc::tags::OTHERS_DIST_2_FROM_LEAFS_3;
-use hyperstruc::tags::TAG_3_REPRESENTANTS;
-use hyperstruc::tags::TAG_HG_2;
-use hyperstruc::tags::TAG_HG_3;
-use hyperstruc::tags::TAG_HG_3_CLASS_3;
-use hyperstruc::utilities::n_to_binary_vec;
-use hyperstruc::utilities::ones_positions;
-use hyperstruc::utilities::u64_to_set;
-use hyperstruc::utilities::write;
-use hyperstruc::utilities::get_min_max;
-use hyperstruc::utilities::get_min_max_u1024;
-use hyperstruc::utilities::get_subset;
-use hyperstruc::utilities::permutaton_matrix_from_permutation;
-use hyperstruc::utilities::representing_hypergroupoid;
-use hyperstruc::utilities::representing_hypergroupoid_u1024;
-use hyperstruc::utilities::vec_to_set;
-use hyperstruc::utilities::U1024RangeExt;
-use hyperstruc::utilities::U1024;
-use itertools::Itertools;
-use nalgebra::center;
-use nalgebra::coordinates::M2x3;
-use nalgebra::coordinates::X;
-use nalgebra::distance;
+
 use nalgebra::DMatrix;
-use num_traits::float::TotalOrder;
-use permutation::Permutation;
-use rayon::iter::IndexedParallelIterator;
-use rayon::iter::IntoParallelIterator;
-use rayon::iter::IntoParallelRefIterator;
-use rayon::iter::ParallelBridge;
-use rayon::iter::ParallelIterator;
 
 
 fn main(){
+/*Example using matrix definition */
+let cardinality =4u64;
+let matrix=DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[2,2,3,14,5,14,3,3,1,11,12,7,7,3,8,8]);
+let hs = HyperGroupoidMat::new_from_matrix(&matrix);
+println!("{}",hs);
+/*Example using generating function */
+let cardinality =7u64;
+let function = |a:u64,b:u64| 1<<a|1<<b;
+let hs = HyperGroupoidMat::new_from_function(function, &cardinality);
+println!("{}",hs);
+
+
+
+
+
+/* 
     let cardinality =5u64;
         let function = {|a:u64,b:u64| 
             if a!=b {return 1<<a.max(b)}
@@ -98,7 +63,7 @@ fn main(){
 for a in hg.get_singleton(){
 let inv = hg.collect_inverses_of_x(&a);
 println!("inverses of {} are {:?}",a.trailing_zeros(),inv)
-}
+} */
 /* let cardinality =5u64;
 let function = |a:u64,b:u64| 1<<a|1<<b;
 let hg = match HyperGroup::new_from_function(function, &cardinality) {

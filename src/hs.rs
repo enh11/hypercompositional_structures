@@ -1,12 +1,12 @@
 use core::panic;
-use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
-use std::{collections::HashSet, f32::consts::E, fmt::Display, vec};
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+use std::{collections::HashSet, fmt::Display, vec};
 extern crate nalgebra as na;
 use itertools::Itertools;
-use nalgebra::{coordinates::X, DMatrix};
+use nalgebra::DMatrix;
 use permutation::Permutation;
 use rand::Rng;
-use crate::{relations::Relation, utilities::{self, binary_to_n, binary_to_u1024, cartesian_product, from_tag_to_vec, from_tag_u1024_to_vec, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid, representing_hypergroupoid_u1024, subset_as_u64, vec_to_set, U1024}};
+use crate::{relations::Relation, utilities::{binary_to_n, cartesian_product, from_tag_to_vec, from_tag_u1024_to_vec, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid_u1024, subset_as_u64, vec_to_set, U1024}};
 #[derive(Debug, Clone,PartialEq)]
 pub struct HyperGroupoidMat{
     pub h:HashSet<u64>,

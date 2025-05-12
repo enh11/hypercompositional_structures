@@ -4,7 +4,7 @@ use std::fmt::Debug;
 use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
-use sets::Set;
+
 use uint::construct_uint;
 construct_uint!{
     pub struct U1024(32);

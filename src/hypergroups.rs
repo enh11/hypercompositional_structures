@@ -1,11 +1,10 @@
-use core::panic;
-use std::fmt::{self, Display, Error};
+use std::fmt::{self, Display};
 extern crate nalgebra as na;
 use itertools::Itertools;
-use nalgebra::{coordinates::M2x4, DMatrix};
+use nalgebra::DMatrix;
 use permutation::Permutation;
-use rayon::{iter::{IntoParallelRefIterator, ParallelIterator}, vec};
-use crate::{hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoidMat}, utilities::{get_complement_subset, get_min_max_u1024, get_subset, ones_positions, representation_permutation_subset, representing_hypergroupoid, vec_to_set, U1024}};
+use rayon::{iter::{IntoParallelRefIterator, ParallelIterator}};
+use crate::{hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoidMat}, utilities::{get_complement_subset, ones_positions, U1024}};
 #[derive(Debug, Clone)]
 pub enum HyperStructureError {
     NotHypergroup,
