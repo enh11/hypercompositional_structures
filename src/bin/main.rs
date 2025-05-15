@@ -1,48 +1,61 @@
-
-use hyperstruc::{hs::HyperGroupoidMat, hypergroups::HyperGroup, utilities::{get_min_max, representing_hypergroupoid, u64_to_set}};
-
+use hyperstruc::{hs::HyperGroupoidMat, hypergroups::HyperGroup, utilities::u64_to_set};
+use itertools::Itertools;
 use nalgebra::DMatrix;
-use rayon::iter::{IntoParallelIterator, ParallelIterator};
+
 
 
 fn main(){
-/* /*Example using matrix definition */
-let cardinality =4u64;
-let matrix: nalgebra::Matrix<u64, nalgebra::Dyn, nalgebra::Dyn, nalgebra::VecStorage<u64, nalgebra::Dyn, nalgebra::Dyn>>=DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[2,2,3,14,5,14,3,3,1,11,12,7,7,3,8,8]);
-let hs = HyperGroupoidMat::new_from_matrix(&matrix);
-println!("{}",hs); */
+/* 
+    let x = 5u64;
+    let y = 6u64;
+    let h = 2u64;
 
-/*Example using generating function */
-let cardinality = 5;
-let function = {
-            |a:u64,b:u64| 
-                if a!=b {return 1<<a.max(b)}
-                else {return (0..=a).into_iter().fold(0, |acc,x|acc|1<<x)}
-            };
-let hs = HyperGroupoidMat::new_from_function(function, &cardinality);
-println!("{}",hs);
-let tag = hs.get_integer_tag_u1024();
-println!("hs is identified by {}",tag);
-println!("is hypergroup {}",hs.is_hypergroup());
-let hg = HyperGroup::new_from_tag_u1024(&tag, &cardinality);
-let sub_hg = hg.collect_proper_subhypergroups();
-for item in sub_hg {
-    let subset = u64_to_set(&item, &cardinality);
-    println!("a subhypergroup {:?}",subset);
-}
+    println!("{}",x&y);
+    println!("{}",x|y);
+    println!("{}", x>>h); 
+*/
+    
+/*      
+    /*EXAMPLE USING MATRIX */
+    let cardinality =4u64;
+    let matrix=
+        DMatrix::from_row_slice(cardinality as usize, cardinality as usize, 
+            &[2,2,3,14,5,14,3,3,1,11,12,7,7,3,8,8]);
+    let hs = HyperGroupoidMat::new_from_matrix(&matrix);
+    println!("{}",hs);
 
 
+    /*EXAMPLE USING GENERATING FUNCTION*/
+    let cardinality =7u64;
+    let function = |a:u64,b:u64| 1<<a|1<<b;
+    let hs = HyperGroupoidMat::new_from_function(function, &cardinality);
+    println!("{}",hs);
 
+    /*EXAMPLE USING GENERATING FUNCTION*/
+    let cardinality = 5;
+    let function = {
+                |a:u64,b:u64| 
+                    if a!=b {return 1<<a.max(b)}
+                    else {return (0..=a).into_iter().fold(0, |acc,x|acc|1<<x)}
+                };
+    let hs = HyperGroupoidMat::new_from_function(function, &cardinality);
+    println!("{}",hs);
 
+        /* 
+        let tag = hs.get_integer_tag_u1024();
+        println!("hs is identified by {}",tag);
+        */
 
-/* /*Example using generating function */
-let cardinality =7u64;
-let function = |a:u64,b:u64| 1<<a|1<<b;
-let hs = HyperGroupoidMat::new_from_function(function, &cardinality);
-println!("{}",hs);
- */
-
-
+        /* 
+        println!("is hypergroup {}",hs.is_hypergroup());
+        let hg = HyperGroup::new_from_tag_u1024(&tag, &cardinality);
+        let sub_hg = hg.collect_proper_subhypergroups();
+        for item in sub_hg {
+            let subset = u64_to_set(&item, &cardinality);
+            println!("a subhypergroup {:?}",subset);
+        }
+        */
+*/
 
 
 /* 

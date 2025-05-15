@@ -135,6 +135,9 @@ pub fn is_transposition(&self)->bool {
     }
     true
 }
+pub fn is_commutative(&self)->bool{
+    self.0.is_commutative()
+}
 pub fn is_quasicanonical(&self)->bool{
     if !self.is_transposition(){return false;}
     !self.0.collect_scalar_identity().is_empty()

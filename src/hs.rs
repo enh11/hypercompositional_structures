@@ -84,14 +84,14 @@ pub fn new_from_function<F>(function:F,cardinality:&u64)->Self
 
 /// 
 /// 
-/// Generate a new hyperstructure given a square matrix. Every entry in the matrix is u64 and represent a subset of `H = {0,1,2,...,n}``,
+/// Generate a new hyperstructure given a square matrix. Every entry in the matrix is u64 and represent a subset of `H = {0,1,2,...,n}`,
 /// where `n` is the size of the matrix, i.e., the cardinality of the new hyperstructure.
-/// In particular, if `a`,`b` are elements of `H`, then `xy` is the entry in position `(a,b)`. 
+/// In particular, if `a`,`b` are elements of `H`, then `ab` is the entry in position `(a,b)`. 
 /// For more detail about representation, see pub fn get_subset() in utilities.rs.
 /// 
 /// # Example
 /// ```
-/// #[should_panic(expected = "Divide result is zero")]
+/// 
 /// use hyperstruc::hs::HyperGroupoidMat;
 /// use nalgebra::DMatrix;
 /// let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
@@ -99,7 +99,6 @@ pub fn new_from_function<F>(function:F,cardinality:&u64)->Self
 /// println!("{hyperstructure}");
 /// 
 /// 
-///
    pub fn new_from_matrix(matrix:&DMatrix<u64>)->Self{
     if !matrix.is_square(){panic!("Matrix must be a square matrix!")}
     if matrix.iter().any(|a|*a==0){panic!("In order to have a hypergroupoid, matrix can't contain zeroes!")}
@@ -279,15 +278,32 @@ pub fn is_hypergroup(&self)->bool{
     self.is_associative()&self.is_reproductive()
 
 }
+///
+/// Return true if the hyperstructure is commutative.
+/// 
+/// Example
+/// ```
+/// use hyperstruc::hs::HyperGroupoidMat;
+/// 
+/// let cardinality =7u64;
+/// let function = |a:u64,b:u64| 1<<a|1<<b;
+/// let hs = HyperGroupoidMat::new_from_function(function, &cardinality);
+/// assert!(hs.is_commutative());
+/// 
+/// use nalgebra::DMatrix;
+/// 
+/// let cardinality =4u64;
+/// let matrix=DMatrix::from_row_slice(cardinality as usize, cardinality as usize, 
+///     &[2,2,3,14,5,14,3,3,1,11,12,7,7,3,8,8]);
+/// let hs = HyperGroupoidMat::new_from_matrix(&matrix);
+/// assert!(!hs.is_commutative());
+/// 
 pub fn is_commutative(&self)->bool{
-    for a in self.get_singleton().iter(){
-        for b in self.get_singleton().iter(){
-            let ab=self.mul_by_representation(a, b);
-            let ba=self.mul_by_representation(b, a);
-            if ab!=ba {return false;}
-        }
-    }
-    true
+    self.get_singleton().into_iter().combinations(2).into_iter()
+        .all(|v|
+            self.mul_by_representation(&v[0], &v[1])
+            ==
+            self.mul_by_representation(&v[1], &v[0]))
 }
 pub fn is_left_identity(&self,e:&u64)->bool{
     if !e.is_power_of_two() {panic!("Not an element in hypergroupoid!")}
@@ -306,23 +322,19 @@ pub fn is_identity(&self,e:&u64)->bool{
     self.is_left_identity(&e)&&self.is_right_identity(&e)
 }
 pub fn collect_left_identity(&self)->Vec<u64>{
-    self.get_singleton().iter()
+    self.get_singleton().into_iter()
         .filter(|e|self.is_left_identity(e))
-        .map(|e|*e)
         .collect()
 }
 pub fn collect_right_identity(&self)->Vec<u64>{
-    self.get_singleton().iter()
+    self.get_singleton().into_iter()
         .filter(|e|self.is_right_identity(e))
-        .map(|e|*e)
         .collect()
-
 }
 pub fn collect_identities(&self)->Vec<u64>{
-    self.get_singleton().iter()
+    self.get_singleton().into_iter()
         .filter(|e|self.is_identity(&e))
-        .map(|e|*e)
-        .collect_vec()
+        .collect()
 }
 pub fn is_left_scalar(&self,s:&u64)->bool{
     if !s.is_power_of_two() {panic!("Not an element in hypergroupoid!")}
@@ -338,17 +350,15 @@ pub fn is_scalar(&self,s:&u64)->bool {
     self.is_left_scalar(s)&&self.is_right_scalar(s)
 }
 pub fn collect_scalars(&self)->Vec<u64>{
-    self.get_singleton().iter()
+    self.get_singleton().into_iter()
         .filter(|s|self.is_scalar(&s))
-        .map(|x|*x)
-        .collect::<Vec<u64>>()
+        .collect()
 }
 pub fn collect_scalar_identity(&self)->Vec<u64>{
     self.collect_scalars()
-        .iter()
+        .into_iter()
         .filter(|s|self.is_identity(s))
-        .map(|x|*x)
-        .collect::<Vec<u64>>()
+        .collect()
 }
 ///
 /// 
