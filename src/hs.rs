@@ -250,7 +250,8 @@ pub fn collect_isomorphism_class(&self)->(U1024,Vec<U1024>){
 
 }
 ///
-/// 
+/// Return true if hyperstructure is both associative and reproductive.
+///  
 /// # Example
 /// 
 /// ```
@@ -276,7 +277,6 @@ pub fn collect_isomorphism_class(&self)->(U1024,Vec<U1024>){
 /// 
 pub fn is_hypergroup(&self)->bool{
     self.is_associative()&self.is_reproductive()
-
 }
 ///
 /// Return true if the hyperstructure is commutative.
@@ -304,6 +304,54 @@ pub fn is_commutative(&self)->bool{
             self.mul_by_representation(&v[0], &v[1])
             ==
             self.mul_by_representation(&v[1], &v[0]))
+}
+pub fn is_left_partial_identity_of_x(&self,e:&u64,x:&u64) -> bool{
+    if !e.is_power_of_two()|!x.is_power_of_two() {panic!("Some input value is not an element in hypergroupoid!")}
+    *x&self.mul_by_representation(e, x)==*x
+}
+pub fn is_right_partial_identity_of_x(&self,e:&u64,x:&u64) -> bool{
+    if !e.is_power_of_two()|!x.is_power_of_two() {panic!("Some input value is not an element in hypergroupoid!")}
+    *x&self.mul_by_representation(x, e)==*x
+}
+pub fn collect_partial_left_identities_of_x(&self,x:&u64)->Vec<u64>{
+    self.get_singleton().into_iter()
+        .filter(|e|
+            self.is_left_partial_identity_of_x(&e, x))
+        .collect()
+}
+pub fn collect_partial_right_identities_of_x(&self,x:&u64)->Vec<u64>{
+    self.get_singleton().into_iter()
+        .filter(|e|
+            self.is_right_partial_identity_of_x(&e, x))
+        .collect()
+}
+pub fn collect_partial_left_identities(&self)->Vec<u64>{
+    let mut i_pl = self.get_singleton()
+        .into_iter()
+        .map(|x|
+            self.collect_partial_left_identities_of_x(&x))
+        .concat();
+    i_pl.sort();
+    i_pl.dedup();
+    i_pl
+}
+pub fn collect_partial_right_identities(&self)->Vec<u64>{
+    let mut i_pr = self.get_singleton()
+        .into_iter()
+        .map(|x|
+            self.collect_partial_right_identities_of_x(&x))
+        .concat();
+    i_pr.sort();
+    i_pr.dedup();
+    i_pr
+}
+pub fn collect_partial_identities(&self)->Vec<u64>{
+    let mut i_pl = self.collect_partial_left_identities();
+    let mut i_pr = self.collect_partial_right_identities();
+    i_pl.append(&mut i_pr);
+    i_pl.sort();
+    i_pl.dedup();
+    i_pl
 }
 pub fn is_left_identity(&self,e:&u64)->bool{
     if !e.is_power_of_two() {panic!("Not an element in hypergroupoid!")}

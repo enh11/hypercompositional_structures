@@ -15,7 +15,7 @@ fn main(){
     println!("{}", x>>h); 
 */
     
-/*      
+     
     /*EXAMPLE USING MATRIX */
     let cardinality =4u64;
     let matrix=
@@ -23,6 +23,8 @@ fn main(){
             &[2,2,3,14,5,14,3,3,1,11,12,7,7,3,8,8]);
     let hs = HyperGroupoidMat::new_from_matrix(&matrix);
     println!("{}",hs);
+    let par_id_1 = hs.collect_partial_right_identities();
+    println!("partial right identities of 2 are {:?}",par_id_1);
 
 
     /*EXAMPLE USING GENERATING FUNCTION*/
@@ -55,7 +57,7 @@ fn main(){
             println!("a subhypergroup {:?}",subset);
         }
         */
-*/
+
 
 
 /* 
