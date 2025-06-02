@@ -110,7 +110,12 @@ pub fn new_from_function<F>(function:F,cardinality:&u64)->Self
         n:n as u64
    }
 }
-
+pub fn new_from_elements(input_array: &Vec<Vec<u64>>, cardinality:u64)->Self{
+    if input_array.len() as u64!=cardinality.pow(2u32) {panic!("Cardinality is {} and the input vector length is {}. It should be a square-length vector!",cardinality,input_array.len())}
+    let function = |a:u64,b:u64| input_array[(cardinality*a+b) as usize].clone().iter().fold(0u64, |acc,x|acc|1<<x);
+    HyperGroupoidMat::new_from_function(function, &cardinality)
+    
+}
 /// Generate a new hyperstructure given a tag and the cardinality of the set H. If n is the cardinality, then tag is a u128 less than or equal to n^3. 
 /// Its binary representation, divided in groups of n-bits, provide the table of hyperoperation; each group of n-bits corresponds to a subset of H. 
 /// For example, if n=2, then a tag must be less or equal to 2^8. The tag t=185 has binary representation 10111000, divided in groups of 2-bits it is
@@ -402,7 +407,7 @@ pub fn collect_scalars(&self)->Vec<u64>{
         .filter(|s|self.is_scalar(&s))
         .collect()
 }
-pub fn collect_scalar_identity(&self)->Vec<u64>{
+pub fn collect_scalar_identities(&self)->Vec<u64>{
     self.collect_scalars()
         .into_iter()
         .filter(|s|self.is_identity(s))

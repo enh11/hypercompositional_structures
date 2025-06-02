@@ -1,11 +1,15 @@
+use std::collections::HashSet;
+
 use hyperstruc::{hs::HyperGroupoidMat, hypergroups::HyperGroup, utilities::u64_to_set};
 use itertools::Itertools;
 use nalgebra::DMatrix;
+use rayon::vec;
 
 
 
 fn main(){
 /* 
+    let cardinality = 3;
     let x = 5u64;
     let y = 6u64;
     let h = 2u64;
@@ -13,7 +17,12 @@ fn main(){
     println!("{}",x&y);
     println!("{}",x|y);
     println!("{}", x>>h); 
-*/
+
+    let complement_y = (1<< cardinality)-1-y;
+    println!("complement of x is {}",complement_y);
+
+ */
+
     
      
     /*EXAMPLE USING MATRIX */
@@ -23,8 +32,9 @@ fn main(){
             &[2,2,3,14,5,14,3,3,1,11,12,7,7,3,8,8]);
     let hs = HyperGroupoidMat::new_from_matrix(&matrix);
     println!("{}",hs);
-    let par_id_1 = hs.collect_partial_right_identities();
-    println!("partial right identities of 2 are {:?}",par_id_1);
+
+    let par_id_right :Vec<HashSet<u64>> = hs.collect_partial_right_identities().iter().map(|x|u64_to_set(x, &cardinality)).collect();
+    println!("partial right identities are {:?}",par_id_right);
 
 
     /*EXAMPLE USING GENERATING FUNCTION*/
@@ -42,23 +52,42 @@ fn main(){
                 };
     let hs = HyperGroupoidMat::new_from_function(function, &cardinality);
     println!("{}",hs);
+let cardinality =3u64;
+let input_values  = vec![vec![0,1],vec![1],vec![0,1,2],
+                                        vec![0,1,2],vec![1,2],vec![2],
+                                        vec![0,1,2],vec![0,1,2],vec![0]];
+let hs = HyperGroupoidMat::new_from_elements(&input_values, cardinality);
+println!("hs is {}",hs);
+println!("input is {:?}",input_values);
+    
+/* 
+    let tag = hs.get_integer_tag_u1024();
+    println!("hs is identified by {}",tag);
 
-        /* 
-        let tag = hs.get_integer_tag_u1024();
-        println!("hs is identified by {}",tag);
-        */
+    println!("is hypergroup {}",hs.is_hypergroup());
 
-        /* 
-        println!("is hypergroup {}",hs.is_hypergroup());
-        let hg = HyperGroup::new_from_tag_u1024(&tag, &cardinality);
-        let sub_hg = hg.collect_proper_subhypergroups();
+    let hg = HyperGroup::new_from_tag_u1024(&tag, &cardinality);
+    
+    println!("is commutative {}",hg.is_commutative());
+    println!("is commutative {}",hg.is_transposition());
+    
+    let sub_hg = hg.collect_proper_subhypergroups();
         for item in sub_hg {
             let subset = u64_to_set(&item, &cardinality);
             println!("a subhypergroup {:?}",subset);
         }
-        */
+let identities = hg.collect_identities();
+for id in identities {
+            let subset = u64_to_set(&id, &cardinality);
+            println!("an identity {:?}",subset);
+        }
+let scalar_elements = hg.collect_scalars();
+for sc in scalar_elements {
+            let subset = u64_to_set(&sc, &cardinality);
+            println!("an identity {:?}",subset);
+        }
 
-
+ */
 
 /* 
     let cardinality =5u64;

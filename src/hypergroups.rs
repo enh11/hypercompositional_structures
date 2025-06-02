@@ -140,10 +140,13 @@ pub fn is_commutative(&self)->bool{
 }
 pub fn is_quasicanonical(&self)->bool{
     if !self.is_transposition(){return false;}
-    !self.0.collect_scalar_identity().is_empty()
+    !self.0.collect_scalar_identities().is_empty() //if a scalar identity exists, it is unique.
+}
+pub fn is_join_space(&self)->bool{
+    self.is_commutative()&&self.is_transposition()
 }
 pub fn is_canonical(&self)->bool{
-    todo!()
+    self.is_commutative()&&self.is_quasicanonical()
 }
 pub fn is_sub_hypergroup(&self,k:&u64)->bool{
     let power_set_cardinality = 1<<self.cardinality();
@@ -179,6 +182,12 @@ pub fn is_sub_hypergroup(&self,k:&u64)->bool{
 ///
 pub fn collect_identities(&self)->Vec<u64>{
     self.0.collect_identities()
+}
+pub fn collect_scalars(&self)->Vec<u64>{
+    self.0.collect_scalars()
+}
+pub fn collect_scalars_identities(&self)->Vec<u64>{
+    self.0.collect_scalar_identities()
 }
 pub fn left_inverses_of_x(&self, x:&u64,u:&u64)->u64{
     self.0.left_inverses_of_x(x, u)

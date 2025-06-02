@@ -13,7 +13,7 @@ impl UnitalMagma {
     pub fn new_from_tag(tag:&u128,cardinality:&u64)->Self {
         assert!(representing_hypergroupoid(&mut tag.clone(), &(*cardinality)),"Tag doesn't represent a hypergroupoid!");
         let h=HyperGroupoidMat::new_from_tag(&tag, &cardinality);
-        let e = h.collect_scalar_identity();
+        let e = h.collect_scalar_identities();
         if e.len()!=1 {panic!("Not representing a unital magmata. No scalar identity found!")}
         let identity=e[0];
         UnitalMagma { h, identity: identity }

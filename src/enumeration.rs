@@ -34,7 +34,7 @@ pub fn collect_hypergroupoid_with_scalar_identity(cardinality:&u64)->Vec<u128>{
         .filter(|i|
             representing_hypergroupoid(&i,&cardinality)
             &
-            !(HyperGroupoidMat::new_from_tag(i, &cardinality).collect_scalar_identity().is_empty())
+            !(HyperGroupoidMat::new_from_tag(i, &cardinality).collect_scalar_identities().is_empty())
         )
         .collect()
 
@@ -47,7 +47,7 @@ pub fn collect_invertible_magmata(cardinality:&u64)->Vec<u128>{
         .filter(|i|
             representing_hypergroupoid(&mut i.clone(),&cardinality)
             &
-            (HyperGroupoidMat::new_from_tag(i, &cardinality).collect_scalar_identity().len()==1)
+            (HyperGroupoidMat::new_from_tag(i, &cardinality).collect_scalar_identities().len()==1)
             &
             (UnitalMagma::new_from_tag(i, &cardinality).is_invertible_unital_magma())
         )

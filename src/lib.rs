@@ -59,8 +59,6 @@ mod tests {
         assert!(hg.subhypergroup_is_closed(&subset_a));
         assert!(!hg.subhypergroup_is_invertible(&subset_a));
 
-
-
     }
     #[test]
     ///
