@@ -1,36 +1,70 @@
 use std::collections::HashSet;
 
-use hyperstruc::{hs::HyperGroupoidMat, hypergroups::HyperGroup, utilities::u64_to_set};
+use hyperstruc::{hs::HyperGroupoid, hypergroups::HyperGroup, utilities::u64_to_set};
 use itertools::Itertools;
 use nalgebra::DMatrix;
 use rayon::vec;
 
 
-
 fn main(){
+    let cardinality =2u64;
+    let input_values  = vec![vec![0,1],   vec![0,1],
+                                            vec![1],vec![0]];
+    let hs = HyperGroupoid::new_from_elements(&input_values, cardinality);
+    let q_0=hs.get_q_u(&0);
+    println!("q_0 is {}",q_0);
+    let alfa_0=hs.get_alpha_u(&0);
+    println!("alfa_0 is {}",alfa_0);
+    let mu_0=hs.get_mu_u(&0);
+    println!("mu_1 is {}",mu_0);
+    let q_1=hs.get_q_u(&01);
+    println!("q_1 is {}",q_1);
+    let alfa_1=hs.get_alpha_u(&1);
+    println!("alfa_1 is {}",alfa_1);
+    let mu_1=hs.get_mu_u(&1);
+    println!("mu_1 is {}",mu_1);
+
+    let cardinality =3u64;
+    /* let input_values  = vec![vec![0,1],  vec![1],  vec![0,1,2],
+                                            vec![0,1,2],vec![1,2],vec![2],
+                                            vec![0,1,2],vec![0,1,2],vec![0]]; */
+    let input_values  = vec![vec![0,1,2],  vec![0,1,2],  vec![0,1,2],
+                                            vec![0,1,2],vec![1,2],vec![1,2],
+                                            vec![0,1,2],vec![1,2],vec![2]];
+    let hs = HyperGroupoid::new_from_elements(&input_values, cardinality);
+    println!("hs is {}",hs);
+    let fuzzy0=hs.get_corsini_fuzzysubset();
+    let join0=fuzzy0.get_corsini_join_space().unwrap();
+    println!("hs is {}",join0);
+
 /* 
-    let cardinality = 3;
+    let cardinality = 3u64;
     let x = 5u64;
     let y = 6u64;
     let h = 2u64;
 
-    println!("{}",x&y);
-    println!("{}",x|y);
-    println!("{}", x>>h); 
+    println!("x meet y is {}",x&y);
+    println!("x join y is {}",x|y);
+    println!("x shift-right h is {}", x>>h); 
 
     let complement_y = (1<< cardinality)-1-y;
-    println!("complement of x is {}",complement_y);
+    println!("complement of x is {}",complement_y); */
 
- */
-
-    
+  
      
     /*EXAMPLE USING MATRIX */
+    let cardinality =3u64;
+    let input_values  = vec![vec![0,1],  vec![1],  vec![0,1,2],
+                                            vec![0,1,2],vec![1,2],vec![2],
+                                            vec![0,1,2],vec![0,1,2],vec![0]];
+    let hs = HyperGroupoid::new_from_elements(&input_values, cardinality);
+    println!("hs is {}",hs);
+
     let cardinality =4u64;
     let matrix=
         DMatrix::from_row_slice(cardinality as usize, cardinality as usize, 
             &[2,2,3,14,5,14,3,3,1,11,12,7,7,3,8,8]);
-    let hs = HyperGroupoidMat::new_from_matrix(&matrix);
+    let hs = HyperGroupoid::new_from_matrix(&matrix);
     println!("{}",hs);
 
     let par_id_right :Vec<HashSet<u64>> = hs.collect_partial_right_identities().iter().map(|x|u64_to_set(x, &cardinality)).collect();
@@ -40,7 +74,7 @@ fn main(){
     /*EXAMPLE USING GENERATING FUNCTION*/
     let cardinality =7u64;
     let function = |a:u64,b:u64| 1<<a|1<<b;
-    let hs = HyperGroupoidMat::new_from_function(function, &cardinality);
+    let hs = HyperGroupoid::new_from_function(function, &cardinality);
     println!("{}",hs);
 
     /*EXAMPLE USING GENERATING FUNCTION*/
@@ -50,17 +84,11 @@ fn main(){
                     if a!=b {return 1<<a.max(b)}
                     else {return (0..=a).into_iter().fold(0, |acc,x|acc|1<<x)}
                 };
-    let hs = HyperGroupoidMat::new_from_function(function, &cardinality);
+    let hs = HyperGroupoid::new_from_function(function, &cardinality);
     println!("{}",hs);
-let cardinality =3u64;
-let input_values  = vec![vec![0,1],vec![1],vec![0,1,2],
-                                        vec![0,1,2],vec![1,2],vec![2],
-                                        vec![0,1,2],vec![0,1,2],vec![0]];
-let hs = HyperGroupoidMat::new_from_elements(&input_values, cardinality);
-println!("hs is {}",hs);
-println!("input is {:?}",input_values);
+
     
-/* 
+
     let tag = hs.get_integer_tag_u1024();
     println!("hs is identified by {}",tag);
 
@@ -69,25 +97,27 @@ println!("input is {:?}",input_values);
     let hg = HyperGroup::new_from_tag_u1024(&tag, &cardinality);
     
     println!("is commutative {}",hg.is_commutative());
-    println!("is commutative {}",hg.is_transposition());
+    println!("is transposition {}",hg.is_transposition());
     
     let sub_hg = hg.collect_proper_subhypergroups();
         for item in sub_hg {
             let subset = u64_to_set(&item, &cardinality);
-            println!("a subhypergroup {:?}",subset);
+            println!("{:?} is a subhypergroup ",subset);
         }
 let identities = hg.collect_identities();
 for id in identities {
             let subset = u64_to_set(&id, &cardinality);
-            println!("an identity {:?}",subset);
+            println!("{:?} is an identity ",subset);
         }
 let scalar_elements = hg.collect_scalars();
 for sc in scalar_elements {
             let subset = u64_to_set(&sc, &cardinality);
-            println!("an identity {:?}",subset);
+            println!("{:?} is a scalar element ",subset);
         }
 
- */
+
+
+
 
 /* 
     let cardinality =5u64;
@@ -160,7 +190,7 @@ for item in hg {
 /*     /*TRY TRANSPOSITION */
     let cardinality = 4u64;
     let matrix=DMatrix::from_row_slice(cardinality as usize,cardinality as usize,&[1,3,5,9,3,2,6,10,5,6,4,12,9,10,12,8]);
-let hs = HyperGroupoidMat::new_from_matrix(&matrix);
+let hs = HyperGroupoid::new_from_matrix(&matrix);
 let tag  = U1024::from(1970661744247085768u128);
 let hg = HyperGroup::new_from_tag_u1024(&tag, &cardinality);
 println!("hs {}",hs);
@@ -343,7 +373,7 @@ let comb = (0..width).into_iter().rev().combinations(dist);/*Don't collect vecto
 for c in comb {
     let x = c.iter().fold(total_hg3, |total_hg3: U1024,x| total_hg3^(U1024::one()<<*x));
     if representing_hypergroupoid_u1024(&x, &cardinality){
-    let hs = HyperGroupoidMat::new_from_tag_u1024(&x, &cardinality);
+    let hs = HyperGroupoid::new_from_tag_u1024(&x, &cardinality);
         if hs.is_hypergroup() {
             let hg  = HyperGroup::new_from_tag_u1024(&x, &cardinality);
 
@@ -413,7 +443,7 @@ println!("one_from_{} = {:?}",tag,one_from_tag);
 /*     let (min, max)=get_min_max_u1024(&cardinality);
  *//*     for tag in min.to(max).rev() {
         if representing_hypergroupoid_u1024(&tag, &cardinality) {
-            let hs  = HyperGroupoidMat::new_from_tag_u1024(&tag, &cardinality);
+            let hs  = HyperGroupoid::new_from_tag_u1024(&tag, &cardinality);
             if hs.is_hypergroup() {
                 let hg = HyperGroup::new_from_tag_u1024(&tag, &cardinality);
                 if hg.is_transposition(){
@@ -424,7 +454,7 @@ println!("one_from_{} = {:?}",tag,one_from_tag);
     } */
  /*   let ex :Vec<u128>= TAG_HG_3.into_par_iter().filter(|x|
     representing_hypergroupoid(x, &cardinality)&&
-HyperGroupoidMat::new_from_tag(x, &cardinality).is_hypergroup()&&
+HyperGroupoid::new_from_tag(x, &cardinality).is_hypergroup()&&
 HyperGroup::new_from_tag_u128(x, &cardinality).is_transposition()&&
 HyperGroup::new_from_tag_u128(x, &cardinality).find_reflexive_subhypergroup().is_some()).collect();
 println!("{:?}",ex);
@@ -435,7 +465,7 @@ println!("dist {:?}",dist); */
 
 /*    for tag in min.to(max).rev() {
         if representing_hypergroupoid_u1024(&tag, &cardinality) {
-            let hs  = HyperGroupoidMat::new_from_tag_u1024(&tag, &cardinality);
+            let hs  = HyperGroupoid::new_from_tag_u1024(&tag, &cardinality);
             if hs.is_hypergroup() {
                 let hg = HyperGroup::new_from_tag_u1024(&tag, &cardinality);
             if hg.is_transposition()&&hg.find_reflexive_subhypergroup().is_some() {
@@ -453,8 +483,8 @@ println!("dist {:?}",dist); */
   let dist = distance_tags(&min, &max, &cardinality);
   println!("dist {}",dist);
   println!("log2dist = {}",dist.ilog2());
-    let any  =(2305843009213693951 +1..some).into_par_iter().find_first(|x|(representing_hypergroupoid(x, &cardinality))&&(HyperGroupoidMat::new_from_tag(&*x, &cardinality).is_hypergroup()));    /*Some Tests With Metric */
-    let any_hg= HyperGroupoidMat::new_from_tag(&any.unwrap(), &cardinality);
+    let any  =(2305843009213693951 +1..some).into_par_iter().find_first(|x|(representing_hypergroupoid(x, &cardinality))&&(HyperGroupoid::new_from_tag(&*x, &cardinality).is_hypergroup()));    /*Some Tests With Metric */
+    let any_hg= HyperGroupoid::new_from_tag(&any.unwrap(), &cardinality);
     println!("tag of any is {}",any_hg.get_integer_tag());
     println!("tag of max is {}",max);
 
@@ -501,7 +531,7 @@ let dist:Vec<u64>= v1.iter().zip(v2).map(|(x,y)|distance_tags(x, &y, &cardinalit
 println!("dist classes {:?}",dist);  */
 /* 
     let cardinality = 5u64;
-    let hs = HyperGroupoidMat::new_random_from_cardinality(&cardinality);
+    let hs = HyperGroupoid::new_random_from_cardinality(&cardinality);
     println!("{}",hs);
     let tag = hs.get_integer_tag();
     let v =from_tag_to_vec(&tag, &cardinality);
@@ -559,22 +589,22 @@ for pairs in s {
     println!("nbeta : {}",nbeta.len()); */
 /*     /*Example 134 Corsini */
     let cardinality  =3u64;
-    let hg=HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,2,4,1,2,4,7,7,7]));
+    let hg=HyperGroupoid::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,2,4,1,2,4,7,7,7]));
     println!("hg : {}",hg);
     let id = hg.collect_identities();
     println!("{:?}", id);
      */
  /*    let tag=TAG_HG_2[3];
-    let hg2=HyperGroupoidMat::new_from_tag(&tag, &2u64);
+    let hg2=HyperGroupoid::new_from_tag(&tag, &2u64);
     println!("core is {:?}",hg2.beta_relation().rel);
     let tag=TAG_HG_3[100];
-    let hg2=HyperGroupoidMat::new_from_tag(&tag, &3u64);
+    let hg2=HyperGroupoid::new_from_tag(&tag, &3u64);
     println!("core is {:?}",hg2.beta_relation());
     println!("beta is equivalence: {}",hg2.beta_relation().is_equivalence()); */
 
 /* /*Example 1 Karim ABBASI, Reza AMERI, Yahya TALEBI-ROSTAMI  */
     let cardinality=  3u64;
-    let hs = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,6,1,6,1,6,1,6,1]));
+    let hs = HyperGroupoid::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,6,1,6,1,6,1,6,1]));
     println!("Is hypergroup {}",hs.is_hypergroup());
     println!("Hypergroupoid : {}",hs);
 let ph :Vec<HashSet<u64>> = hs.collect_ph().iter().map(|x|vec_to_set(&get_subset(x, &cardinality))).collect();
@@ -591,7 +621,7 @@ println!("classes are {:?}",eq_classes);
  */
 /* /*Example 2 Karim ABBASI, Reza AMERI, Yahya TALEBI-ROSTAMI (OK) */
 let cardinality=  3u64;
-let hs = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,6,6,6,1,1,6,1,1]));
+let hs = HyperGroupoid::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,6,6,6,1,1,6,1,1]));
 println!("Is hypergroup {}",hs.is_hypergroup());
 println!("Hypergroupoid : {}",hs);
 let ph :Vec<HashSet<u64>> = hs.collect_ph().iter().map(|x|vec_to_set(&get_subset(x, &cardinality))).collect();
@@ -608,7 +638,7 @@ println!("classes are {:?}",eq_classes);
  */
 /* /*Example 3 Karim ABBASI, Reza AMERI, Yahya TALEBI-ROSTAMI (OK) */
 let cardinality=  4u64;
-let hs = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,6,6,8,6,8,8,1,6,8,8,1,8,1,1,6]));
+let hs = HyperGroupoid::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,6,6,8,6,8,8,1,6,8,8,1,8,1,1,6]));
 println!("Is hypergroup {}",hs.is_hypergroup());
 println!("Hypergroupoid : {}",hs);
 let eq_classes=hs.beta_relation().collect_classes();
@@ -619,7 +649,7 @@ println!("classes are {:?}",eq_classes);
 println!("Example 4.2  Pourhaghani, Anvariyen, Davvaz");
 
 let cardinality=4u64;
-let hypergroupoid = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize,cardinality as usize,&[1,3,5,9,1,3,5,9,1,2,4,8,1,2,4,8]));
+let hypergroupoid = HyperGroupoid::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize,cardinality as usize,&[1,3,5,9,1,3,5,9,1,2,4,8,1,2,4,8]));
 
 println!("Hypergroupoid : {}",hypergroupoid);
 let ph :Vec<HashSet<u64>> = hypergroupoid.collect_ph().iter().map(|x|vec_to_set(&get_subset(x, &cardinality))).collect();
@@ -633,7 +663,7 @@ println!("beta is equivalence: {}",hypergroupoid.beta_relation().is_equivalence(
 println!("Example 4.3 Pourhaghani, Anvariyen, Davvaz");
 
 let cardinality=4u64;
-let hypergroupoid = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize,cardinality as usize,&[6,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10]));
+let hypergroupoid = HyperGroupoid::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize,cardinality as usize,&[6,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10]));
 
 println!("Hypergroupoid : {}",hypergroupoid);
 let ph :Vec<HashSet<u64>> = hypergroupoid.collect_ph().iter().map(|x|vec_to_set(&get_subset(x, &cardinality))).collect();
@@ -645,7 +675,7 @@ println!("beta is equivalence: {}",hypergroupoid.beta_relation().is_equivalence(
 /* 
 /*Example 4.4 Pourhaghani, Anvariyen, Davvaz (OK)*/
     let cardinality=  3u64;
-    let hs = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,3,5,1,2,5,1,3,4]));
+    let hs = HyperGroupoid::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,3,5,1,2,5,1,3,4]));
     println!("Hypergroupoid : {}",hs);
 let ph :Vec<HashSet<u64>> = hs.collect_ph().iter().map(|x|vec_to_set(&get_subset(x, &cardinality))).collect();
 println!("ph is {:?}",ph);
@@ -655,7 +685,7 @@ println!("beta is equivalence: {}",hs.beta_relation().is_equivalence());
  */
 
 /* let cardinality=  5u64;
-let hs = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,11,1,11,11,1,2,1,11,11,1,11,9,11,31,1,11,1,11,11,1,11,9,11,31]));
+let hs = HyperGroupoid::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,11,1,11,11,1,2,1,11,11,1,11,9,11,31,1,11,1,11,11,1,11,9,11,31]));
 println!("Hypergroupoid : {}",hs);
 let ph :Vec<HashSet<u64>> = hs.collect_ph().iter().map(|x|vec_to_set(&get_subset(x, &cardinality))).collect();
 println!("ph is {:?}",ph);
@@ -665,8 +695,8 @@ println!("beta {:?}",beta); */
 let cardinality = 2;
 let t=185;
 println!("{:b}",t);
-let new_hyperstructure_from_tag = HyperGroupoidMat::new_from_tag(&t,&cardinality);
-let new_hyperstructure_from_matrix = HyperGroupoidMat::new_from_matrix(&DMatrix::from_row_slice(2usize,2usize,&[2,3,2,1]));
+let new_hyperstructure_from_tag = HyperGroupoid::new_from_tag(&t,&cardinality);
+let new_hyperstructure_from_matrix = HyperGroupoid::new_from_matrix(&DMatrix::from_row_slice(2usize,2usize,&[2,3,2,1]));
 println!("{}", new_hyperstructure_from_tag);
 let t= from_tag_to_vec(&t, &cardinality);
 
@@ -674,7 +704,7 @@ println!("{:?}",t);
 println!("{}",new_hyperstructure_from_matrix);
 println!("tag1 {}, tag2 {}", new_hyperstructure_from_matrix.get_integer_tag(),185); */
 /*     let mat=DMatrix::from_row_slice(3, 3, &[1,2,4,2,5,7,4,2,1]);
-    let h=HyperGroupoidMat::new_from_matrix(&mat);
+    let h=HyperGroupoid::new_from_matrix(&mat);
     let magma=UnitalMagma{
         h:h,
         identity:1
@@ -773,7 +803,7 @@ println!("Elapsed:{:?}",end);
 /*    let tag =25830028u128;
     let cardinality=3u64;
     println!("starting tag {}",tag);
-    let hypergroup=HyperGroupoidMat::new_from_tag(&tag,&cardinality);
+    let hypergroup=HyperGroupoid::new_from_tag(&tag,&cardinality);
     println!("new from tag {}",hypergroup);
     println!("tag is hypergroup: {}",hypergroup.is_hypergroup());
     println!("tag {}",hypergroup.get_integer_tag());
@@ -843,7 +873,7 @@ for i in 0..hypergroup.n{
     } */
     
 /*
-let h_groupoid=  HyperGroupoidMat::new_random_from_cardinality(&n);
+let h_groupoid=  HyperGroupoid::new_random_from_cardinality(&n);
 println!(" A new Hyper Groupoid : {}",h_groupoid);
 println!("H is reproductive: {}",h_groupoid.is_reproductive());
 let new_hg=h_groupoid.fix_reproductivity();
@@ -856,7 +886,7 @@ println!("H is associativity: {}",new_hg.is_associative());
 /* GET HYPERSTRUCTURE FROM MATRIX */
 
 let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
-let hypergroup=HyperGroupoidMat::new_from_matrix(&matrix);
+let hypergroup=HyperGroupoid::new_from_matrix(&matrix);
 println!("{}",hypergroup);
 println!("H is hypergroup: {}",hypergroup.is_hypergroup());
 let a = 1u64;
@@ -898,7 +928,7 @@ for tag in tag_2 {
     let mut isomorphism_classes:Vec<u64>=Vec::new();
 
     for sigma in &permutation {        
-        let isomorphic_image_tag = HyperGroupoidMat::new_from_tag(tag, &CARDINALITY).isomorphic_hypergroup_from_permutation(&sigma).get_integer_tag();
+        let isomorphic_image_tag = HyperGroupoid::new_from_tag(tag, &CARDINALITY).isomorphic_hypergroup_from_permutation(&sigma).get_integer_tag();
         isomorphism_classes.push(isomorphic_image_tag);
 
     }
@@ -923,7 +953,7 @@ let mut c:Vec<usize>=Vec::new();
 
     }
 /* for tag in classes.iter().map(|x|x.0) {
-    let hg  = HyperGroupoidMat::new_from_tag(tag as u128, &CARDINALITY);
+    let hg  = HyperGroupoid::new_from_tag(tag as u128, &CARDINALITY);
     print!("{}",hg);
 }  */
 
@@ -942,10 +972,10 @@ Look for a random associative hypergroupoid of order 5
 
 
 let n = 5u64;
-let mut semihypergroup=   HyperGroupoidMat::new_random_from_cardinality(&n);
+let mut semihypergroup=   HyperGroupoid::new_random_from_cardinality(&n);
 
 semihypergroup=loop {
-    let x=HyperGroupoidMat::new_random_from_cardinality(&n);
+    let x=HyperGroupoid::new_random_from_cardinality(&n);
 
     if semihypergroup.is_associative(){break x;}
 

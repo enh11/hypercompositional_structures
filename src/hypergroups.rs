@@ -4,7 +4,7 @@ use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
 use rayon::{iter::{IntoParallelRefIterator, ParallelIterator}};
-use crate::{hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoidMat}, utilities::{get_complement_subset, ones_positions, U1024}};
+use crate::{hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoid}, utilities::{get_complement_subset, ones_positions, U1024}};
 #[derive(Debug, Clone)]
 pub enum HyperStructureError {
     NotHypergroup,
@@ -17,22 +17,22 @@ impl fmt::Display for HyperStructureError {
     }
 }
 #[derive(Debug, Clone,PartialEq)]
-pub struct HyperGroup(HyperGroupoidMat);
+pub struct HyperGroup(HyperGroupoid);
 
 impl HyperGroup {
     pub fn new_from_matrix(matrix:&DMatrix<u64>)->Self{
-        let hg= HyperGroupoidMat::new_from_matrix(matrix);
+        let hg= HyperGroupoid::new_from_matrix(matrix);
         assert!(hg.is_hypergroup(),"Not an hypergroup!");
         HyperGroup(hg)
 
     }
     pub fn new_from_tag_u128(tag:&u128,cardinality:&u64)->Self{
-        let hg= HyperGroupoidMat::new_from_tag(tag,cardinality);
+        let hg= HyperGroupoid::new_from_tag(tag,cardinality);
         assert!(hg.is_hypergroup(),"Not an hypergroup! Tag is {}",tag);
         HyperGroup(hg)
     }
     pub fn new_from_tag_u1024(tag:&U1024,cardinality:&u64)->Self{
-        let hg= HyperGroupoidMat::new_from_tag_u1024(tag,cardinality);
+        let hg= HyperGroupoid::new_from_tag_u1024(tag,cardinality);
         assert!(hg.is_hypergroup(),"Not an hypergroup!");
         HyperGroup(hg)
     }
@@ -65,7 +65,7 @@ impl HyperGroup {
 ///
 pub fn new_from_function<F>(function:F,cardinality:&u64)->Result<Self,HyperStructureError>
     where F: Fn(u64,u64) -> u64{
-        let hs = HyperGroupoidMat::new_from_function(function, cardinality);
+        let hs = HyperGroupoid::new_from_function(function, cardinality);
         match hs.is_hypergroup() {
             true => Ok(HyperGroup::new_from_tag_u1024(&hs.get_integer_tag_u1024(), cardinality)),
             false => Err(HyperStructureError::NotHypergroup),            
@@ -172,10 +172,10 @@ pub fn is_sub_hypergroup(&self,k:&u64)->bool{
 /// 
 /// # Example
 /// ```
-/// use hyperstruc::hs::HyperGroupoidMat;
+/// use hyperstruc::hs::HyperGroupoid;
 /// use nalgebra::DMatrix;
 /// let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,4,1,2,4,7,7,7]);
-/// let hyperstructure=HyperGroupoidMat::new_from_matrix(&matrix);
+/// let hyperstructure=HyperGroupoid::new_from_matrix(&matrix);
 /// let identities = hyperstructure.collect_identities();
 /// assert!(identities.is_empty())
 /// 

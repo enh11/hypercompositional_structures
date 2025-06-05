@@ -2,17 +2,17 @@ use core::panic;
 use std::fmt::Display;
 extern crate nalgebra as na;
 use nalgebra::DMatrix;
-use crate::{hs::HyperGroupoidMat, utilities::{get_subset, representing_hypergroupoid, vec_to_set}};
+use crate::{hs::HyperGroupoid, utilities::{get_subset, representing_hypergroupoid, vec_to_set}};
 #[derive(Debug, Clone,PartialEq)]
 pub struct UnitalMagma{
-    pub h:HyperGroupoidMat,
+    pub h:HyperGroupoid,
     pub identity: u64,
 }
 
 impl UnitalMagma {
     pub fn new_from_tag(tag:&u128,cardinality:&u64)->Self {
         assert!(representing_hypergroupoid(&mut tag.clone(), &(*cardinality)),"Tag doesn't represent a hypergroupoid!");
-        let h=HyperGroupoidMat::new_from_tag(&tag, &cardinality);
+        let h=HyperGroupoid::new_from_tag(&tag, &cardinality);
         let e = h.collect_scalar_identities();
         if e.len()!=1 {panic!("Not representing a unital magmata. No scalar identity found!")}
         let identity=e[0];
