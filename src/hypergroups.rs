@@ -4,7 +4,7 @@ use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
 use rayon::{iter::{IntoParallelRefIterator, ParallelIterator}};
-use crate::{hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoid}, utilities::{get_complement_subset, ones_positions, U1024}};
+use crate::{fuzzy::FuzzySubset, hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoid}, utilities::{get_complement_subset, ones_positions, U1024}};
 #[derive(Debug, Clone)]
 pub enum HyperStructureError {
     NotHypergroup,
@@ -95,6 +95,26 @@ pub fn collect_isomorphism_class(&self)->(U1024,Vec<U1024>){
 }
 pub fn isomorphic_hypergroup_from_permutation(&self, sigma:&Permutation)->Self{
     HyperGroup::new_from_tag_u1024(&self.0.isomorphic_hypergroup_from_permutation(sigma).get_integer_tag_u1024(),&self.cardinality())
+}
+///
+/// Return true if the two hypergroups are isomorphic. 
+/// 
+/// # Example
+/// ```
+/// use hyperstruc::utilities::U1024;
+/// use hyperstruc::hypergroups::HyperGroup;
+/// 
+/// let cardinality = 3u64;
+/// let tag_1 = U1024::from(22097724u128);
+/// 
+/// let hg_1=HyperGroup::new_from_tag_u1024(&tag_1,&cardinality);
+/// let tag_2 = U1024::from(31958100u128);
+/// let hg_2=HyperGroup::new_from_tag_u1024(&tag_2,&cardinality);
+/// 
+/// assert!(hg_1.is_isomorphic_to(&hg_2))
+/// 
+pub fn is_isomorphic_to(&self,other:&Self)->bool{
+    self.0.is_isomorphic_to(&other.0)
 }
 pub fn get_integer_tag_u1024(&self)->U1024{
     self.0.get_integer_tag_u1024()
@@ -204,6 +224,9 @@ pub fn collect_left_inverses_of_x(&self,x:&u64)->Vec<(u64,u64)>{
 pub fn collect_inverses_of_x(&self,x:&u64)->Vec<(u64,u64)>{
     self.0.collect_inverses_of_x(x)
 }
+pub fn get_corsini_fuzzysubset(&self)->FuzzySubset{
+        self.0.get_corsini_fuzzysubset()
+    }
 pub fn collect_proper_subhypergroups(&self)->Vec<u64> {
     let power_set_cardinality: u64 =1<<self.cardinality()-1;
     (1..power_set_cardinality).into_iter().filter(|x|self.is_sub_hypergroup(x)).collect_vec()

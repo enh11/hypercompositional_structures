@@ -6,7 +6,7 @@ use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
 use rand::Rng;
-use crate::{fuzzy::FuzzySubset, relations::Relation, utilities::{binary_to_n, cartesian_product, from_tag_to_vec, from_tag_u1024_to_vec, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid_u1024, subset_as_u64, vec_to_set, U1024}};
+use crate::{fuzzy::FuzzySubset, relations::Relation, utilities::{binary_to_n, cartesian_product, from_tag_to_vec, from_tag_u1024_to_vec, get_min_max, get_min_max_u1024, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid_u1024, subset_as_u64, vec_to_set, U1024}};
 #[derive(Debug, Clone,PartialEq)]
 pub struct HyperGroupoid{
     pub h:HashSet<u64>,
@@ -281,10 +281,21 @@ pub fn collect_isomorphism_class(&self)->(U1024,Vec<U1024>){
 /// }
 /// 
 /// 
-/// 
 pub fn is_hypergroup(&self)->bool{
     self.is_associative()&self.is_reproductive()
 }
+pub fn is_isomorphic_to(&self,other: &Self)->bool{
+    let total_tag = get_min_max_u1024(&self.n).1;
+    let total_hg = &HyperGroupoid::new_from_tag_u1024(&total_tag, &self.n);
+    if self.hamming_distance_u1024(total_hg)==other.hamming_distance_u1024(total_hg){
+        self.collect_isomorphism_class().1.contains(&other.get_integer_tag_u1024())
+    }
+    else{
+
+        false
+    }
+}
+
 ///
 /// Return true if the hyperstructure is commutative.
 /// 

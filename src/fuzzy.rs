@@ -70,7 +70,7 @@ impl HyperGroupoid {
 /// 
 /// let q_1=hs.get_q_u(&1);
 /// assert_eq!(q_0,3);
-/// c
+/// 
 /// 
     pub fn get_q_u(&self,u:&u64)->usize{
        self.get_Q_u(u).len()
@@ -105,4 +105,34 @@ impl HyperGroupoid {
         let h = self.clone();  // or use Arc<Self> to avoid cloning big data
         Box::new(move |u: u64| UnitInterval::new(h.get_mu_u(&u)))
     }
+    pub fn get_fuzzy_degree(&self)->usize{
+        let mut h_0:HyperGroup;
+        let mut h_1:HyperGroup;
+        let mut degree;
+        if self.is_hypergroup(){
+            println!("we are here, not an hypergroup");
+            h_0=HyperGroup::new_from_tag_u1024(&self.get_integer_tag_u1024(),&self.n);
+            h_1=h_0.get_next_corsini_joinspace();
+            degree=0;
+        }
+        else{
+            h_0=self.get_corsini_fuzzysubset().get_corsini_join_space().unwrap();
+            h_1 =h_0.get_next_corsini_joinspace();
+
+            degree=1;
+        }
+        while !h_0.is_isomorphic_to(&h_1) {
+            h_0=h_1;
+            h_1=h_0.get_next_corsini_joinspace();
+            degree+=1;            
+        }
+        degree
+       
+    }
+
+}
+impl HyperGroup {
+    pub fn get_next_corsini_joinspace(&self)->Self{
+        self.get_corsini_fuzzysubset().get_corsini_join_space().unwrap()
+}
 }

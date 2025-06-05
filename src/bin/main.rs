@@ -1,40 +1,55 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, default};
 
-use hyperstruc::{hs::HyperGroupoid, hypergroups::HyperGroup, utilities::u64_to_set};
+use hyperstruc::{hs::HyperGroupoid, hypergroups::HyperGroup, utilities::{u64_to_set, U1024}};
 use itertools::Itertools;
 use nalgebra::DMatrix;
 use rayon::vec;
 
 
 fn main(){
+    let cardinality = 8u64;
+        let input_values  = vec![
+            vec![0,1,2,3,4,5,6,7], vec![0,1,2,3,4,5,6,7], vec![0,1,2,3,4,5,6,7], vec![0,1,2,3,4,5,6,7], vec![0,1,2,3,4,5,6,7], vec![0,1,2,3,4,5,6,7], vec![0,1,2,3,4,5,6,7], vec![0,1,2,3,4,5,6,7],
+            vec![0,1,2,3,4,5,6,7],vec![1,2,3,4,5,6,7],vec![1,2,3,4,5,6,7],vec![1,2,3,4,5,6,7],vec![1,2,3,4,5,6,7],vec![1,2,3,4,5,6,7],vec![1,2,3,4,5,6,7],vec![1,2,3,4,5,6,7],
+            vec![0,1,2,3,4,5,6,7],vec![1,2,3,4,5,6,7],vec![2,3,4,5,6,7],vec![2,3,4,5,6,7],vec![2,3,4,5,6,7],vec![2,3,4,5,6,7],vec![2,3,4,5,6,7],vec![2,3,4,5,6,7],
+            vec![0,1,2,3,4,5,6,7],vec![1,2,3,4,5,6,7],vec![2,3,4,5,6,7],vec![3,4,5,6,7],vec![3,4,5,6,7],vec![3,4,5,6,7],vec![3,4,5,6,7],vec![3,4,5,6,7],
+            vec![0,1,2,3,4,5,6,7],vec![1,2,3,4,5,6,7],vec![2,3,4,5,6,7],vec![3,4,5,6,7],vec![4,5,6,7],vec![4,5,6,7],vec![4,5,6,7],vec![4,5,6,7],
+            vec![0,1,2,3,4,5,6,7],vec![1,2,3,4,5,6,7],vec![2,3,4,5,6,7],vec![3,4,5,6,7],vec![4,5,6,7],vec![5,6,7],vec![5,6,7],vec![5,6,7],
+            vec![0,1,2,3,4,5,6,7],vec![1,2,3,4,5,6,7],vec![2,3,4,5,6,7],vec![3,4,5,6,7],vec![4,5,6,7],vec![5,6,7],vec![6,7],vec![6,7],
+            vec![0,1,2,3,4,5,6,7],vec![1,2,3,4,5,6,7],vec![2,3,4,5,6,7],vec![3,4,5,6,7],vec![4,5,6,7],vec![5,6,7],vec![6,7],vec![7]];
+    let hs = HyperGroupoid::new_from_elements(&input_values,cardinality);
+    println!("hs {}",hs);
+    let deg = hs.get_fuzzy_degree();
+    println!("deg  = {}",deg);
+/*     
     let cardinality =2u64;
-    let input_values  = vec![vec![0,1],   vec![0,1],
+    let input_values  = vec![vec![0,1],   vec![1],
                                             vec![1],vec![0]];
     let hs = HyperGroupoid::new_from_elements(&input_values, cardinality);
-    let q_0=hs.get_q_u(&0);
-    println!("q_0 is {}",q_0);
-    let alfa_0=hs.get_alpha_u(&0);
-    println!("alfa_0 is {}",alfa_0);
-    let mu_0=hs.get_mu_u(&0);
-    println!("mu_1 is {}",mu_0);
-    let q_1=hs.get_q_u(&01);
-    println!("q_1 is {}",q_1);
-    let alfa_1=hs.get_alpha_u(&1);
-    println!("alfa_1 is {}",alfa_1);
-    let mu_1=hs.get_mu_u(&1);
-    println!("mu_1 is {}",mu_1);
-    let join1=hs.get_corsini_fuzzysubset().get_corsini_join_space();
-    println!("join_1 {}",join1.unwrap());
+    let q0: usize=hs.get_q_u(&0u64);
+    println!("q0 = {}",q0);
+    let q1: usize=hs.get_q_u(&1u64);
+    println!("q1 = {}",q1);
+
+    let degree = hs.get_fuzzy_degree();
+    println!("degree is  {}",degree);
 
     let cardinality =3u64;
-    /* let input_values  = vec![vec![0,1],  vec![1],  vec![0,1,2],
-                                            vec![0,1,2],vec![1,2],vec![2],
-                                            vec![0,1,2],vec![0,1,2],vec![0]]; */
+let cardinality = 3u64;
+let tag_1 = U1024::from(22097724u128);
+
+let hg_1=HyperGroup::new_from_tag_u1024(&tag_1,&cardinality);
+let tag_2 = U1024::from(31958100u128);
+let hg_2=HyperGroup::new_from_tag_u1024(&tag_2,&cardinality);
+
+assert!(hg_1.is_isomorphic_to(&hg_2));
+
     let input_values  = vec![vec![0,1,2],  vec![0,1,2],  vec![0,1,2],
                                             vec![0,1,2],vec![1,2],vec![1,2],
                                             vec![0,1,2],vec![1,2],vec![2]];
     let hs = HyperGroupoid::new_from_elements(&input_values, cardinality);
     println!("hs is {}",hs);
+
     let fuzzy0=hs.get_corsini_fuzzysubset();
     let join0=fuzzy0.get_corsini_join_space().unwrap();
     println!("hs is {}",join0);
@@ -117,7 +132,7 @@ for sc in scalar_elements {
             println!("{:?} is a scalar element ",subset);
         }
 
-
+ */
 
 
 
