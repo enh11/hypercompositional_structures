@@ -1,9 +1,8 @@
-/// 
-/// In this module we implement FuzzySubsets for HyperGroupoid.
-/// 
-/// Examples and tests come from `Some Remarks on Hyperstructures their Connections with Fuzzy Sets and Extensions to Weak Structures` by `Piergiulio Corsini`.
-/// 
-/// 
+//!
+//! In this module we implement FuzzySubsets for HyperGroupoid.
+//!  
+//!  Examples and tests come from `Some Remarks on Hyperstructures their Connections with Fuzzy Sets and Extensions to Weak Structures` by `Piergiulio Corsini`.
+//! 
 use itertools::Itertools;
 
 use crate::{hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoid}, hypergroups::{HyperGroup, HyperStructureError}, utilities::{get_complement_subset, ones_positions, U1024}};
@@ -71,7 +70,7 @@ impl HyperGroupoid {
 /// 
 /// let q_1=hs.get_q_u(&1);
 /// assert_eq!(q_0,3);
-/// 
+/// c
 /// 
     pub fn get_q_u(&self,u:&u64)->usize{
        self.get_Q_u(u).len()
