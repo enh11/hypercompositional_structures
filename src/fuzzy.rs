@@ -1,3 +1,9 @@
+/// 
+/// In this module we implement FuzzySubsets for HyperGroupoid.
+/// 
+/// Examples and tests come from `Some Remarks on Hyperstructures their Connections with Fuzzy Sets and Extensions to Weak Structures` by `Piergiulio Corsini`.
+/// 
+/// 
 use itertools::Itertools;
 
 use crate::{hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoid}, hypergroups::{HyperGroup, HyperStructureError}, utilities::{get_complement_subset, ones_positions, U1024}};
@@ -49,10 +55,47 @@ impl HyperGroupoid {
                         u_singleton&self.mul_by_representation(&(1<<x), &(1<<y))==u_singleton).collect()
 
     }
+/// 
+/// Compute the value `q(u) = |Q(u)| = {(a, b)∈ HxH |u ∈ ab}`.
+/// 
+/// # Example
+/// ```
+/// use hyperstruc::hs::HyperGroupoid;
+/// let cardinality =2u64;
+/// let input_values  = vec![vec![0,1],vec![0,1],
+///                            vec![1],vec![0]];
+/// let hs = HyperGroupoid::new_from_elements(&input_values, cardinality);
+/// 
+/// let q_0=hs.get_q_u(&0);
+/// assert_eq!(q_0,3);
+/// 
+/// let q_1=hs.get_q_u(&1);
+/// assert_eq!(q_0,3);
+/// 
+/// 
     pub fn get_q_u(&self,u:&u64)->usize{
        self.get_Q_u(u).len()
 
     }
+/// 
+/// Compute the value `alpha(u) = sum_{(x,y)∈ Q(u)} 1/|xy|`, where `Q(u) = {(a, b)∈ HxH |u ∈ ab}`
+/// 
+/// # Example
+/// ```
+/// use hyperstruc::hs::HyperGroupoid;
+/// let cardinality =2u64;
+/// let input_values  = vec![vec![0,1],vec![0,1],
+///                            vec![1],vec![0]];
+/// let hs = HyperGroupoid::new_from_elements(&input_values, cardinality);
+
+/// 
+/// let alpha_0=hs.get_alpha_u(&0);
+/// assert_eq!(alpha_0,2.0);
+/// 
+/// let alpha_1=hs.get_alpha_u(&1);
+/// assert_eq!(alpha_1,2.0);
+/// 
+/// 
     pub fn get_alpha_u(&self,u:&u64)->f64{
         self.get_Q_u(u).into_iter().map(|(x,y)|1f64/(ones_positions(&self.mul_by_representation(&(1u64<<x), &(1u64<<y)), &self.n).len() as f64)).sum()
     }

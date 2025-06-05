@@ -32,6 +32,8 @@ impl HyperGroupoid {
             hyper_composition: ht, 
             n: *n}
    }
+/// 
+/// 
 /// Generates a new hyperstructure from a binary function Fn(u64, u64) -> u64.
 ///
 /// The function is applied to all pairs `(a, b)` in the Cartesian product `H × H`.

@@ -23,6 +23,8 @@ fn main(){
     println!("alfa_1 is {}",alfa_1);
     let mu_1=hs.get_mu_u(&1);
     println!("mu_1 is {}",mu_1);
+    let join1=hs.get_corsini_fuzzysubset().get_corsini_join_space();
+    println!("join_1 {}",join1.unwrap());
 
     let cardinality =3u64;
     /* let input_values  = vec![vec![0,1],  vec![1],  vec![0,1,2],
