@@ -110,7 +110,6 @@ impl HyperGroupoid {
         let mut h_1:HyperGroup;
         let mut degree;
         if self.is_hypergroup(){
-            println!("we are here, not an hypergroup");
             h_0=HyperGroup::new_from_tag_u1024(&self.get_integer_tag_u1024(),&self.n);
             h_1=h_0.get_next_corsini_joinspace();
             degree=0;
@@ -122,6 +121,29 @@ impl HyperGroupoid {
             degree=1;
         }
         while !h_0.is_isomorphic_to(&h_1) {
+            h_0=h_1;
+            h_1=h_0.get_next_corsini_joinspace();
+            degree+=1;            
+        }
+        degree
+       
+    }
+    pub fn get_strong_fuzzy_degree(&self)->usize{
+        let mut h_0:HyperGroup;
+        let mut h_1:HyperGroup;
+        let mut degree;
+        if self.is_hypergroup(){
+            h_0=HyperGroup::new_from_tag_u1024(&self.get_integer_tag_u1024(),&self.n);
+            h_1=h_0.get_next_corsini_joinspace();
+            degree=0;
+        }
+        else{
+            h_0=self.get_corsini_fuzzysubset().get_corsini_join_space().unwrap();
+            h_1 =h_0.get_next_corsini_joinspace();
+
+            degree=1;
+        }
+        while h_0!=h_1 {
             h_0=h_1;
             h_1=h_0.get_next_corsini_joinspace();
             degree+=1;            

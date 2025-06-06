@@ -358,6 +358,16 @@ pub fn exploring_tree(&self)->(Vec<(U1024,Vec<U1024>)>,Vec<U1024>) {
     exploring_tree(&self.get_integer_tag_u1024(), &self.cardinality())
     
 }
+pub fn get_mu_u(&self,u:&u64)->f64{
+    self.0.get_mu_u(u)
+
+}
+pub fn get_fuzzy_degree(&self)->usize{
+    self.0.get_fuzzy_degree()
+}
+pub fn get_strong_fuzzy_degree(&self)->usize{
+    self.0.get_strong_fuzzy_degree()
+}
 }
 impl Display for HyperGroup {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

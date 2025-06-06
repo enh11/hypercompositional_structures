@@ -1,58 +1,34 @@
 use std::{collections::HashSet, default};
 
-use hyperstruc::{hs::HyperGroupoid, hypergroups::HyperGroup, utilities::{u64_to_set, U1024}};
+use hyperstruc::{generating_functions::{b_hypercomposition, genetics_hypergroup, tropical_hypergroup}, hs::HyperGroupoid, hypergroups::HyperGroup, utilities::{u64_to_set, U1024}};
 use itertools::Itertools;
 use nalgebra::DMatrix;
 use rayon::vec;
 
 
 fn main(){
-    let cardinality = 8u64;
-        let input_values  = vec![
-            vec![0,1,2,3,4,5,6,7], vec![0,1,2,3,4,5,6,7], vec![0,1,2,3,4,5,6,7], vec![0,1,2,3,4,5,6,7], vec![0,1,2,3,4,5,6,7], vec![0,1,2,3,4,5,6,7], vec![0,1,2,3,4,5,6,7], vec![0,1,2,3,4,5,6,7],
-            vec![0,1,2,3,4,5,6,7],vec![1,2,3,4,5,6,7],vec![1,2,3,4,5,6,7],vec![1,2,3,4,5,6,7],vec![1,2,3,4,5,6,7],vec![1,2,3,4,5,6,7],vec![1,2,3,4,5,6,7],vec![1,2,3,4,5,6,7],
-            vec![0,1,2,3,4,5,6,7],vec![1,2,3,4,5,6,7],vec![2,3,4,5,6,7],vec![2,3,4,5,6,7],vec![2,3,4,5,6,7],vec![2,3,4,5,6,7],vec![2,3,4,5,6,7],vec![2,3,4,5,6,7],
-            vec![0,1,2,3,4,5,6,7],vec![1,2,3,4,5,6,7],vec![2,3,4,5,6,7],vec![3,4,5,6,7],vec![3,4,5,6,7],vec![3,4,5,6,7],vec![3,4,5,6,7],vec![3,4,5,6,7],
-            vec![0,1,2,3,4,5,6,7],vec![1,2,3,4,5,6,7],vec![2,3,4,5,6,7],vec![3,4,5,6,7],vec![4,5,6,7],vec![4,5,6,7],vec![4,5,6,7],vec![4,5,6,7],
-            vec![0,1,2,3,4,5,6,7],vec![1,2,3,4,5,6,7],vec![2,3,4,5,6,7],vec![3,4,5,6,7],vec![4,5,6,7],vec![5,6,7],vec![5,6,7],vec![5,6,7],
-            vec![0,1,2,3,4,5,6,7],vec![1,2,3,4,5,6,7],vec![2,3,4,5,6,7],vec![3,4,5,6,7],vec![4,5,6,7],vec![5,6,7],vec![6,7],vec![6,7],
-            vec![0,1,2,3,4,5,6,7],vec![1,2,3,4,5,6,7],vec![2,3,4,5,6,7],vec![3,4,5,6,7],vec![4,5,6,7],vec![5,6,7],vec![6,7],vec![7]];
-    let hs = HyperGroupoid::new_from_elements(&input_values,cardinality);
-    println!("hs {}",hs);
-    let deg = hs.get_fuzzy_degree();
+let cardinality = 5u64;
+let hs = HyperGroup::new_from_function(genetics_hypergroup(&cardinality), &cardinality).unwrap();
+let next = hs.get_next_corsini_joinspace();
+let next_next = next.get_next_corsini_joinspace();
+
+    assert!(next_next.is_isomorphic_to(&next));
+
+let next_next_next = next_next.get_next_corsini_joinspace();
+println!("hs {}",hs);
+println!("next is {}",next);
+println!("next_next is {}",next_next);
+println!("next_next_next is {}",next_next_next);
+    assert!(next_next_next.is_isomorphic_to(&next_next));
+let deg = hs.get_fuzzy_degree();
+println!("deg  = {}",deg);
+let cardinality = 8u64;
+    let hs_1 = HyperGroupoid::new_from_function(genetics_hypergroup(&cardinality),&cardinality);
+    println!("genetics 8 is {}",hs_1);
+    let deg = hs_1.get_fuzzy_degree();
     println!("deg  = {}",deg);
-/*     
-    let cardinality =2u64;
-    let input_values  = vec![vec![0,1],   vec![1],
-                                            vec![1],vec![0]];
-    let hs = HyperGroupoid::new_from_elements(&input_values, cardinality);
-    let q0: usize=hs.get_q_u(&0u64);
-    println!("q0 = {}",q0);
-    let q1: usize=hs.get_q_u(&1u64);
-    println!("q1 = {}",q1);
 
-    let degree = hs.get_fuzzy_degree();
-    println!("degree is  {}",degree);
-
-    let cardinality =3u64;
-let cardinality = 3u64;
-let tag_1 = U1024::from(22097724u128);
-
-let hg_1=HyperGroup::new_from_tag_u1024(&tag_1,&cardinality);
-let tag_2 = U1024::from(31958100u128);
-let hg_2=HyperGroup::new_from_tag_u1024(&tag_2,&cardinality);
-
-assert!(hg_1.is_isomorphic_to(&hg_2));
-
-    let input_values  = vec![vec![0,1,2],  vec![0,1,2],  vec![0,1,2],
-                                            vec![0,1,2],vec![1,2],vec![1,2],
-                                            vec![0,1,2],vec![1,2],vec![2]];
-    let hs = HyperGroupoid::new_from_elements(&input_values, cardinality);
-    println!("hs is {}",hs);
-
-    let fuzzy0=hs.get_corsini_fuzzysubset();
-    let join0=fuzzy0.get_corsini_join_space().unwrap();
-    println!("hs is {}",join0);
+   
 
 /* 
     let cardinality = 3u64;
@@ -65,7 +41,7 @@ assert!(hg_1.is_isomorphic_to(&hg_2));
     println!("x shift-right h is {}", x>>h); 
 
     let complement_y = (1<< cardinality)-1-y;
-    println!("complement of x is {}",complement_y); */
+    println!("complement of x is {}",complement_y);
 
   
      
@@ -90,18 +66,12 @@ assert!(hg_1.is_isomorphic_to(&hg_2));
 
     /*EXAMPLE USING GENERATING FUNCTION*/
     let cardinality =7u64;
-    let function = |a:u64,b:u64| 1<<a|1<<b;
-    let hs = HyperGroupoid::new_from_function(function, &cardinality);
+    let hs = HyperGroupoid::new_from_function(b_hypercomposition(), &cardinality);
     println!("{}",hs);
 
     /*EXAMPLE USING GENERATING FUNCTION*/
     let cardinality = 5;
-    let function = {
-                |a:u64,b:u64| 
-                    if a!=b {return 1<<a.max(b)}
-                    else {return (0..=a).into_iter().fold(0, |acc,x|acc|1<<x)}
-                };
-    let hs = HyperGroupoid::new_from_function(function, &cardinality);
+    let hs = HyperGroupoid::new_from_function(tropical_hypergroup(), &cardinality);
     println!("{}",hs);
 
     

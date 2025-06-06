@@ -9,6 +9,7 @@ pub mod enumeration;
 pub mod unital_magma;
 pub mod relations;
 pub mod fuzzy;
+pub mod generating_functions;
 
 #[cfg(test)]
 mod tests {
