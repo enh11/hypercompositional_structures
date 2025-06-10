@@ -4,22 +4,24 @@
 //!  Examples and tests come from `Some Remarks on Hyperstructures their Connections with Fuzzy Sets and Extensions to Weak Structures` by `Piergiulio Corsini`.
 //! 
 use itertools::Itertools;
+use num_rational::Rational64;
+use num_traits::{One, Zero};
 
 use crate::{hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoid}, hypergroups::{HyperGroup, HyperStructureError}, utilities::{get_complement_subset, ones_positions, U1024}};
 
 #[derive(Debug, Copy, Clone)]
-pub struct UnitInterval(f64);
+pub struct UnitInterval(Rational64);
 
 impl UnitInterval {
-    pub fn new(val: f64) -> Option<Self> {
-        if (0f64<=val) && (val<=1f64) {
+    pub fn new(val: Rational64) -> Option<Self> {
+        if (Rational64::zero()<=val) && (val<=Rational64::one()) {
             Some(UnitInterval(val))
         } else {
             None
         }
     }
 
-    pub fn get(self) -> f64 {
+    pub fn get(self) -> Rational64 {
         self.0
     }
 }
@@ -82,6 +84,8 @@ impl HyperGroupoid {
 /// # Example
 /// ```
 /// use hyperstruc::hs::HyperGroupoid;
+/// use num_rational::Rational64;
+/// 
 /// let cardinality =2u64;
 /// let input_values  = vec![vec![0,1],vec![0,1],
 ///                            vec![1],vec![0]];
@@ -89,17 +93,18 @@ impl HyperGroupoid {
 
 /// 
 /// let alpha_0=hs.get_alpha_u(&0);
-/// assert_eq!(alpha_0,2.0);
+/// assert_eq!(alpha_0,Rational64::from(2));
 /// 
 /// let alpha_1=hs.get_alpha_u(&1);
-/// assert_eq!(alpha_1,2.0);
+/// assert_eq!(alpha_1,Rational64::from(2));
 /// 
 /// 
-    pub fn get_alpha_u(&self,u:&u64)->f64{
-        self.get_Q_u(u).into_iter().map(|(x,y)|1f64/(ones_positions(&self.mul_by_representation(&(1u64<<x), &(1u64<<y)), &self.n).len() as f64)).sum()
+    pub fn get_alpha_u(&self,u:&u64)->Rational64{
+        self.get_Q_u(u).into_iter().map(|(x,y)|
+            Rational64::new(1,self.mul_by_representation(&(1u64<<x), &(1u64<<y)).count_ones() as i64)).sum()
     }
-    pub fn get_mu_u(&self,u:&u64)->f64{
-        self.get_alpha_u(u)/(self.get_q_u(u) as f64)
+    pub fn get_mu_u(&self,u:&u64)->Rational64{
+         self.get_alpha_u(u)/Rational64::from(self.get_q_u(u) as i64)
     } 
     pub fn get_corsini_membership_function(&self) -> MembershipFunction {
         let h = self.clone();  // or use Arc<Self> to avoid cloning big data

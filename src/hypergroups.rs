@@ -2,6 +2,7 @@ use std::fmt::{self, Display};
 extern crate nalgebra as na;
 use itertools::Itertools;
 use nalgebra::DMatrix;
+use num_rational::Rational64;
 use permutation::Permutation;
 use rayon::{iter::{IntoParallelRefIterator, ParallelIterator}};
 use crate::{fuzzy::FuzzySubset, hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoid}, utilities::{get_complement_subset, ones_positions, U1024}};
@@ -358,7 +359,13 @@ pub fn exploring_tree(&self)->(Vec<(U1024,Vec<U1024>)>,Vec<U1024>) {
     exploring_tree(&self.get_integer_tag_u1024(), &self.cardinality())
     
 }
-pub fn get_mu_u(&self,u:&u64)->f64{
+pub fn get_Q_u(&self,u:&u64)->Vec<(u64,u64)>{
+    self.0.get_Q_u(u)
+}
+pub fn get_alpha_u(&self,u:&u64)-> Rational64{
+    self.0.get_alpha_u(u)
+}
+pub fn get_mu_u(&self,u:&u64)->Rational64{
     self.0.get_mu_u(u)
 
 }

@@ -573,8 +573,8 @@ pub fn mul_by_representation(&self,subset_a:&u64,subset_b:&u64)->u64{
         .into_iter()
         .fold(
             0u64, 
-            |acc,x|
-                 acc|self.hyper_composition[(*x.0 as usize,x.1 as usize)])
+            |acc,(x,y)|
+                 acc|self.hyper_composition[(*x ,y)])
 }
 /// # Example
 /// ```
@@ -652,18 +652,18 @@ pub fn right_division(&self,a:&u64,b:&u64)->u64{
 /// assert!(hyperstructure.is_reproductive())
 ///
 pub fn is_reproductive(&self)->bool{
-    let power_set_cardinality = 2u64.pow(self.n as u32)-1;
+    let h = (1<<self.n)-1;
     self.hyper_composition
         .row_iter()
         .all(|x|
             x.iter().fold(0u64, |acc,element|
-                acc|element)==power_set_cardinality)
+                acc|element)==h)
     &&
     self.hyper_composition
         .column_iter()
         .all(|x|
             x.iter().fold(0u64, |acc,element|
-                acc|element)==power_set_cardinality)
+                acc|element)==h)
 }
 /// Return true if hyperstructure is associative, i.e., (xy)z = x(zy) holds for all x in H.
 /// # Example

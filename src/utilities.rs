@@ -141,7 +141,9 @@ pub fn get_subset(k:&u64,cardinality:&u64)->Vec<u64>{
 /// assert_eq!(expected_complement_representation, complement)
 ///
 pub fn get_complement_subset(k:&u64,cardinality:&u64)->u64 {
-    (1<<*cardinality)-1-*k
+    // (1<<*cardinality)-1-*k This works as well
+    // !k%(1<<cardinality) This works as well 
+    k^((1<<cardinality)-1) //This works as well and maybe is more efficient
 }
 
 ///
@@ -162,7 +164,7 @@ pub fn get_complement_subset(k:&u64,cardinality:&u64)->u64 {
 pub fn ones_positions(subset_a:&u64,cardinality:&u64)->Vec<usize>{
     let power_set_cardinality = 1<<cardinality;
     if subset_a>=&power_set_cardinality
-        {panic!(" {} does not represent a subset of H.\nsubset_a must be between 0 and {}",subset_a,power_set_cardinality-1)}
+        {panic!(" {} oes not represent a subset of H.\nsubset_a must be between 0 and {}",subset_a,power_set_cardinality-1)}
     (0..*cardinality as usize).into_iter().filter(|x|(subset_a>>x)&1==1).collect()
 
 }
@@ -220,8 +222,8 @@ pub fn permutaton_matrix_from_permutation(n:&u64,sigma:&Permutation)->DMatrix<u6
 /// let v=vec![0,1,1,0];
 /// assert_eq!(v,binary);
 ///
-pub fn n_to_binary_vec(k: &u128, width: &u64) -> Vec<u64> {
-	format!("{:0>width$}", format!("{:b}", k), width = *width as usize)
+pub fn n_to_binary_vec(k: &u128, cardinality:&u64) -> Vec<u64> {
+	format!("{:0>cardinality$}", format!("{:b}", k), cardinality = *cardinality as usize)
 		.chars()
 		.map(|x| if x == '1' { 1u64 } else { 0u64 })
 		.collect()

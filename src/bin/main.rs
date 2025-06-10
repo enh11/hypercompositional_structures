@@ -1,55 +1,57 @@
 use std::{collections::HashSet, default};
 
-use hyperstruc::{generating_functions::{b_hypercomposition, genetics_hypergroup, tropical_hypergroup}, hs::HyperGroupoid, hypergroups::HyperGroup, utilities::{u64_to_set, U1024}};
+use hyperstruc::{generating_functions::{b_hypercomposition, genetics_hypergroup, tropical_hypergroup}, hs::HyperGroupoid, hypergroups::HyperGroup, utilities::{binary_to_n, n_to_binary_vec, u64_to_set, U1024}};
 use itertools::Itertools;
 use nalgebra::DMatrix;
 use rayon::vec;
 
 
 fn main(){
-let cardinality = 5u64;
-let hs = HyperGroup::new_from_function(genetics_hypergroup(&cardinality), &cardinality).unwrap();
-let next = hs.get_next_corsini_joinspace();
-let next_next = next.get_next_corsini_joinspace();
+    let x = 71u64;
+    let y  =20u64;
 
-    assert!(next_next.is_isomorphic_to(&next));
-
-let next_next_next = next_next.get_next_corsini_joinspace();
-println!("hs {}",hs);
-println!("next is {}",next);
-println!("next_next is {}",next_next);
-println!("next_next_next is {}",next_next_next);
-    assert!(next_next_next.is_isomorphic_to(&next_next));
-let deg = hs.get_fuzzy_degree();
-println!("deg  = {}",deg);
-let cardinality = 8u64;
-    let hs_1 = HyperGroupoid::new_from_function(genetics_hypergroup(&cardinality),&cardinality);
-    println!("genetics 8 is {}",hs_1);
-    let deg = hs_1.get_fuzzy_degree();
-    println!("deg  = {}",deg);
-
-   
+    let cardinality = 5u64;
+    let hs = HyperGroup::new_from_function(genetics_hypergroup(&cardinality), &cardinality).unwrap();
+    println!("hs {}",hs);
+    for i in (0..hs.cardinality()) {
+        let qu_i = hs.get_Q_u(&i);
+        println!("Q({}) = {:?}, cardinality is {}",i,qu_i, hs.get_Q_u(&i).len());
+        for elements in &qu_i{
+            print!("{}-",hs.mul_by_representation(&(1<<elements.0), &(1<<elements.1)).count_ones())
+        }
+        println!("|Q({})|={}",i,qu_i.len());
+        let alpha_i = hs.get_alpha_u(&i);
+        println!("alpha({}) = {}",i, alpha_i);
+        let mu_i = hs.get_mu_u(&i);
+        println!("mu({}) = {}",i,mu_i);
+    }
 
 /* 
     let cardinality = 3u64;
+    let h =(1u64<<cardinality)-1; 
+
     let x = 5u64;
     let y = 6u64;
-    let h = 2u64;
+    
 
-    println!("x meet y is {}",x&y);
-    println!("x join y is {}",x|y);
-    println!("x shift-right h is {}", x>>h); 
+    println!("x meet y is {}. In binary is {:b}",x&y, x&y);
+    println!("x join y is {}. In binary is {:b}",x|y,x|y);
 
-    let complement_y = (1<< cardinality)-1-y;
-    println!("complement of x is {}",complement_y);
+    for k in 0..=h{
+    println!(
+        "complement of {:0width$b} is {:0width$b}",
+        k,
+        k^h,
+        width = cardinality as usize
+    );    }
 
   
      
     /*EXAMPLE USING MATRIX */
     let cardinality =3u64;
-    let input_values  = vec![vec![0,1],  vec![1],  vec![0,1,2],
-                                            vec![0,1,2],vec![1,2],vec![2],
-                                            vec![0,1,2],vec![0,1,2],vec![0]];
+    let input_values  = vec![vec![0,1,2],  vec![0],  vec![2],
+                                            vec![0,2],vec![1,2],vec![2],
+                                            vec![1],vec![0,1,2],vec![2]];
     let hs = HyperGroupoid::new_from_elements(&input_values, cardinality);
     println!("hs is {}",hs);
 
@@ -73,8 +75,6 @@ let cardinality = 8u64;
     let cardinality = 5;
     let hs = HyperGroupoid::new_from_function(tropical_hypergroup(), &cardinality);
     println!("{}",hs);
-
-    
 
     let tag = hs.get_integer_tag_u1024();
     println!("hs is identified by {}",tag);
@@ -102,8 +102,8 @@ for sc in scalar_elements {
             println!("{:?} is a scalar element ",subset);
         }
 
- */
 
+ */
 
 
 /* 
