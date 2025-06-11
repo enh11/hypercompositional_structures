@@ -96,7 +96,10 @@ pub fn new_from_function<F>(function:F,cardinality:&u64)->Self
 /// 
 /// use hyperstruc::hs::HyperGroupoid;
 /// use nalgebra::DMatrix;
-/// let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
+/// let matrix=DMatrix::from_row_slice(
+///         3usize,
+///         3usize,
+///     &[1,2,7,2,7,7,7,7,5]);
 /// let hyperstructure=HyperGroupoid::new_from_matrix(&matrix);
 /// println!("{hyperstructure}");
 /// 
@@ -132,7 +135,11 @@ pub fn new_from_elements(input_array: &Vec<Vec<u64>>, cardinality:u64)->Self{
 /// let cardinality = 2;
 /// let t=185;
 /// let new_hyperstructure_from_tag = HyperGroupoid::new_from_tag(&t,&cardinality);
-/// let new_hyperstructure_from_matrix = HyperGroupoid::new_from_matrix(&DMatrix::from_row_slice(2usize,2usize,&[2,3,2,1]));
+/// let new_hyperstructure_from_matrix = HyperGroupoid::new_from_matrix(
+///         &DMatrix::from_row_slice(
+///         2usize,
+///         2usize,
+///         &[2,3,2,1]));
 /// assert_eq!(new_hyperstructure_from_tag, new_hyperstructure_from_matrix)
 /// 
 /// 
@@ -177,7 +184,11 @@ pub fn new_from_tag_u1024(mut tag:&U1024,cardinality:&u64)->Self{
 /// let cardinality = 2;
 /// let t=185;
 /// let new_hyperstructure_from_tag = HyperGroupoid::new_from_tag(&t,&cardinality);
-/// let new_hyperstructure_from_matrix = HyperGroupoid::new_from_matrix(&DMatrix::from_row_slice(2usize,2usize,&[2,3,2,1]));
+/// let new_hyperstructure_from_matrix = HyperGroupoid::new_from_matrix(
+///         &DMatrix::from_row_slice(
+///             2usize,
+///             2usize,
+///             &[2,3,2,1]));
 /// assert_eq!(new_hyperstructure_from_tag.get_integer_tag(), new_hyperstructure_from_matrix.get_integer_tag())
 /// 
 /// 
@@ -200,7 +211,11 @@ pub fn get_integer_tag(&self)->u128{
 /// let cardinality = 2;
 /// let t=185;
 /// let new_hyperstructure_from_tag = HyperGroupoid::new_from_tag(&t,&cardinality);
-/// let new_hyperstructure_from_matrix = HyperGroupoid::new_from_matrix(&DMatrix::from_row_slice(2usize,2usize,&[2,3,2,1]));
+/// let new_hyperstructure_from_matrix = HyperGroupoid::new_from_matrix(
+///         &DMatrix::from_row_slice(
+///             2usize,
+///             2usize,
+///             &[2,3,2,1]));
 /// let tag1 = new_hyperstructure_from_tag.get_integer_tag_u1024();
 /// let tag2 = new_hyperstructure_from_matrix.get_integer_tag_u1024();
 /// 
@@ -241,19 +256,23 @@ pub fn isomorphic_hypergroup_from_permutation(&self, sigma:&Permutation)->Self{
 /// 
 pub fn collect_isomorphism_class(&self)->(U1024,Vec<U1024>){
     let cardinality = self.n as usize;
-    let permut_vec:Vec<Vec<usize>> = (0..cardinality).permutations(cardinality ).collect();
-    let permutation:Vec<Permutation> = permut_vec.iter().map(|sigma| Permutation::oneline(sigma.clone())).collect();
-    let mut isomorphism_classes:Vec<U1024>=Vec::new();
-
-    for sigma in &permutation {        
-        let isomorphic_image_tag = self.isomorphic_hypergroup_from_permutation(&sigma).get_integer_tag_u1024();
-        isomorphism_classes.push(isomorphic_image_tag.try_into().unwrap());
-
-    }
-    isomorphism_classes=isomorphism_classes.iter().sorted().dedup().map(|x|*x).collect();
-    let representant_of_class=isomorphism_classes.iter().min().unwrap();
+    let permutation_vec:Vec<Vec<usize>> = (0..cardinality).permutations(cardinality ).collect();
+    let permutation:Vec<Permutation> = permutation_vec.par_iter()
+        .map(|sigma| 
+                Permutation::oneline(sigma.clone())
+            ).collect();
+    let mut isomorphism_classes:Vec<U1024>=permutation.par_iter()
+        .map(|sigma|
+                self.isomorphic_hypergroup_from_permutation(&sigma).get_integer_tag_u1024()
+            ).collect();
+   isomorphism_classes.sort();
+   isomorphism_classes.dedup();
+   let representant_of_class= isomorphism_classes.clone()
+        .into_iter()
+        .sorted().dedup()
+            .into_iter().min().unwrap();
         
-       (*representant_of_class,isomorphism_classes)
+       (representant_of_class,isomorphism_classes)
 
 }
 ///
@@ -311,8 +330,10 @@ pub fn is_isomorphic_to(&self,other: &Self)->bool{
 /// use nalgebra::DMatrix;
 /// 
 /// let cardinality =4u64;
-/// let matrix=DMatrix::from_row_slice(cardinality as usize, cardinality as usize, 
-///     &[2,2,3,14,5,14,3,3,1,11,12,7,7,3,8,8]);
+/// let matrix=DMatrix::from_row_slice(
+///         cardinality as usize, 
+///         cardinality as usize, 
+///         &[2,2,3,14,5,14,3,3,1,11,12,7,7,3,8,8]);
 /// let hs = HyperGroupoid::new_from_matrix(&matrix);
 /// assert!(!hs.is_commutative());
 /// 
@@ -491,7 +512,7 @@ pub fn collect_inverses_of_x(&self,x:&u64)->Vec<(u64,u64)>{
     .collect_vec()
 }
 pub fn collect_ph(&self)->Vec<u64>{
-    let  mut a: Vec<u64>  =self.get_singleton();
+    let  mut a=self.get_singleton();
     loop {
         let ph=a;
         a=ph.iter().cartesian_product(ph.iter()).map(|(x,y)|self.mul_by_representation(x, y)).unique().collect();
@@ -502,8 +523,6 @@ pub fn collect_ph(&self)->Vec<u64>{
         if a==ph {
             break ph;
         }
-
-
     }
 }
 pub fn beta_relation(&self)->Relation{
@@ -515,14 +534,17 @@ pub fn beta_relation(&self)->Relation{
             .map(|(x,y)|(*x,*y))
             .collect_vec())
             .concat().iter()
-            .unique()
-            .map(|(x,y)|(2u64.pow(*x as u32),2u64.pow(*y as u32))).sorted().collect_vec();
+                .unique()
+                .map(|(x,y)|(1<<x ,1<<y)).sorted().collect_vec();
         Relation{
             a:self.h.clone(),
             b:self.h.clone(),
             rel:ph
         }
 
+}
+pub fn collect_beta_classes(&self)->Vec<(u64,Vec<u64>)>{
+    self.beta_relation().collect_classes()
 }
 /// Represents the integer $k$ as a subset of the set H={0,1,..,n-1}.
 /// There are 2^n different integer representing subsets of H. It will panic if $k is greater then 2^n.
@@ -559,7 +581,10 @@ pub fn get_subset_from_k(&self,k:&u64)->HashSet<u64>{
 /// use hyperstruc::hs::HyperGroupoid;
 /// use nalgebra::DMatrix;
 /// 
-/// let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
+/// let matrix=DMatrix::from_row_slice(
+///         3usize,
+///         3usize,
+///         &[1,2,7,2,7,7,7,7,5]);
 /// let hyperstructure=HyperGroupoid::new_from_matrix(&matrix);
 /// let a =2u64;
 /// let b=1u64;
@@ -603,7 +628,10 @@ self.mul_by_representation(&int_k, &int_l)
 /// use hyperstruc::hs::HyperGroupoid;
 /// use nalgebra::DMatrix;
 /// use std::collections::HashSet;
-/// let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
+/// let matrix=DMatrix::from_row_slice(
+///         3usize,
+///         3usize,
+///         &[1,2,7,2,7,7,7,7,5]);
 /// let hyperstructure=HyperGroupoid::new_from_matrix(&matrix);
 /// let a=2u64;
 /// let b=4u64;
@@ -625,7 +653,10 @@ pub fn left_division(&self,a:&u64,b:&u64)->u64{
 /// use hyperstruc::hs::HyperGroupoid;
 /// use nalgebra::DMatrix;
 /// use std::collections::HashSet;
-/// let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
+/// let matrix=DMatrix::from_row_slice(
+///         3usize,
+///         3usize,
+///         &[1,2,7,2,7,7,7,7,5]);
 /// let hyperstructure=HyperGroupoid::new_from_matrix(&matrix);
 /// let a=1u64;
 /// let b=2u64;
@@ -646,7 +677,10 @@ pub fn right_division(&self,a:&u64,b:&u64)->u64{
 /// ```
 /// use hyperstruc::hs::HyperGroupoid;
 /// use nalgebra::DMatrix;
-/// let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
+/// let matrix=DMatrix::from_row_slice(
+///         3usize,
+///         3usize,
+///         &[1,2,7,2,7,7,7,7,5]);
 /// let hyperstructure=HyperGroupoid::new_from_matrix(&matrix);
 /// println!("{hyperstructure}");
 /// assert!(hyperstructure.is_reproductive())
@@ -670,7 +704,10 @@ pub fn is_reproductive(&self)->bool{
 /// ```
 /// use hyperstruc::hs::HyperGroupoid;
 /// use nalgebra::DMatrix;
-/// let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
+/// let matrix=DMatrix::from_row_slice(
+///         3usize,
+///         3usize,
+///         &[1,2,7,2,7,7,7,7,5]);
 /// let hyperstructure=HyperGroupoid::new_from_matrix(&matrix);
 /// println!("{hyperstructure}");
 /// assert!(hyperstructure.assert_associativity())
@@ -693,7 +730,10 @@ true
 /// ```
 /// use hyperstruc::hs::HyperGroupoid;
 /// use nalgebra::DMatrix;
-/// let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
+/// let matrix=DMatrix::from_row_slice(
+///         3usize,
+///         3usize,
+///         &[1,2,7,2,7,7,7,7,5]);
 /// let hyperstructure=HyperGroupoid::new_from_matrix(&matrix);
 /// println!("{hyperstructure}");
 /// assert!(hyperstructure.is_associative())
@@ -769,7 +809,7 @@ pub fn distance_tags(tag1:&u128,tag2:&u128,cardinality:&u64)->u64 {
 pub fn distance_tags_u1024(tag1:&U1024,tag2:&U1024,cardinality:&u64)->usize{
     let width = cardinality.pow(3);
     let binary_tag1 = from_tag_u1024_to_vec(tag1, &width).concat();
-    let binary_tag2 =from_tag_u1024_to_vec(tag2, &width).concat();
+    let binary_tag2 = from_tag_u1024_to_vec(tag2, &width).concat();
 
     binary_tag1.iter().zip(binary_tag2).into_iter().filter(|(x,y)|*x!=y).count()
 }

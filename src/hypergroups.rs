@@ -369,11 +369,17 @@ pub fn get_mu_u(&self,u:&u64)->Rational64{
     self.0.get_mu_u(u)
 
 }
-pub fn get_fuzzy_degree(&self)->usize{
-    self.0.get_fuzzy_degree()
+pub fn get_fuzzy_grade(&self)->usize{
+    self.0.get_fuzzy_grade()
 }
-pub fn get_strong_fuzzy_degree(&self)->usize{
-    self.0.get_strong_fuzzy_degree()
+pub fn get_strong_fuzzy_grade(&self)->usize{
+    self.0.get_strong_fuzzy_grade()
+}
+pub fn collect_beta_classes(&self)->Vec<(u64,Vec<u64>)>{
+    self.0.beta_relation().collect_classes()
+}
+pub fn core(&self)-> Self {
+    todo!()
 }
 }
 impl Display for HyperGroup {
@@ -462,7 +468,7 @@ pub fn exploring_tree(starting_tag:&U1024,cardinality:&u64)->(Vec<(U1024,Vec<U10
         classes.append(&mut classes_from_circumferences.clone().concat());
         classes.sort_by(|x,y|x.0.cmp(&y.0));
         classes.dedup();
-        //println!("update classes {:?}",classes);
+        println!("update classes {:?}",classes);
         let visited_tags_vec=centers_and_classes.iter().map(|y|y.0.clone()).collect_vec();
         center_tags=visited_tags_vec.concat();
         center_tags.sort();

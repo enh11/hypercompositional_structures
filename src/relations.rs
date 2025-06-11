@@ -39,8 +39,6 @@ impl Relation {
     pub fn is_symmetric(&self)->bool{
         assert_eq!(self.a,self.b,"Domain and codomain not coincede!");
         self.rel.iter().all(|(x,y)|self.rel.contains(&(*y,*x)))
-  
-
     }
     pub fn is_transitive(&self)->bool{
         assert_eq!(self.a,self.b,"Domain and codomain not coincede!");
@@ -52,9 +50,9 @@ impl Relation {
         self.is_reflexive()&&self.is_symmetric()&&self.is_transitive()
     }
    pub fn collect_classes(&self)->Vec<(u64,Vec<u64>)>{
-    assert!(self.is_equivalence());
-    let a:Vec<u64>= self.a.iter().sorted().map(|x|2u64.pow(*x as u32)).collect();
-    let b:Vec<u64>= self.b.iter().sorted().map(|x|2u64.pow(*x as u32)).collect();
+    assert!(self.is_equivalence(), "Relation is not an equivalence!");
+    let a:Vec<u64>= self.a.iter().sorted().map(|x|1<<*x).collect();
+    let b:Vec<u64>= self.b.iter().sorted().map(|x|1<<*x).collect();
 
         let mut processed:Vec<u64>=Vec::new();
         let mut classes:Vec<(u64,Vec<u64>)>= Vec::new();

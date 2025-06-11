@@ -1,15 +1,24 @@
 use std::{collections::HashSet, default};
 
-use hyperstruc::{generating_functions::{b_hypercomposition, genetics_hypergroup, tropical_hypergroup}, hs::HyperGroupoid, hypergroups::HyperGroup, utilities::{binary_to_n, n_to_binary_vec, u64_to_set, U1024}};
+use hyperstruc::{generating_functions::{b_hypercomposition, genetics_hypergroup, tropical_hypergroup}, hs::HyperGroupoid, hypergroups::HyperGroup, utilities::{binary_to_n, get_min_max, get_subset, n_to_binary_vec, u64_to_set, vec_to_set, U1024}};
 use itertools::Itertools;
 use nalgebra::DMatrix;
 use rayon::vec;
 
 
 fn main(){
-    let x = 71u64;
-    let y  =20u64;
 
+    let cardinality = 10u64;
+    
+    let total = HyperGroup::new_from_function(genetics_hypergroup(&cardinality), &cardinality);
+    let grade  =total.unwrap().get_fuzzy_grade();
+    println!("{}",grade);
+/*     let x = 71u64;
+    let y  =20u64;
+let cardinality = 10u64;
+let hs = HyperGroup::new_from_function(genetics_hypergroup(&cardinality), &cardinality);
+let deg = hs.unwrap().get_fuzzy_grade();
+println!("deg {}",deg);
     let cardinality = 5u64;
     let hs = HyperGroup::new_from_function(genetics_hypergroup(&cardinality), &cardinality).unwrap();
     println!("hs {}",hs);
@@ -25,7 +34,7 @@ fn main(){
         let mu_i = hs.get_mu_u(&i);
         println!("mu({}) = {}",i,mu_i);
     }
-
+ */
 /* 
     let cardinality = 3u64;
     let h =(1u64<<cardinality)-1; 
@@ -516,71 +525,11 @@ let v1: [u128; 6]=[20749812, 25020900, 31960177, 33006930, 39137148, 74559292];
 let v2: [u128;6]=[20758004, 25029092, 31960181, 33006934, 55914364, 91336508];
 let dist:Vec<u64>= v1.iter().zip(v2).map(|(x,y)|distance_tags(x, &y, &cardinality)).collect();
 println!("dist classes {:?}",dist);  */
-/* 
-    let cardinality = 5u64;
-    let hs = HyperGroupoid::new_random_from_cardinality(&cardinality);
-    println!("{}",hs);
-    let tag = hs.get_integer_tag();
-    let v =from_tag_to_vec(&tag, &cardinality);
-    let w = from_tag_u1024_to_vec(&U1024::from(tag), &cardinality);
-    assert_eq!(v,w);
-    println!("{:?}",v);
-    let bin =n_to_binary_vec(&(tag as u128), &cardinality.pow(3));
-    println!("tag of hs is {:?}",bin);
-    println!("tag of hs is {}",tag);
-    println!("singleton {:?}",hs.get_singleton());
-    let rid:Vec<HashSet<u64>>=hs.collect_right_identity().iter().map(|x|vec_to_set(&get_subset(x, &cardinality))).collect();
-    println!("right identities {:?},", rid);
-    let lid:Vec<HashSet<u64>>=hs.collect_left_identity().iter().map(|x|vec_to_set(&get_subset(x, &cardinality))).collect();
-    println!("left identities {:?},", lid);
-    let k = 5;
-    for i in (0..=2^5){
-        for j in (0..=2^5){
-            assert_eq!(i|(i&j),i);
-            assert_eq!(i&(i|j),i);  
-            for k in (0..=2^5){
-                assert_eq!((i&j)|k,(i|k)&(j|k));
-                assert_eq!((i|j)&k,(i&k)|(j&k))
-
-            }  
-        }
-    }
-    println!("ok lattice");
-    for i in (0..=1){
-        for j in (0..=1){
-            assert_eq!(i|(i&j),i);
-            assert_eq!(i&(i|j),i);
-
-
-        }
-    }
-    for i in (0..=1){
-        for j in (0..=1){
-            for k in (0..=1){
-                assert_eq!((i&j)|k,(i|k)&(j|k))
-            }
-        }
-    }
-let s:Vec<(u64,u64)>=(0..=1).into_iter().cartesian_product((0..=1).into_iter()).collect();
-for pairs in s {
-    println!("{}", pairs.0|pairs.1)
-}
-   let (min, max)=get_min_max(&3u64);
-   let range = max-min;
-   println!("min max {:?}", (min,max));
-   println!("range is {}",range);
-
- */    
-/*     let cardinality=3u64;
+    
+/*  let cardinality=3u64;
     let nbeta = collect_beta_not_equivalence(&cardinality);
     println!("nbeta : {}",nbeta.len()); */
-/*     /*Example 134 Corsini */
-    let cardinality  =3u64;
-    let hg=HyperGroupoid::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,2,4,1,2,4,7,7,7]));
-    println!("hg : {}",hg);
-    let id = hg.collect_identities();
-    println!("{:?}", id);
-     */
+     
  /*    let tag=TAG_HG_2[3];
     let hg2=HyperGroupoid::new_from_tag(&tag, &2u64);
     println!("core is {:?}",hg2.beta_relation().rel);
@@ -589,8 +538,9 @@ for pairs in s {
     println!("core is {:?}",hg2.beta_relation());
     println!("beta is equivalence: {}",hg2.beta_relation().is_equivalence()); */
 
-/* /*Example 1 Karim ABBASI, Reza AMERI, Yahya TALEBI-ROSTAMI  */
-    let cardinality=  3u64;
+ /*Example 1 Karim ABBASI, Reza AMERI, Yahya TALEBI-ROSTAMI 
+ This is not a hypergroup, so we get a false result!   */
+    /* let cardinality=  3u64;
     let hs = HyperGroupoid::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,6,1,6,1,6,1,6,1]));
     println!("Is hypergroup {}",hs.is_hypergroup());
     println!("Hypergroupoid : {}",hs);
@@ -605,80 +555,44 @@ println!("beta is symm: {}",hs.beta_relation().is_symmetric());
 println!("beta is trans: {}",hs.beta_relation().is_transitive());
 let eq_classes=hs.beta_relation().collect_classes();
 println!("classes are {:?}",eq_classes);
- */
-/* /*Example 2 Karim ABBASI, Reza AMERI, Yahya TALEBI-ROSTAMI (OK) */
-let cardinality=  3u64;
-let hs = HyperGroupoid::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,6,6,6,1,1,6,1,1]));
-println!("Is hypergroup {}",hs.is_hypergroup());
-println!("Hypergroupoid : {}",hs);
-let ph :Vec<HashSet<u64>> = hs.collect_ph().iter().map(|x|vec_to_set(&get_subset(x, &cardinality))).collect();
-println!("ph is {:?}",ph);
-let beta:Vec<(HashSet<u64>,HashSet<u64>)> = hs.beta_relation().rel.iter().map(|(x,y)| (vec_to_set(&get_subset(x, &cardinality)),vec_to_set(&get_subset(y, &cardinality)))).collect();
-
-println!("beta {:?}",beta);
-println!("beta is rif: {}",hs.beta_relation().is_reflexive());
-println!("beta is symm: {}",hs.beta_relation().is_symmetric());
-
-println!("beta is trans: {}",hs.beta_relation().is_transitive());
-let eq_classes=hs.beta_relation().collect_classes();
-println!("classes are {:?}",eq_classes);
- */
-/* /*Example 3 Karim ABBASI, Reza AMERI, Yahya TALEBI-ROSTAMI (OK) */
-let cardinality=  4u64;
-let hs = HyperGroupoid::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,6,6,8,6,8,8,1,6,8,8,1,8,1,1,6]));
-println!("Is hypergroup {}",hs.is_hypergroup());
-println!("Hypergroupoid : {}",hs);
-let eq_classes=hs.beta_relation().collect_classes();
-println!("classes are {:?}",eq_classes);
- */
-/* 
-/*Example 4.2  Pourhaghani, Anvariyen, Davvaz (OK)*/
+ */ 
+/*  
+/*Example 4.2  Pourhaghani, Anvariyen, Davvaz (OK)
+    NOTE:
+    This is not working as in the paper, even though it is associative. Why?*/
 println!("Example 4.2  Pourhaghani, Anvariyen, Davvaz");
 
 let cardinality=4u64;
-let hypergroupoid = HyperGroupoid::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize,cardinality as usize,&[1,3,5,9,1,3,5,9,1,2,4,8,1,2,4,8]));
-
+let hypergroupoid = HyperGroupoid::new_from_matrix(
+    &DMatrix::from_row_slice(
+        cardinality as usize,
+        cardinality as usize,
+        &[1,3,5,9,1,3,5,9,1,2,4,8,1,2,4,8]));
+println!("is associative {}",hypergroupoid.is_associative());
 println!("Hypergroupoid : {}",hypergroupoid);
-let ph :Vec<HashSet<u64>> = hypergroupoid.collect_ph().iter().map(|x|vec_to_set(&get_subset(x, &cardinality))).collect();
+let ph = hypergroupoid.collect_ph();
 println!("ph is {:?}",ph); 
 let beta:Vec<(HashSet<u64>,HashSet<u64>)> = hypergroupoid.beta_relation().rel.iter().map(|(x,y)| (vec_to_set(&get_subset(x, &cardinality)),vec_to_set(&get_subset(y, &cardinality)))).collect();
 println!("beta {:?}",beta);
 println!("beta is equivalence: {}",hypergroupoid.beta_relation().is_equivalence());
- */
-/*     
- /*Example 4.3 Pourhaghani, Anvariyen, Davvaz (OK)*/
-println!("Example 4.3 Pourhaghani, Anvariyen, Davvaz");
-
-let cardinality=4u64;
-let hypergroupoid = HyperGroupoid::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize,cardinality as usize,&[6,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10]));
-
-println!("Hypergroupoid : {}",hypergroupoid);
-let ph :Vec<HashSet<u64>> = hypergroupoid.collect_ph().iter().map(|x|vec_to_set(&get_subset(x, &cardinality))).collect();
-println!("ph is {:?}",ph);
-let beta:Vec<(HashSet<u64>,HashSet<u64>)> = hypergroupoid.beta_relation().rel.iter().map(|(x,y)| (vec_to_set(&get_subset(y, &cardinality)),vec_to_set(&get_subset(x, &cardinality)))).collect();
-println!("beta {:?}",beta);
-println!("beta is equivalence: {}",hypergroupoid.beta_relation().is_equivalence());
+let classes = hypergroupoid.beta_relation().collect_classes();
+println!("classes {:?}",classes); 
+    
  */
 /* 
-/*Example 4.4 Pourhaghani, Anvariyen, Davvaz (OK)*/
-    let cardinality=  3u64;
-    let hs = HyperGroupoid::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,3,5,1,2,5,1,3,4]));
-    println!("Hypergroupoid : {}",hs);
-let ph :Vec<HashSet<u64>> = hs.collect_ph().iter().map(|x|vec_to_set(&get_subset(x, &cardinality))).collect();
-println!("ph is {:?}",ph);
-let beta:Vec<(HashSet<u64>,HashSet<u64>)> = hs.beta_relation().rel.iter().map(|(x,y)| (vec_to_set(&get_subset(x, &cardinality)),vec_to_set(&get_subset(y, &cardinality)))).collect();
-println!("beta {:?}",beta);
-println!("beta is equivalence: {}",hs.beta_relation().is_equivalence());
- */
-
-/* let cardinality=  5u64;
-let hs = HyperGroupoid::new_from_matrix(&DMatrix::from_row_slice(cardinality as usize, cardinality as usize, &[1,11,1,11,11,1,2,1,11,11,1,11,9,11,31,1,11,1,11,11,1,11,9,11,31]));
+let cardinality=  5u64;
+let hs = HyperGroupoid::new_from_matrix(
+    &DMatrix::from_row_slice(
+        cardinality as usize, 
+        cardinality as usize, 
+        &[1,11,1,11,11,1,2,1,11,11,1,11,5,11,31,1,11,1,11,11,1,11,5,11,31]));
 println!("Hypergroupoid : {}",hs);
-let ph :Vec<HashSet<u64>> = hs.collect_ph().iter().map(|x|vec_to_set(&get_subset(x, &cardinality))).collect();
+assert!(hs.assert_associativity());
+let ph = hs.collect_ph();
 println!("ph is {:?}",ph);
-let beta:Vec<(HashSet<u64>,HashSet<u64>)> = hs.beta_relation().iter().map(|(x,y)| (vec_to_set(&get_subset(x, &cardinality)),vec_to_set(&get_subset(x, &cardinality)))).collect();
-println!("beta {:?}",beta); */
-    /* 
+let beta = hs.collect_beta_classes();
+println!("beta {:?}",beta);
+ */    /* 
 let cardinality = 2;
 let t=185;
 println!("{:b}",t);
