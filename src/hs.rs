@@ -856,16 +856,44 @@ pub fn hg_in_circumference_radius_one(tag:&U1024,cardinality:&u64)->Vec<U1024>{
 pub struct QuotientHyperGroupoid{
     pub base_hypergroup:HyperGroupoid,
     pub equivalence_relation:Relation,
-    pub hyper_composition:DMatrix<Vec<u64>>,
+    pub hyper_composition:DMatrix<Vec<Vec<u64>>>,
     pub n:u64
 }
 impl QuotientHyperGroupoid {
-    pub fn new(base_hypergroupoid:HyperGroupoid,equivalence:Relation)->Self{
+    pub fn new(base_hypergroupoid:&HyperGroupoid,equivalence:&Relation)->Self{
         assert!(equivalence.is_equivalence(),"The input relation is not an equivalence! The quotinet is not defined!");
-        
-        todo!()
+        let classes = base_hypergroupoid.beta_relation().collect_classes();
+        let n = classes.len() as u64;
+        let function  = |a:usize,b:usize| ones_positions(
+                &base_hypergroupoid.mul_by_representation(
+                    &(1<<a), &(1<<b)),&base_hypergroupoid.n).iter()
+                    .map(|x|equivalence.get_class(*x as u64).1)
+                    .sorted()
+                    .unique()
+                    .collect_vec();
+        let hyper_composition: nalgebra::Matrix<Vec<Vec<u64>>, nalgebra::Dyn, nalgebra::Dyn, nalgebra::VecStorage<Vec<Vec<u64>>, nalgebra::Dyn, nalgebra::Dyn>> = DMatrix::from_fn(
+            n as usize, 
+            n as usize, 
+            function
+            );
+        QuotientHyperGroupoid { 
+            base_hypergroup:base_hypergroupoid.clone(), 
+            equivalence_relation:equivalence.clone(), 
+            hyper_composition, 
+            n,
+            }
+       
     }
     
+}
+impl Display for QuotientHyperGroupoid{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let classes = self.base_hypergroup.collect_beta_classes().iter().map(|x|x.0).collect_vec();
+        let table:DMatrix<String>=DMatrix::from_iterator(self.n as usize, self.n as usize, 
+            self.hyper_composition.iter().map(|x|format!("{:?}",x)));
+        
+        write!(f, "\nH: {:?},\nHypercomposition table:\n{} Size:{}\n", classes, table, self.n )
+    }
 }
 
 

@@ -1,6 +1,6 @@
 use std::{collections::HashSet, default};
 
-use hyperstruc::{generating_functions::{b_hypercomposition, genetics_hypergroup, tropical_hypergroup}, hs::HyperGroupoid, hypergroups::HyperGroup, relations::Relation, utilities::{binary_to_n, get_min_max, get_subset, n_to_binary_vec, u64_to_set, vec_to_set, U1024}};
+use hyperstruc::{generating_functions::{b_hypercomposition, genetics_hypergroup, tropical_hypergroup}, hs::{HyperGroupoid, QuotientHyperGroupoid}, hypergroups::HyperGroup, relations::Relation, utilities::{binary_to_n, get_min_max, get_subset, n_to_binary_vec, u64_to_set, vec_to_set, U1024}};
 use itertools::Itertools;
 use nalgebra::DMatrix;
 use rayon::vec;
@@ -20,14 +20,16 @@ fn main(){
     println!("zero classe {:?}",zero_class);
  */
 let cardinality=  3u64;
-        let hs = HyperGroup::new_from_matrix(
+        let hs = HyperGroupoid::new_from_matrix(
             &DMatrix::from_row_slice(
                 cardinality as usize, 
                 cardinality as usize, 
                 &[1,6,6,6,1,1,6,1,1]));
             let beta  = hs.beta_relation();
             println!("beta {:?}",beta.rel);
-            assert!(beta.is_equivalence());
+    let quot = QuotientHyperGroupoid::new(&hs, &beta);
+    println!("quot {}",quot);
+            assert!(beta.is_equivalence());           
             let cl = beta.collect_classes();
             println!("cl {:?}",cl);
         let eq_classes=hs.collect_beta_classes();
