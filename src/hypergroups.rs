@@ -5,7 +5,7 @@ use nalgebra::DMatrix;
 use num_rational::Rational64;
 use permutation::Permutation;
 use rayon::{iter::{IntoParallelRefIterator, ParallelIterator}};
-use crate::{fuzzy::FuzzySubset, hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoid}, utilities::{get_complement_subset, ones_positions, U1024}};
+use crate::{fuzzy::FuzzySubset, hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoid}, relations::Relation, utilities::{get_complement_subset, ones_positions, U1024}};
 #[derive(Debug, Clone)]
 pub enum HyperStructureError {
     NotHypergroup,
@@ -373,6 +373,9 @@ pub fn get_fuzzy_grade(&self)->usize{
 }
 pub fn get_strong_fuzzy_grade(&self)->usize{
     self.0.get_strong_fuzzy_grade()
+}
+pub fn beta_relation(&self)->Relation {
+    self.0.beta_relation()
 }
 pub fn collect_beta_classes(&self)->Vec<(u64,Vec<u64>)>{
     self.0.beta_relation().collect_classes()

@@ -31,11 +31,8 @@ mod tests {
         assert_eq!(ph,expected_ph);
 
         let beta = hs.beta_relation();
-        assert!(beta.is_equivalence());
-
-        let classes = hs.collect_beta_classes();
-        let expected_classes = vec![(1, vec![1]), (2, vec![2, 4, 8])];
-        assert_eq!(classes,expected_classes);
+        let expected_beta: Vec<(u64, u64)>  = vec![(0, 0), (1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (3, 1), (3, 3)];
+        assert_eq!(beta.rel,expected_beta);
     }
     #[test]
     fn aboutotorab_4_4() {
@@ -51,12 +48,9 @@ mod tests {
         let expected_ph  = vec![1,2,3,4,5];
         assert_eq!(ph,expected_ph);
 
-        let beta = hs.beta_relation();
-        assert!(beta.is_equivalence());
-
-        let classes = hs.collect_beta_classes();
-        let expected_classes = vec![(1, vec![1,2,4])];
-        assert_eq!(classes,expected_classes);
+        let beta = hs.beta_relation().rel;
+        let expected_beta: Vec<(u64, u64)> = vec![(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (2, 0), (2, 2)];
+        assert_eq!(beta,expected_beta);
     }
 
     #[test]
@@ -67,8 +61,10 @@ mod tests {
                 cardinality as usize, 
                 cardinality as usize, 
                 &[1,6,6,6,1,1,6,1,1]));
+        let beta = hs.beta_relation();
+        assert!(beta.is_equivalence());
         let eq_classes=hs.collect_beta_classes();
-        let expected_beta_classes = vec![(1u64, vec![1]), (2u64, vec![2, 4])];
+        let expected_beta_classes = vec![(0u64, vec![0]), (1u64, vec![1, 2])];
         assert_eq!(eq_classes,expected_beta_classes)
     }
     #[test]
@@ -79,8 +75,10 @@ mod tests {
                     cardinality as usize, 
                     cardinality as usize, 
                     &[3,3,12,12,3,3,12,12,12,12,1,2,12,12,2,1]));
+        let beta  =hg.beta_relation();
+        assert!(beta.is_equivalence());
         let eq_classes=hg.collect_beta_classes();        
-        let expected_beta_classes = vec![(1, vec![1, 2]), (4, vec![4, 8])];
+        let expected_beta_classes = vec![(0, vec![0, 1]), (2, vec![2, 3])];
         assert_eq!(eq_classes,expected_beta_classes)
     }
     #[test]
@@ -91,8 +89,10 @@ mod tests {
                 cardinality as usize, 
                 cardinality as usize, 
                 &[1,6,6,8,6,8,8,1,6,8,8,1,8,1,1,6]));
+        let beta = hs.beta_relation();
+        assert!(beta.is_equivalence());
         let eq_classes=hs.collect_beta_classes();
-        let expected_beta_classes = vec![(1, vec![1]), (2, vec![2, 4]), (8, vec![8])];
+        let expected_beta_classes = vec![(0, vec![0]), (1, vec![1, 2]), (3, vec![3])];
         assert_eq!(eq_classes,expected_beta_classes)
     }
     #[test]

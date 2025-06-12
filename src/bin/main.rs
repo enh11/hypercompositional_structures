@@ -7,7 +7,7 @@ use rayon::vec;
 
 
 fn main(){
-      let x:HashSet<_> = (0..6).into_iter().collect();
+/*       let x:HashSet<_> = (0..6).into_iter().collect();
       println!("x is {:?}",x);
       let rel: Vec<(u64, u64)>  = vec![(0,0),(1,1),(2,2),(3,3),(4,4),(5,5),(0,3),(3,0),(1,5),(5,1),(2,4),(4,2)];
     let relation  = Relation{ a: x.clone(), b: x, rel:rel };
@@ -18,34 +18,23 @@ fn main(){
 
     let zero_class = relation.get_class(0);
     println!("zero classe {:?}",zero_class);
+ */
+let cardinality=  3u64;
+        let hs = HyperGroup::new_from_matrix(
+            &DMatrix::from_row_slice(
+                cardinality as usize, 
+                cardinality as usize, 
+                &[1,6,6,6,1,1,6,1,1]));
+            let beta  = hs.beta_relation();
+            println!("beta {:?}",beta.rel);
+            assert!(beta.is_equivalence());
+            let cl = beta.collect_classes();
+            println!("cl {:?}",cl);
+        let eq_classes=hs.collect_beta_classes();
+        let expected_beta_classes = vec![(0u64, vec![0]), (1u64, vec![1, 2])];
+        println!("eq_classes {:?}",eq_classes);
+      //  assert_eq!(eq_classes,expected_beta_classes);
 
-        let cardinality=4u64;
-        let hs = HyperGroupoid::new_from_matrix(
-                &DMatrix::from_row_slice(
-                    cardinality as usize,
-                    cardinality as usize,
-                    &[6,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10]));
-        assert!(hs.is_associative());
-
-        let ph = hs.collect_ph();
-        let expected_ph  = vec![1,2,4,6,8,10];
-        assert_eq!(ph,expected_ph);
-
-        let beta = hs.beta_relation();
-        assert!(beta.is_equivalence());
-        println!("relation is {:?}",beta.rel);
-        let relation = beta.are_in_relations(0, 2);
-        println!("rel {}",relation);
-
-        let classes = hs.collect_beta_classes();
-        println!("beta_classes {:?}",classes);
-
-        for i in 0..cardinality {
-            let class = beta.get_class(i);
-            println!("{} is in class {:?}",i,class);
-        }
-        let expected_classes = vec![(1, vec![1]), (2, vec![2, 4, 8])];
-        assert_eq!(classes,expected_classes);
 /*     let x = 71u64;
     let y  =20u64;
 let cardinality = 10u64;

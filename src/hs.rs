@@ -535,7 +535,7 @@ pub fn beta_relation(&self)->Relation{
             .collect_vec())
             .concat().iter()
                 .unique()
-                .map(|(x,y)|(1<<x ,1<<y)).sorted().collect_vec();
+                .map(|(x,y)|(*x as u64 ,*y as u64)).sorted().collect_vec();
         Relation{
             a:self.h.clone(),
             b:self.h.clone(),

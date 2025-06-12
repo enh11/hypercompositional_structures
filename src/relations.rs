@@ -30,8 +30,7 @@ impl Relation {
     pub fn is_reflexive(&self)->bool{
         assert_eq!(self.a,self.b,"Domain and codomain not coincede!");
         let pairs=self.a.iter().zip(self.b.clone())
-            .into_iter()
-            .map(|(x,y)|(2u64.pow(*x as u32),2u64.pow(y as u32)))
+        .map(|(x,y)|(*x,y))
             .collect_vec();
         pairs.iter().all(|x|self.rel.contains(x))
 
@@ -46,21 +45,78 @@ impl Relation {
         
             rr.iter().all(|x|self.rel.contains(x))
     }
-
+/// Checks whether the relation is an **equivalence relation**.
+    ///
+    /// A relation is an equivalence relation if it satisfies:
+    /// - **Reflexivity**: For every `x` in the set, `(x, x)` is in the relation.
+    /// - **Symmetry**: For every `(x, y)` in the relation, `(y, x)` is also in the relation.
+    /// - **Transitivity**: For all `(x, y)` and `(y, z)` in the relation, `(x, z)` is also in the relation.
+    ///
+    /// # Returns
+    ///
+    /// `true` if the relation is reflexive, symmetric, and transitive; otherwise `false`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use std::collections::HashSet;
+    /// use hyperstruc::relations::Relation;
+    ///
+    /// let a: HashSet<u64> = [1, 2, 3].into_iter().collect();
+    /// let rel: Vec<(u64, u64)> = vec![
+    ///     (1, 1), (2, 2), (3, 3),
+    ///     (1, 2), (2, 1),
+    ///     (2, 3), (3, 2),
+    ///     (1, 3), (3, 1)
+    /// ];
+    ///
+    /// let r = Relation { a: a.clone(), b: a.clone(), rel };
+    /// assert!(r.is_equivalence());
+    /// 
+    /// ```
     pub fn is_equivalence(&self)->bool{
         self.is_reflexive()&&self.is_symmetric()&&self.is_transitive()
     }
     pub fn get_class(&self, x:u64)->(u64,Vec<u64>) {
-        let class:Vec<_> = self.a.iter().filter(|y|self.are_in_relations(x, **y)).map(|x|1<<*x).sorted().collect();
-        let representant = class.iter().min().unwrap();
-        (*representant,class)
+        let class:Vec<_> = self.a.iter().filter(|y|self.are_in_relations(x, **y)).map(|x|*x).sorted().collect();
+        let representant = class.iter().min();
+        println!("class = {:?}",class);
+        println!("rep = {:?}",representant);
+
+        (*representant.unwrap(),class)
     }
+    /// Checks if two elements `x` and `y` are directly related in the relation `R`,
+    /// or if there exists a third element `z` such that `(x, z)` and `(z, y)` are in the relation.
+    ///
+    /// This is a **partial transitivity check**, useful when computing or testing transitive closure manually.
+    ///
+    /// # Arguments
+    ///
+    /// * `x` - The first element.
+    /// * `y` - The second element.
+    ///
+    /// # Returns
+    ///
+    /// `true` if `(x, y)` ∈ R or if ∃z such that `(x, z)` ∈ R and `(z, y)` ∈ R.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use std::collections::HashSet;
+    /// use hyperstruc::relations::Relation;
+    ///
+    /// let a: HashSet<u64> = [1, 2, 3].into_iter().collect();
+    /// let rel: Vec<(u64,u64)> = vec![(1, 2), (2, 3)];
+    /// let r = Relation { a: a.clone(), b: a.clone(), rel };
+    ///
+    /// assert_eq!(r.are_in_relations(1, 2), true); // directly in rel
+    /// assert_eq!(r.are_in_relations(1, 3), true); // via 2 (1→2, 2→3)
+    /// assert_eq!(r.are_in_relations(2, 1), false); // not related
+    /// ```
     pub fn are_in_relations(&self,x:u64,y:u64)->bool {
-        let singletons = self.a.iter().map(|x|1<<x).sorted().collect_vec();
-        let singleton_x = 1<<x;
-        let singleton_y = 1<<y;
-        if self.rel.contains(&(singleton_x,singleton_y)) {return true}
-        if singletons.iter().any(|z|self.rel.contains(&(singleton_x,*z))&&self.rel.contains(&(*z,singleton_y))) {return true;}
+
+        if self.rel.contains(&(x,y)) {return true}
+        if self.a.iter().any(|z|self.rel.contains(&(x,*z))&&self.rel.contains(&(*z,y))) {return true;}
         false
     }
     pub fn collect_classes(&self)->Vec<(u64,Vec<u64>)>{
