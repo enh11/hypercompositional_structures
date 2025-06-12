@@ -1,8 +1,8 @@
 use std::{collections::HashSet, ops::Mul};
 
-use itertools::Itertools;
+use itertools::{sorted, Itertools};
 
-#[derive(Debug)]
+#[derive(Debug,Clone,PartialEq, Eq)]
 pub struct Relation {
     pub a: HashSet<u64>,
     pub b: HashSet<u64>,
@@ -46,31 +46,25 @@ impl Relation {
         
             rr.iter().all(|x|self.rel.contains(x))
     }
+
     pub fn is_equivalence(&self)->bool{
         self.is_reflexive()&&self.is_symmetric()&&self.is_transitive()
     }
-   pub fn collect_classes(&self)->Vec<(u64,Vec<u64>)>{
+    pub fn get_class(&self, x:u64)->(u64,Vec<u64>) {
+        let class:Vec<_> = self.a.iter().filter(|y|self.are_in_relations(x, **y)).map(|x|1<<*x).sorted().collect();
+        let representant = class.iter().min().unwrap();
+        (*representant,class)
+    }
+    pub fn are_in_relations(&self,x:u64,y:u64)->bool {
+        let singletons = self.a.iter().map(|x|1<<x).sorted().collect_vec();
+        let singleton_x = 1<<x;
+        let singleton_y = 1<<y;
+        if self.rel.contains(&(singleton_x,singleton_y)) {return true}
+        if singletons.iter().any(|z|self.rel.contains(&(singleton_x,*z))&&self.rel.contains(&(*z,singleton_y))) {return true;}
+        false
+    }
+    pub fn collect_classes(&self)->Vec<(u64,Vec<u64>)>{
     assert!(self.is_equivalence(), "Relation is not an equivalence!");
-    let a:Vec<u64>= self.a.iter().sorted().map(|x|1<<*x).collect();
-    let b:Vec<u64>= self.b.iter().sorted().map(|x|1<<*x).collect();
-
-        let mut processed:Vec<u64>=Vec::new();
-        let mut classes:Vec<(u64,Vec<u64>)>= Vec::new();
-        
-        for representant in &a {
-            if processed.contains(representant){continue;}
-            let mut class:Vec<u64>=Vec::new();
-                for element in &b {
-                    if self.rel.iter().contains(&(*representant,*element)){
-                        class.push(*element);
-                        processed.push(*element);
-                    }
-                
-                }
-                classes.push((*representant,class.clone()));
-            }
-
-        
-        classes
+    self.a.iter().map(|x|self.get_class(*x)).sorted().unique().collect()
     }
 }

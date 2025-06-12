@@ -10,6 +10,7 @@ pub mod unital_magma;
 pub mod relations;
 pub mod fuzzy;
 pub mod generating_functions;
+pub mod quotient_hg;
 
 #[cfg(test)]
 mod tests {

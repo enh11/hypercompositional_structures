@@ -1,18 +1,51 @@
 use std::{collections::HashSet, default};
 
-use hyperstruc::{generating_functions::{b_hypercomposition, genetics_hypergroup, tropical_hypergroup}, hs::HyperGroupoid, hypergroups::HyperGroup, utilities::{binary_to_n, get_min_max, get_subset, n_to_binary_vec, u64_to_set, vec_to_set, U1024}};
+use hyperstruc::{generating_functions::{b_hypercomposition, genetics_hypergroup, tropical_hypergroup}, hs::HyperGroupoid, hypergroups::HyperGroup, relations::Relation, utilities::{binary_to_n, get_min_max, get_subset, n_to_binary_vec, u64_to_set, vec_to_set, U1024}};
 use itertools::Itertools;
 use nalgebra::DMatrix;
 use rayon::vec;
 
 
 fn main(){
+      let x:HashSet<_> = (0..6).into_iter().collect();
+      println!("x is {:?}",x);
+      let rel: Vec<(u64, u64)>  = vec![(0,0),(1,1),(2,2),(3,3),(4,4),(5,5),(0,3),(3,0),(1,5),(5,1),(2,4),(4,2)];
+    let relation  = Relation{ a: x.clone(), b: x, rel:rel };
+    assert!(relation.is_reflexive());
+        assert!(relation.is_symmetric());
+            assert!(relation.is_transitive());
 
-    let cardinality = 10u64;
-    
-    let total = HyperGroup::new_from_function(genetics_hypergroup(&cardinality), &cardinality);
-    let grade  =total.unwrap().get_fuzzy_grade();
-    println!("{}",grade);
+
+    let zero_class = relation.get_class(0);
+    println!("zero classe {:?}",zero_class);
+
+        let cardinality=4u64;
+        let hs = HyperGroupoid::new_from_matrix(
+                &DMatrix::from_row_slice(
+                    cardinality as usize,
+                    cardinality as usize,
+                    &[6,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10]));
+        assert!(hs.is_associative());
+
+        let ph = hs.collect_ph();
+        let expected_ph  = vec![1,2,4,6,8,10];
+        assert_eq!(ph,expected_ph);
+
+        let beta = hs.beta_relation();
+        assert!(beta.is_equivalence());
+        println!("relation is {:?}",beta.rel);
+        let relation = beta.are_in_relations(0, 2);
+        println!("rel {}",relation);
+
+        let classes = hs.collect_beta_classes();
+        println!("beta_classes {:?}",classes);
+
+        for i in 0..cardinality {
+            let class = beta.get_class(i);
+            println!("{} is in class {:?}",i,class);
+        }
+        let expected_classes = vec![(1, vec![1]), (2, vec![2, 4, 8])];
+        assert_eq!(classes,expected_classes);
 /*     let x = 71u64;
     let y  =20u64;
 let cardinality = 10u64;

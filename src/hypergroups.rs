@@ -367,7 +367,6 @@ pub fn get_alpha_u(&self,u:&u64)-> Rational64{
 }
 pub fn get_mu_u(&self,u:&u64)->Rational64{
     self.0.get_mu_u(u)
-
 }
 pub fn get_fuzzy_grade(&self)->usize{
     self.0.get_fuzzy_grade()
@@ -378,8 +377,16 @@ pub fn get_strong_fuzzy_grade(&self)->usize{
 pub fn collect_beta_classes(&self)->Vec<(u64,Vec<u64>)>{
     self.0.beta_relation().collect_classes()
 }
-pub fn core(&self)-> Self {
-    todo!()
+pub fn get_foundamental_group(&self)-> Self {
+    let classes = self.collect_beta_classes();
+    let cardinality = classes.len() as u64;
+    let defining_function_quotient = |a:u64,b:u64|
+        {
+            let representant_a=classes[a as usize].0;
+            let representant_b = classes[b as usize].0;
+            self.mul_by_representation(&representant_a, &representant_b)
+        };
+        HyperGroup::new_from_function(defining_function_quotient, &cardinality).unwrap()
 }
 }
 impl Display for HyperGroup {

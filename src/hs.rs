@@ -6,7 +6,7 @@ use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
 use rand::Rng;
-use crate::{fuzzy::FuzzySubset, relations::Relation, utilities::{binary_to_n, cartesian_product, from_tag_to_vec, from_tag_u1024_to_vec, get_min_max, get_min_max_u1024, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid_u1024, subset_as_u64, vec_to_set, U1024}};
+use crate::{fuzzy::FuzzySubset, hypergroups::HyperGroup, relations::Relation, utilities::{binary_to_n, cartesian_product, from_tag_to_vec, from_tag_u1024_to_vec, get_min_max, get_min_max_u1024, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid_u1024, subset_as_u64, vec_to_set, U1024}};
 #[derive(Debug, Clone,PartialEq)]
 pub struct HyperGroupoid{
     pub h:HashSet<u64>,
@@ -849,6 +849,23 @@ pub fn circumference_radius_d_filtered(tag:&U1024,d:&usize,cardinality:&u64)->Ve
 /// 
 pub fn hg_in_circumference_radius_one(tag:&U1024,cardinality:&u64)->Vec<U1024>{
     circumference_radius_d_filtered(tag, &1usize, cardinality)
+}
+
+/*QUOTIENT HYPERGROUPOIDS */
+#[derive(Debug,PartialEq,Clone)]
+pub struct QuotientHyperGroupoid{
+    pub base_hypergroup:HyperGroupoid,
+    pub equivalence_relation:Relation,
+    pub hyper_composition:DMatrix<Vec<u64>>,
+    pub n:u64
+}
+impl QuotientHyperGroupoid {
+    pub fn new(base_hypergroupoid:HyperGroupoid,equivalence:Relation)->Self{
+        assert!(equivalence.is_equivalence(),"The input relation is not an equivalence! The quotinet is not defined!");
+        
+        todo!()
+    }
+    
 }
 
 
