@@ -146,29 +146,47 @@ pub fn get_complement_subset(k:&u64,cardinality:&u64)->u64 {
     k^((1<<cardinality)-1) //This works as well and maybe is more efficient
 }
 
+/// Returns the positions of `1`s in the binary representation of a subset indicator.
 ///
-/// Collects position of 1s in the binary representation of an integer k in [0,2^n] into a Vec<64>.
-/// For example, for k=5='101' and n = 3 it will return (0,2).
+/// This function computes the *characteristic function* (as positions of `1`s) 
+/// for a subset represented as an integer `subset_a` within the powerset of a set 
+/// of size `cardinality`. It returns the indices of elements that are present in the subset.
 /// 
+/// # Arguments
+/// - `subset_a`: A `u64` value representing a subset of the base set (as a bitmask).
+/// - `cardinality`: The size `n` of the base set; the valid range of `subset_a` is `[0, 2^n - 1]`.
+/// 
+/// # Returns
+/// A `Vec<usize>` containing the zero-based indices corresponding to set bits in `subset_a`.
+///
+/// # Panics
+/// Panics if `subset_a >= 2^cardinality`, as it would not represent a valid subset.
+///
 /// # Example
 /// ```
-/// use hyperstruc::utilities::ones_positions;
-/// 
+/// use hyperstruc::utilities::chi_a;
+///
 /// let cardinality = 3u64;
-/// let subset_representation = 5u64;
-/// let expected_ones_positions = [0,2].to_vec();
-/// let ones = ones_positions(&subset_representation, &cardinality);
-/// 
-/// assert_eq!(ones, expected_ones_positions)
-/// 
-pub fn ones_positions(subset_a:&u64,cardinality:&u64)->Vec<usize>{
-    let power_set_cardinality = 1<<cardinality;
-    if subset_a>=&power_set_cardinality
-        {panic!(" {} oes not represent a subset of H.\nsubset_a must be between 0 and {}",subset_a,power_set_cardinality-1)}
-    (0..*cardinality as usize).into_iter().filter(|x|(subset_a>>x)&1==1).collect()
+/// let subset_representation = 5u64; // binary: 101
+/// let expected = vec![0, 2];        // positions of 1s
+///
+/// let result = chi_a(&subset_representation, &cardinality);
+/// assert_eq!(result, expected);
+/// ```
+pub fn chi_a(subset_a: &u64, cardinality: &u64) -> Vec<usize> {
+    let power_set_cardinality = 1 << cardinality;
+    if subset_a >= &power_set_cardinality {
+        panic!(
+            "{} does not represent a subset of H.\nsubset_a must be between 0 and {}",
+            subset_a,
+            power_set_cardinality - 1
+        );
+    }
 
+    (0..*cardinality as usize)
+        .filter(|x| (subset_a >> x) & 1 == 1)
+        .collect()
 }
-
 pub fn cartesian_product(set: &Vec<u64>) -> Vec<(u64, u64)> {
     let mut product: Vec<(u64, u64)> = Vec::new();
     for &a in set {

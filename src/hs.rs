@@ -6,7 +6,7 @@ use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
 use rand::Rng;
-use crate::{fuzzy::FuzzySubset, hypergroups::HyperGroup, relations::Relation, utilities::{binary_to_n, cartesian_product, from_tag_to_vec, from_tag_u1024_to_vec, get_min_max, get_min_max_u1024, get_subset, n_to_binary_vec, ones_positions, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid_u1024, subset_as_u64, vec_to_set, U1024}};
+use crate::{fuzzy::FuzzySubset, hypergroups::HyperGroup, relations::Relation, utilities::{binary_to_n, cartesian_product, from_tag_to_vec, from_tag_u1024_to_vec, get_min_max, get_min_max_u1024, get_subset, n_to_binary_vec, chi_a, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid_u1024, subset_as_u64, vec_to_set, U1024}};
 #[derive(Debug, Clone,PartialEq)]
 pub struct HyperGroupoid{
     pub h:HashSet<u64>,
@@ -527,7 +527,7 @@ pub fn collect_ph(&self)->Vec<u64>{
 }
 pub fn beta_relation(&self)->Relation{
     let ph=self.collect_ph();
-    let ph :Vec<Vec<usize>>= ph.iter().map(|x|ones_positions(x, &self.n)).collect();
+    let ph :Vec<Vec<usize>>= ph.iter().map(|x|chi_a(x, &self.n)).collect();
     let ph: Vec<(u64, u64)> =ph.iter().zip(ph.iter())
         .map(|x|
             x.0.iter().cartesian_product(x.1.iter())
@@ -592,9 +592,9 @@ pub fn get_subset_from_k(&self,k:&u64)->HashSet<u64>{
 /// let mul=hyperstructure.mul_by_representation(&a,&b);
 /// assert_eq!(ab,mul);
 pub fn mul_by_representation(&self,subset_a:&u64,subset_b:&u64)->u64{
-    let ones_a=ones_positions(subset_a, &(self.h.len() as u64));
-    let ones_b= ones_positions(subset_b, &(self.h.len() as u64));
-    ones_a.iter().cartesian_product(ones_b)
+    //let ones_a=chi_a(subset_a, &(self.h.len() as u64));
+    //let ones_b= chi_a(subset_b, &(self.h.len() as u64));
+    chi_a(subset_a, &(self.n)).iter().cartesian_product(chi_a(subset_b, &(self.n)))
         .into_iter()
         .fold(
             0u64, 
@@ -864,7 +864,7 @@ impl QuotientHyperGroupoid {
         assert!(equivalence.is_equivalence(),"The input relation is not an equivalence! The quotinet is not defined!");
         let classes = base_hypergroupoid.beta_relation().collect_classes();
         let n = classes.len() as u64;
-        let function  = |a:usize,b:usize| ones_positions(
+        let function  = |a:usize,b:usize| chi_a(
                 &base_hypergroupoid.mul_by_representation(
                     &(1<<a), &(1<<b)),&base_hypergroupoid.n).iter()
                     .map(|x|equivalence.get_class(*x as u64).1)

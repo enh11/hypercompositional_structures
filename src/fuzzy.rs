@@ -7,7 +7,7 @@ use itertools::Itertools;
 use num_rational::Rational64;
 use num_traits::{One, Zero};
 
-use crate::{hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoid}, hypergroups::{HyperGroup, HyperStructureError}, utilities::{get_complement_subset, ones_positions, U1024}};
+use crate::{hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoid}, hypergroups::{HyperGroup, HyperStructureError}, utilities::{get_complement_subset, chi_a, U1024}};
 
 #[derive(Debug, Copy, Clone)]
 pub struct UnitInterval(Rational64);

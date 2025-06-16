@@ -5,7 +5,7 @@ use nalgebra::DMatrix;
 use num_rational::Rational64;
 use permutation::Permutation;
 use rayon::{iter::{IntoParallelRefIterator, ParallelIterator}};
-use crate::{fuzzy::FuzzySubset, hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoid}, relations::Relation, utilities::{get_complement_subset, ones_positions, U1024}};
+use crate::{fuzzy::FuzzySubset, hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoid}, relations::Relation, utilities::{get_complement_subset, chi_a, U1024}};
 #[derive(Debug, Clone)]
 pub enum HyperStructureError {
     NotHypergroup,
@@ -172,7 +172,7 @@ pub fn is_canonical(&self)->bool{
 pub fn is_sub_hypergroup(&self,k:&u64)->bool{
     let power_set_cardinality = 1<<self.cardinality();
     assert!(*k<power_set_cardinality,"K is not a subset of H!");
-    let ones:Vec<usize> = ones_positions(k, &self.0.n).iter().map(|x|*x as usize).collect();
+    let ones:Vec<usize> = chi_a(k, &self.0.n).iter().map(|x|*x as usize).collect();
     let sub_matrix = self.0.hyper_composition.select_columns(&ones).select_rows(&ones);
         sub_matrix.row_iter().all(
             |row|
