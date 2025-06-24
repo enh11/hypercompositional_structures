@@ -314,28 +314,39 @@ pub fn is_isomorphic_to(&self,other: &Self)->bool{
         false
     }
 }
-
-///
-/// Return true if the hyperstructure is commutative.
+/// Checks whether the structure is commutative.
 /// 
-/// Example
+/// # Returns
+///
+/// `true` if commutative, `false` otherwise.
+///
+/// # Examples
+/// 
+/// Commutative case:
 /// ```
 /// use hyperstruc::hs::HyperGroupoid;
+/// use hyperstruc::generating_functions::b_hypercomposition;
 /// 
-/// let cardinality =7u64;
-/// let function = |a:u64,b:u64| 1<<a|1<<b;
-/// let hs = HyperGroupoid::new_from_function(function, &cardinality);
+/// let cardinality = 7u64;
+/// let hs = HyperGroupoid::new_from_function(b_hypercomposition(), &cardinality);
 /// assert!(hs.is_commutative());
+/// ```
 /// 
+/// Non-commutative case:
+/// ```
+/// use hyperstruc::hs::HyperGroupoid;
 /// use nalgebra::DMatrix;
 /// 
-/// let cardinality =4u64;
-/// let matrix=DMatrix::from_row_slice(
-///         cardinality as usize, 
-///         cardinality as usize, 
-///         &[2,2,3,14,5,14,3,3,1,11,12,7,7,3,8,8]);
+/// let cardinality = 4u64;
+/// let matrix = DMatrix::from_row_slice(
+///     4, 4,
+///     &[2, 2, 3, 14,
+///       5, 14, 3, 3, 
+///       1, 11, 12, 7,
+///       7, 3, 8, 8]);
 /// let hs = HyperGroupoid::new_from_matrix(&matrix);
 /// assert!(!hs.is_commutative());
+/// ```
 /// 
 pub fn is_commutative(&self)->bool{
     self.get_singleton().into_iter().combinations(2).into_iter()
@@ -519,27 +530,72 @@ pub fn collect_ph(&self)->Vec<u64>{
         for x in self.get_singleton(){
             a.push(x);
         }
-        a=a.iter().unique().map(|x|*x).sorted().collect();
+        a=a.into_iter().unique().sorted().collect();
         if a==ph {
             break ph;
         }
     }
 }
+/// # Computing β Relation in Hypergroupoid
+///
+/// This module implements functionality for computing the elements of the
+/// **β relation** in a hypergroupoid.
+///
+/// The β relation is defined over finite hyperproducts of a hypergroupoid \( H \).
+///
+/// ## Reference
+/// This implementation is based on the algorithm proposed by Pourhaghani, Anvariyeh, and Davvaz:
+///
+/// [An algorithm to calculate the members of the relation β in hypergroupoids](https://www.researchgate.net/publication/386742470_An_algorithm_to_calculate_the_members_of_the_relation_beta_in_hypergroupoids)
+///
+/// where they proved that 
+///
+/// β = ⋃_{q ∈ P(H)} q × q
+/// 
+/// 
+/// where:
+/// - `P(H)` is the set of all finite hyperproducts of the hypergroupoid `H`,
+/// - `q × q` is the Cartesian product of each such set `q`.
+///
+/// ## Usage
+/// 
+/// # Example
+/// ```
+/// use hyperstruc::hs::HyperGroupoid;
+/// use nalgebra::DMatrix;
+/// 
+/// let cardinality=4u64;
+/// let hs = HyperGroupoid::new_from_matrix(
+///     &DMatrix::from_row_slice(
+///     cardinality as usize,
+///     cardinality as usize,
+///      &[6,10,10,10,
+///       10,10,10,10,
+///       10,10,10,10,
+///       10,10,10,10]));
+/// let beta = hs.beta_relation();
+/// let expected_beta: Vec<(u64, u64)>  = vec![(0, 0), (1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (3, 1), (3, 3)];
+/// assert_eq!(beta.rel,expected_beta);
+///
 pub fn beta_relation(&self)->Relation{
     let ph=self.collect_ph();
-    let ph :Vec<Vec<usize>>= ph.iter().map(|x|chi_a(x, &self.n)).collect();
-    let ph: Vec<(u64, u64)> =ph.iter().zip(ph.iter())
-        .map(|x|
-            x.0.iter().cartesian_product(x.1.iter())
-            .map(|(x,y)|(*x,*y))
-            .collect_vec())
-            .concat().iter()
-                .unique()
-                .map(|(x,y)|(*x as u64 ,*y as u64)).sorted().collect_vec();
+
+    let mut beta:Vec<(u64, u64)>=ph.iter()
+        .map(
+            |q|
+                chi_a(q, &self.n).into_iter()
+                .cartesian_product(
+                    chi_a(q, &self.n).into_iter())
+                .map(|(x,y)|(x as u64,y as u64))
+                .collect()
+            ).concat();
+    beta.sort();
+    beta.dedup();
+
         Relation{
             a:self.h.clone(),
             b:self.h.clone(),
-            rel:ph
+            rel:beta
         }
 
 }
@@ -592,14 +648,13 @@ pub fn get_subset_from_k(&self,k:&u64)->HashSet<u64>{
 /// let mul=hyperstructure.mul_by_representation(&a,&b);
 /// assert_eq!(ab,mul);
 pub fn mul_by_representation(&self,subset_a:&u64,subset_b:&u64)->u64{
-    //let ones_a=chi_a(subset_a, &(self.h.len() as u64));
-    //let ones_b= chi_a(subset_b, &(self.h.len() as u64));
-    chi_a(subset_a, &(self.n)).iter().cartesian_product(chi_a(subset_b, &(self.n)))
-        .into_iter()
-        .fold(
+    chi_a(subset_a, &(self.n)).iter()
+        .cartesian_product(chi_a(subset_b, &(self.n)))
+            .into_iter()
+            .fold(
             0u64, 
             |acc,(x,y)|
-                 acc|self.hyper_composition[(*x ,y)])
+                acc|self.hyper_composition[(*x ,y)])
 }
 /// # Example
 /// ```
@@ -860,11 +915,12 @@ pub struct QuotientHyperGroupoid{
     pub n:u64
 }
 impl QuotientHyperGroupoid {
-    pub fn new(base_hypergroupoid:&HyperGroupoid,equivalence:&Relation)->Self{
+    pub fn new_from_equivalence_relation(base_hypergroupoid:&HyperGroupoid,equivalence:&Relation)->Self{
         assert!(equivalence.is_equivalence(),"The input relation is not an equivalence! The quotinet is not defined!");
         let classes = base_hypergroupoid.beta_relation().collect_classes();
         let n = classes.len() as u64;
-        let function  = |a:usize,b:usize| chi_a(
+        let function  = |a:usize,b:usize| 
+            chi_a(
                 &base_hypergroupoid.mul_by_representation(
                     &(1<<a), &(1<<b)),&base_hypergroupoid.n).iter()
                     .map(|x|equivalence.get_class(*x as u64).1)
@@ -890,7 +946,7 @@ impl Display for QuotientHyperGroupoid{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let classes = self.base_hypergroup.collect_beta_classes().iter().map(|x|x.0).collect_vec();
         let table:DMatrix<String>=DMatrix::from_iterator(self.n as usize, self.n as usize, 
-            self.hyper_composition.iter().map(|x|format!("{:?}",x)));
+            self.hyper_composition.iter().map(|x| format!("{{{:?}}}", x.concat())));
         
         write!(f, "\nH: {:?},\nHypercomposition table:\n{} Size:{}\n", classes, table, self.n )
     }

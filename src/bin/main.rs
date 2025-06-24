@@ -7,58 +7,12 @@ use rayon::vec;
 
 
 fn main(){
-/*       let x:HashSet<_> = (0..6).into_iter().collect();
-      println!("x is {:?}",x);
-      let rel: Vec<(u64, u64)>  = vec![(0,0),(1,1),(2,2),(3,3),(4,4),(5,5),(0,3),(3,0),(1,5),(5,1),(2,4),(4,2)];
-    let relation  = Relation{ a: x.clone(), b: x, rel:rel };
-    assert!(relation.is_reflexive());
-        assert!(relation.is_symmetric());
-            assert!(relation.is_transitive());
+    let cardinality = 3u64;
+    let hg  =HyperGroupoid::new_from_tag(&20819428u128, &cardinality);
+    let beta  =hg.beta_relation();
+    let found_g = QuotientHyperGroupoid::new_from_equivalence_relation(&hg, &beta);
+    println!("found_g {}",found_g);
 
-
-    let zero_class = relation.get_class(0);
-    println!("zero classe {:?}",zero_class);
- */
-let cardinality=  3u64;
-        let hs = HyperGroupoid::new_from_matrix(
-            &DMatrix::from_row_slice(
-                cardinality as usize, 
-                cardinality as usize, 
-                &[1,6,6,6,1,1,6,1,1]));
-            let beta  = hs.beta_relation();
-            println!("beta {:?}",beta.rel);
-    let quot = QuotientHyperGroupoid::new(&hs, &beta);
-    println!("quot {}",quot);
-            assert!(beta.is_equivalence());           
-            let cl = beta.collect_classes();
-            println!("cl {:?}",cl);
-        let eq_classes=hs.collect_beta_classes();
-        let expected_beta_classes = vec![(0u64, vec![0]), (1u64, vec![1, 2])];
-        println!("eq_classes {:?}",eq_classes);
-      //  assert_eq!(eq_classes,expected_beta_classes);
-
-/*     let x = 71u64;
-    let y  =20u64;
-let cardinality = 10u64;
-let hs = HyperGroup::new_from_function(genetics_hypergroup(&cardinality), &cardinality);
-let deg = hs.unwrap().get_fuzzy_grade();
-println!("deg {}",deg);
-    let cardinality = 5u64;
-    let hs = HyperGroup::new_from_function(genetics_hypergroup(&cardinality), &cardinality).unwrap();
-    println!("hs {}",hs);
-    for i in (0..hs.cardinality()) {
-        let qu_i = hs.get_Q_u(&i);
-        println!("Q({}) = {:?}, cardinality is {}",i,qu_i, hs.get_Q_u(&i).len());
-        for elements in &qu_i{
-            print!("{}-",hs.mul_by_representation(&(1<<elements.0), &(1<<elements.1)).count_ones())
-        }
-        println!("|Q({})|={}",i,qu_i.len());
-        let alpha_i = hs.get_alpha_u(&i);
-        println!("alpha({}) = {}",i, alpha_i);
-        let mu_i = hs.get_mu_u(&i);
-        println!("mu({}) = {}",i,mu_i);
-    }
- */
 /* 
     let cardinality = 3u64;
     let h =(1u64<<cardinality)-1; 
