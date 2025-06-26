@@ -1,20 +1,56 @@
 use std::{collections::HashSet, default};
 
-use hyperstruc::{generating_functions::{b_hypercomposition, genetics_hypergroup, tropical_hypergroup}, hs::{HyperGroupoid, QuotientHyperGroupoid}, hypergroups::HyperGroup, relations::Relation, utilities::{binary_to_n, get_min_max, get_subset, n_to_binary_vec, u64_to_set, vec_to_set, U1024}};
+use hyperstruc::{generating_functions::{b_hypercomposition, genetics_hypergroup, tropical_hypergroup}, hs::{HyperGroupoid, QuotientHyperGroupoid}, hypergroups::HyperGroup, relations::Relation, utilities::{binary_to_n, get_min_max, get_min_max_u1024, get_subset, n_to_binary_vec, representing_hypergroupoid_u1024, u64_to_set, vec_to_set, U1024}};
 use itertools::Itertools;
-use nalgebra::DMatrix;
+use nalgebra::{coordinates::M2x3, DMatrix};
 use rayon::vec;
 
 
 fn main(){
-    let cardinality = 3u64;
-    let hg  =HyperGroupoid::new_from_tag(&20819428u128, &cardinality);
-    let beta  =hg.beta_relation();
-    let found_g = QuotientHyperGroupoid::new_from_equivalence_relation(&hg, &beta);
-    println!("found_g {}",found_g);
+    let cardinality=  3u64;
+        let hs = HyperGroup::new_from_matrix(
+            &DMatrix::from_row_slice(
+                cardinality as usize, 
+                cardinality as usize, 
+                &[1,6,6,6,1,1,6,1,1]));
+        let beta = hs.beta_relation();
+        assert!(beta.is_equivalence());
+        let eq_classes=hs.collect_beta_classes();
+        let expected_beta_classes = vec![(0u64, vec![0]), (1u64, vec![1, 2])];
+        assert_eq!(eq_classes,expected_beta_classes);
+        let fundamental  =hs.get_fundamental_group();
+        println!("fundamental {}",fundamental);
+// 1495381495258030357016782942815387647
+// 1972423769135917645388022293062483967
+// 2315754257701731296489389389206519807
+// 2492135162217487135413640673202536447
+        let cardinality=4u64;
+                let hs = HyperGroupoid::new_from_matrix(
+            &DMatrix::from_row_slice(
+                cardinality as usize, 
+                cardinality as usize, 
+                &[1,6,6,8,6,8,8,1,6,8,8,1,8,1,1,6]));
 
-/* 
-    let cardinality = 3u64;
+                println!("hs {}",hs);
+        assert!(hs.is_hypergroup());
+
+        let hg= HyperGroup::new_from_matrix(&hs.hyper_composition);
+        let beta = hg.collect_beta_classes();
+        println!("beta  = {:?}", beta);
+        let heart = hg.get_fundamental_group();
+        println!("fundamental group = {}",heart);
+
+       
+    let cardinality = 5u64;
+    let tag = U1024::from_dec_str("2315754257701731296489389389206519807").expect("error");
+    let hg = HyperGroup::new_from_tag_u1024(&tag, &cardinality);
+    println!("hg = {}",hg);
+    let beta  =hg.collect_beta_classes();
+    println!("beta {:?}",beta);
+    let fund_g = hg.get_fundamental_group();
+    println!("fund_g {}",fund_g); 
+
+  /*  let cardinality = 3u64;
     let h =(1u64<<cardinality)-1; 
 
     let x = 5u64;
@@ -337,8 +373,8 @@ let total_hg  =U1024::from(2).pow(U1024::from(cardinality.pow(3)))-1;
         }
         i+=1;
     } */ 
-
-/*       /*A WAY TO GENERATE HPERGROUPS OF ORDER 6 */
+/* 
+       /*A WAY TO GENERATE HPERGROUPS OF ORDER 6 */
 let cardinality =5u64;
 let total_hg3 = get_min_max_u1024(&cardinality).1;
 let width = cardinality.pow(3u32);
@@ -355,7 +391,7 @@ for c in comb {
             println!("{}",x);
         }
     }
-} */
+}  */
 /* /*TEST IN HG 6 */
 /*This are tags of hypergroups of order 6 in the ball of radius 7 centered in the total_hg_7 */
 let cardinality = 5u64;

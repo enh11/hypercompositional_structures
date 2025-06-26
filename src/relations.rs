@@ -79,11 +79,7 @@ impl Relation {
     }
     pub fn get_class(&self, x:u64)->(u64,Vec<u64>) {
         let class:Vec<_> = self.a.iter().filter(|y|self.are_in_relations(x, **y)).map(|x|*x).sorted().collect();
-        let representant = class.iter().min();
-        println!("class = {:?}",class);
-        println!("rep = {:?}",representant);
-
-        (*representant.unwrap(),class)
+        let representant = class.iter().min();        (*representant.unwrap(),class)
     }
     /// Checks if two elements `x` and `y` are directly related in the relation `R`,
     /// or if there exists a third element `z` such that `(x, z)` and `(z, y)` are in the relation.
@@ -119,7 +115,7 @@ impl Relation {
         if self.a.iter().any(|z|self.rel.contains(&(x,*z))&&self.rel.contains(&(*z,y))) {return true;}
         false
     }
-    pub fn collect_classes(&self)->Vec<(u64,Vec<u64>)>{
+    pub fn quotient_set(&self)->Vec<(u64,Vec<u64>)>{
     assert!(self.is_equivalence(), "Relation is not an equivalence!");
     self.a.iter().map(|x|self.get_class(*x)).sorted().unique().collect()
     }

@@ -418,18 +418,18 @@ pub fn collect_n_digits_u1024(width: &u64,m_representation_hypergroupoid:&U1024)
 pub fn from_tag_u1024_to_vec(tag:&U1024,n:&u64) ->Vec<Vec<u64>>{
     let mut tag = tag.clone();
     let mut tag_vec:Vec<Vec<u64>>=Vec::new();
-    let power_set_cardinality = U1024::from(2).pow(U1024::from(*n));
+    let power_set_cardinality = U1024::one()<<*n;
 
     loop{
         if tag.trailing_zeros()>=*n as u32{
             panic!("Can't be an hypergroupoid. {} zeroes found",tag.trailing_zeros());
-        } else {
+        } else if tag>=power_set_cardinality{
             tag_vec.push(collect_n_digits_u1024(n, &tag));
-            tag>>=*n as u128;
+            tag>>=*n;
         }
         if tag<power_set_cardinality {
             tag_vec.push(collect_n_digits_u1024(n, &tag));
-
+        
             break;}
     }
     tag_vec.iter().map(|x|x.clone()).rev().collect()  

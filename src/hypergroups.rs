@@ -5,7 +5,7 @@ use nalgebra::DMatrix;
 use num_rational::Rational64;
 use permutation::Permutation;
 use rayon::{iter::{IntoParallelRefIterator, ParallelIterator}};
-use crate::{fuzzy::FuzzySubset, hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoid}, relations::Relation, utilities::{get_complement_subset, chi_a, U1024}};
+use crate::{fuzzy::FuzzySubset, hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoid, QuotientHyperGroupoid}, quotient_hg::QuotientHyperGroup, relations::Relation, utilities::{chi_a, get_complement_subset, U1024}};
 #[derive(Debug, Clone)]
 pub enum HyperStructureError {
     NotHypergroup,
@@ -18,7 +18,7 @@ impl fmt::Display for HyperStructureError {
     }
 }
 #[derive(Debug, Clone,PartialEq)]
-pub struct HyperGroup(HyperGroupoid);
+pub struct HyperGroup(pub HyperGroupoid);
 
 impl HyperGroup {
     pub fn new_from_matrix(matrix:&DMatrix<u64>)->Self{
@@ -378,18 +378,11 @@ pub fn beta_relation(&self)->Relation {
     self.0.beta_relation()
 }
 pub fn collect_beta_classes(&self)->Vec<(u64,Vec<u64>)>{
-    self.0.beta_relation().collect_classes()
+    self.0.beta_relation().quotient_set()
 }
-pub fn get_foundamental_group(&self)-> Self {
-    let classes = self.collect_beta_classes();
-    let cardinality = classes.len() as u64;
-    let defining_function_quotient = |a:u64,b:u64|
-        {
-            let representant_a=classes[a as usize].0;
-            let representant_b = classes[b as usize].0;
-            self.mul_by_representation(&representant_a, &representant_b)
-        };
-        HyperGroup::new_from_function(defining_function_quotient, &cardinality).unwrap()
+pub fn get_fundamental_group(&self)-> QuotientHyperGroup {
+    let beta = self.beta_relation();
+    QuotientHyperGroup::new_from_equivalence_relation(self.clone(), beta)
 }
 }
 impl Display for HyperGroup {

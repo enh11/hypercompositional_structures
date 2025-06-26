@@ -600,7 +600,7 @@ pub fn beta_relation(&self)->Relation{
 
 }
 pub fn collect_beta_classes(&self)->Vec<(u64,Vec<u64>)>{
-    self.beta_relation().collect_classes()
+    self.beta_relation().quotient_set()
 }
 /// Represents the integer $k$ as a subset of the set H={0,1,..,n-1}.
 /// There are 2^n different integer representing subsets of H. It will panic if $k is greater then 2^n.
@@ -917,12 +917,13 @@ pub struct QuotientHyperGroupoid{
 impl QuotientHyperGroupoid {
     pub fn new_from_equivalence_relation(base_hypergroupoid:&HyperGroupoid,equivalence:&Relation)->Self{
         assert!(equivalence.is_equivalence(),"The input relation is not an equivalence! The quotinet is not defined!");
-        let classes = base_hypergroupoid.beta_relation().collect_classes();
+        let classes = base_hypergroupoid.beta_relation().quotient_set();
         let n = classes.len() as u64;
+        let representants:Vec<u64> = classes.iter().map(|x|x.0).collect();
         let function  = |a:usize,b:usize| 
             chi_a(
                 &base_hypergroupoid.mul_by_representation(
-                    &(1<<a), &(1<<b)),&base_hypergroupoid.n).iter()
+                    &(1<<representants[a]), &(1<<representants[b])),&base_hypergroupoid.n).iter()
                     .map(|x|equivalence.get_class(*x as u64).1)
                     .sorted()
                     .unique()
@@ -944,11 +945,11 @@ impl QuotientHyperGroupoid {
 }
 impl Display for QuotientHyperGroupoid{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let classes = self.base_hypergroup.collect_beta_classes().iter().map(|x|x.0).collect_vec();
+        let representants = self.base_hypergroup.collect_beta_classes().iter().map(|x|x.0).collect_vec();
         let table:DMatrix<String>=DMatrix::from_iterator(self.n as usize, self.n as usize, 
-            self.hyper_composition.iter().map(|x| format!("{{{:?}}}", x.concat())));
+            self.hyper_composition.iter().map(|x| format!("{:?}", x.concat())));
         
-        write!(f, "\nH: {:?},\nHypercomposition table:\n{} Size:{}\n", classes, table, self.n )
+        write!(f, "\nH: {:?},\nHypercomposition table:\n{} Size:{}\n", representants, table, self.n )
     }
 }
 
