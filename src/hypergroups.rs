@@ -1,10 +1,10 @@
-use std::fmt::{self, Display};
+use std::{collections::HashMap, fmt::{self, Display}, panic::PanicHookInfo};
 extern crate nalgebra as na;
 use itertools::Itertools;
 use nalgebra::DMatrix;
 use num_rational::Rational64;
 use permutation::Permutation;
-use rayon::{iter::{IntoParallelRefIterator, ParallelIterator}};
+use rayon::iter::{FromParallelIterator, IntoParallelRefIterator, ParallelIterator};
 use crate::{fuzzy::FuzzySubset, hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoid}, quotient_hg::QuotientHyperGroup, relations::Relation, utilities::{chi_a, get_complement_subset, U1024}};
 #[derive(Debug, Clone)]
 pub enum HyperStructureError {
@@ -383,6 +383,26 @@ pub fn collect_beta_classes(&self)->Vec<(u64,Vec<u64>)>{
 pub fn get_fundamental_group(&self)-> QuotientHyperGroup {
     let beta = self.beta_relation();
     QuotientHyperGroup::new_from_equivalence_relation(self.clone(), beta)
+}
+pub fn get_isomorphic_fundamental_group(&self)->HyperGroup{
+    let fg = self.get_fundamental_group();
+    let mut classes= self.beta_relation().quotient_set().iter().map(|(_,y)|y.clone()).collect_vec();
+    classes.sort();
+    let cardinality = classes.len();
+
+    let hash:HashMap<Vec<u64>,usize>= classes.iter().cloned().enumerate().map(|(i, x)| (x, i)).collect();    
+    let generating_function = |a:u64,b:u64| 
+           {
+           let get =  match hash.get(
+                &fg.0.hyper_composition[(a as usize,b as usize)][0]) {
+                    Some(x)=>*x,
+                    None=> panic!("not found!")               
+           };
+
+           1<<get as u64
+           };
+
+    HyperGroup::new_from_function(generating_function, &(cardinality as u64)).unwrap()
 }
 }
 impl Display for HyperGroup {

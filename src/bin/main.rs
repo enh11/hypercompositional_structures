@@ -37,7 +37,7 @@ fn main(){
         let hg= HyperGroup::new_from_matrix(&hs.hyper_composition);
         let beta = hg.collect_beta_classes();
         println!("beta  = {:?}", beta);
-        let heart = hg.get_fundamental_group();
+        let heart = hg.get_isomorphic_fundamental_group();
         println!("fundamental group = {}",heart);
 
        
@@ -47,7 +47,7 @@ fn main(){
     println!("hg = {}",hg);
     let beta  =hg.collect_beta_classes();
     println!("beta {:?}",beta);
-    let fund_g = hg.get_fundamental_group();
+    let fund_g = hg.get_isomorphic_fundamental_group();
     println!("fund_g {}",fund_g); 
 
   /*  let cardinality = 3u64;
