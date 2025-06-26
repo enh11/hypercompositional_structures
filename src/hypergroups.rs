@@ -5,7 +5,7 @@ use nalgebra::DMatrix;
 use num_rational::Rational64;
 use permutation::Permutation;
 use rayon::{iter::{IntoParallelRefIterator, ParallelIterator}};
-use crate::{fuzzy::FuzzySubset, hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoid, QuotientHyperGroupoid}, quotient_hg::QuotientHyperGroup, relations::Relation, utilities::{chi_a, get_complement_subset, U1024}};
+use crate::{fuzzy::FuzzySubset, hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoid}, quotient_hg::QuotientHyperGroup, relations::Relation, utilities::{chi_a, get_complement_subset, U1024}};
 #[derive(Debug, Clone)]
 pub enum HyperStructureError {
     NotHypergroup,
@@ -359,8 +359,8 @@ pub fn exploring_tree(&self)->(Vec<(U1024,Vec<U1024>)>,Vec<U1024>) {
     exploring_tree(&self.get_integer_tag_u1024(), &self.cardinality())
     
 }
-pub fn get_Q_u(&self,u:&u64)->Vec<(u64,u64)>{
-    self.0.get_Q_u(u)
+pub fn get_qq_u(&self,u:&u64)->Vec<(u64,u64)>{
+    self.0.get_qq_u(u)
 }
 pub fn get_alpha_u(&self,u:&u64)-> Rational64{
     self.0.get_alpha_u(u)
@@ -450,12 +450,9 @@ pub fn exploring_tree(starting_tag:&U1024,cardinality:&u64)->(Vec<(U1024,Vec<U10
     let mut classes_from_circumferences :Vec<Vec<(U1024,Vec<U1024>)>>;
     let mut classes:Vec<(U1024,Vec<U1024>)> = [collect_isomorphism_class(starting_tag, cardinality)].to_vec();
     let mut cl1 = collect_classes_from_circumference(starting_tag, &visited_tags, &cardinality);
-//println!("cl1 {:?}",cl1);
     classes.append(&mut cl1.1.clone());
-//println!("classes {:?}",classes);
     center_tags=cl1.1.iter().map(|x|x.0).collect();
     visited_tags.append(&mut cl1.0);
-// println!("new centers  {:?}",center_tags);
 
     while !center_tags.is_empty() {
         centers_and_classes=center_tags.par_iter().map(|x|
@@ -466,21 +463,17 @@ pub fn exploring_tree(starting_tag:&U1024,cardinality:&u64)->(Vec<(U1024,Vec<U10
         classes_from_circumferences.retain(|x|!x.is_empty());
         classes_from_circumferences.sort();
         classes_from_circumferences.dedup();
-        //println!("classes_from tags in center {:?}",classes_from_circumferences);
 
         classes.append(&mut classes_from_circumferences.clone().concat());
         classes.sort_by(|x,y|x.0.cmp(&y.0));
         classes.dedup();
-        println!("update classes {:?}",classes);
         let visited_tags_vec=centers_and_classes.iter().map(|y|y.0.clone()).collect_vec();
         center_tags=visited_tags_vec.concat();
         center_tags.sort();
         center_tags.dedup();
-        //println!("new centers {:?}",center_tags);
         visited_tags.append(&mut center_tags.clone());
         visited_tags.sort();
         visited_tags.dedup();
-        //println!("visited tags are {:?}",visited_tags);
         
     }
     let enumeration = classes.iter().map(|x|x.1.clone()).collect_vec();

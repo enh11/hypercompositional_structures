@@ -1,6 +1,6 @@
 use std::{collections::HashSet, ops::Mul};
 
-use itertools::{sorted, Itertools};
+use itertools::Itertools;
 
 #[derive(Debug,Clone,PartialEq, Eq)]
 pub struct Relation {

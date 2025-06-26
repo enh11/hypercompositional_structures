@@ -7,7 +7,7 @@ use itertools::Itertools;
 use num_rational::Rational64;
 use num_traits::{One, Zero};
 
-use crate::{hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoid}, hypergroups::{HyperGroup, HyperStructureError}, utilities::{get_complement_subset, chi_a, U1024}};
+use crate::{hs::{HyperGroupoid}, hypergroups::{HyperGroup, HyperStructureError}};
 
 #[derive(Debug, Copy, Clone)]
 pub struct UnitInterval(Rational64);
@@ -49,7 +49,7 @@ HyperGroup::new_from_function(function, &self.h.n)
 }
 
 impl HyperGroupoid {
-    pub fn get_Q_u(&self,u:&u64)->Vec<(u64, u64)>{
+    pub fn get_qq_u(&self,u:&u64)->Vec<(u64, u64)>{
         let u_singleton: u64 = 1u64<<u;
         (0..self.n).into_iter().cartesian_product(0..self.n)
                     .filter(|(x,y)|
@@ -75,7 +75,7 @@ impl HyperGroupoid {
 /// 
 /// 
     pub fn get_q_u(&self,u:&u64)->usize{
-       self.get_Q_u(u).len()
+       self.get_qq_u(u).len()
 
     }
 /// 
@@ -100,7 +100,7 @@ impl HyperGroupoid {
 /// 
 /// 
     pub fn get_alpha_u(&self,u:&u64)->Rational64{
-        self.get_Q_u(u).into_iter().map(|(x,y)|
+        self.get_qq_u(u).into_iter().map(|(x,y)|
             Rational64::new(1,self.mul_by_representation(&(1u64<<x), &(1u64<<y)).count_ones() as i64)).sum()
     }
     pub fn get_mu_u(&self,u:&u64)->Rational64{
