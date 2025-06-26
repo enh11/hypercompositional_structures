@@ -8,8 +8,8 @@ impl QuotientHyperGroup {
     pub fn new_from_equivalence_relation(hg:HyperGroup,rel:Relation)->Self{
         let hs = hg.0;
         let hs_quotient = QuotientHyperGroupoid::new_from_equivalence_relation(&hs, &rel);
-        QuotientHyperGroup(hs_quotient)
 
+        QuotientHyperGroup(hs_quotient)
     }
 }
 impl Display for QuotientHyperGroup {

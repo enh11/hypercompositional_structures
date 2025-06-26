@@ -20,6 +20,7 @@ fn main(){
         assert_eq!(eq_classes,expected_beta_classes);
         let fundamental  =hs.get_fundamental_group();
         println!("fundamental {}",fundamental);
+        let h = HyperGroup::new_from_elements(&vec![vec![0],vec![1],vec![2],vec![1],vec![2],vec![0],vec![2],vec![0],vec![1]],cardinality);
 // 1495381495258030357016782942815387647
 // 1972423769135917645388022293062483967
 // 2315754257701731296489389389206519807

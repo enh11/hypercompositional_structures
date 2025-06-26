@@ -37,6 +37,12 @@ impl HyperGroup {
         assert!(hg.is_hypergroup(),"Not an hypergroup!");
         HyperGroup(hg)
     }
+    pub fn new_from_elements(input_array: &Vec<Vec<u64>>, cardinality:u64)->Self{
+        let hg = HyperGroupoid::new_from_elements(input_array, cardinality);
+        assert!(hg.is_hypergroup(),"Input array doesn't represent a hypergroup!");
+        HyperGroup(hg)
+
+    }
 /// Generates a new hypergroup from a binary function Fn(u64, u64) -> u64.
 ///
 /// The function is sent to HyperGroupoids::new_from_function`, which compute the new hyperstructure and check if it is a hypergroup.
@@ -384,6 +390,32 @@ pub fn get_fundamental_group(&self)-> QuotientHyperGroup {
     let beta = self.beta_relation();
     QuotientHyperGroup::new_from_equivalence_relation(self.clone(), beta)
 }
+/// Get the isomprhic image of the fundamental group, representing it as standard hypergroup with `H={0,1,...,n`,
+/// where `n` is the cardinality of the quotient set. In particular, we order the set of classes and we identify 
+/// each class with integers from `0` to `n`. 
+/// 
+/// #Example
+/// ```
+/// use hyperstruc::hypergroups::HyperGroup;
+/// use nalgebra::DMatrix;
+/// 
+/// let cardinality=4u64;
+/// let hs = HyperGroup::new_from_matrix(
+///             &DMatrix::from_row_slice(
+///             cardinality as usize, 
+///             cardinality as usize, 
+///             &[1,6,6,8,6,8,8,1,6,8,8,1,8,1,1,6]));
+/// let fundamental_group  =hs.get_fundamental_group();
+/// println!("fundamental {}",fundamental_group);
+/// let fundamental_group = hs.get_isomorphic_fundamental_group();
+/// let cardinality_fg = 3u64;
+/// let expected_fundamental_group = HyperGroup::new_from_elements(&vec![
+///             vec![0],vec![1],vec![2],
+///             vec![1],vec![2],vec![0],
+///             vec![2],vec![0],vec![1]]
+///             ,cardinality_fg);
+/// assert_eq!(fundamental_group,expected_fundamental_group)
+/// 
 pub fn get_isomorphic_fundamental_group(&self)->HyperGroup{
     let fg = self.get_fundamental_group();
     let mut classes= self.beta_relation().quotient_set().iter().map(|(_,y)|y.clone()).collect_vec();
