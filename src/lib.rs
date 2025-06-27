@@ -14,6 +14,8 @@ pub mod quotient_hg;
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashSet;
+
     use nalgebra::DMatrix;
     use crate::{hs::HyperGroupoid, hypergroups::HyperGroup};
     #[test]
@@ -66,6 +68,99 @@ mod tests {
         let eq_classes=hs.collect_beta_classes();
         let expected_beta_classes = vec![(0u64, vec![0]), (1u64, vec![1, 2])];
         assert_eq!(eq_classes,expected_beta_classes)
+    }
+    #[test]
+    fn reza_ameri_4(){
+        let cardinality  =5u64;
+        let input_array  = vec![
+            vec![0],vec![1,2],vec![1,2],vec![3],vec![4],
+            vec![1,2],vec![3],vec![3],vec![4],vec![0],
+            vec![1,2],vec![3],vec![3],vec![4],vec![0],
+            vec![3],vec![4],vec![4],vec![0],vec![1,2],
+            vec![4],vec![0],vec![0],vec![1,2],vec![3]];
+
+        let hg = HyperGroup::new_from_elements(&input_array, cardinality);
+        let beta = hg.beta_relation().quotient_set();
+        let expected_beta = vec![(0_u64,vec![0]),(1_u64,vec![1,2]),(3_u64,vec![3]),(4_u64,vec![4])];
+        assert_eq!(beta,expected_beta);
+        let cardinality = 4u64;
+        let fundamental_group = hg.get_isomorphic_fundamental_group();
+        let input_array = vec![
+            vec![0],vec![1],vec![2],vec![3],
+            vec![1],vec![2],vec![3],vec![0],
+            vec![2],vec![3],vec![0],vec![1],
+            vec![3],vec![0],vec![1],vec![2]];
+        let expected_fundamental_group = HyperGroup::new_from_elements(&input_array, cardinality);
+    assert_eq!(expected_fundamental_group,fundamental_group);
+        let heart = hg.heart();
+        let expected_heart:HashSet<u64> = HashSet::from([0]);
+    assert_eq!(heart,expected_heart);
+    }
+    #[test]
+    fn reza_armeri_6(){
+        let cardinality  =7u64;
+        let input_array  = vec![
+            vec![0],vec![1],vec![2],vec![3],vec![4],vec![5,6], vec![5,6],
+            vec![1],vec![0],vec![4],vec![5,6],vec![2],vec![3],vec![3],
+            vec![2],vec![5,6],vec![0],vec![4],vec![3],vec![1],vec![1],
+            vec![3],vec![4],vec![5,6],vec![0],vec![1],vec![2],vec![2],
+            vec![4],vec![3],vec![1],vec![2],vec![5,6],vec![0],vec![0],
+            vec![5,6],vec![2],vec![3],vec![1],vec![0],vec![4],vec![4],
+            vec![5,6],vec![2],vec![3],vec![1],vec![0],vec![4],vec![4],
+            ];
+
+        let hg = HyperGroup::new_from_elements(&input_array, cardinality);
+        let beta = hg.beta_relation().quotient_set();
+        let expected_beta = vec![(0_u64,vec![0]),(1_u64,vec![1]),(2_u64,vec![2]),(3_u64,vec![3]),(4_u64,vec![4]),(5_u64,vec![5,6])];
+        assert_eq!(beta,expected_beta);
+        let cardinality = 6u64;
+        let fundamental_group = hg.get_isomorphic_fundamental_group();
+        let input_array = vec![
+            vec![0],vec![1],vec![2],vec![3],vec![4],vec![5],
+            vec![1],vec![0],vec![4],vec![5],vec![2],vec![3],
+            vec![2],vec![5],vec![0],vec![4],vec![3],vec![1],
+            vec![3],vec![4],vec![5],vec![0],vec![1],vec![2],
+            vec![4],vec![3],vec![1],vec![2],vec![5],vec![0],
+            vec![5],vec![2],vec![3],vec![1],vec![0],vec![4],
+            ];
+        let expected_fundamental_group = HyperGroup::new_from_elements(&input_array, cardinality);
+    assert_eq!(expected_fundamental_group,fundamental_group);
+        let heart = hg.heart();
+        let expected_heart:HashSet<u64> = HashSet::from([0]);
+    assert_eq!(heart,expected_heart);
+    }
+    #[test]
+    fn reza_armeri_7(){
+let cardinality  =8u64;
+        let input_array  = vec![
+            vec![0],vec![1],vec![2],vec![3],vec![4],vec![5], vec![6],vec![7],
+            vec![1,5],vec![0,4],vec![3,7],vec![2,6],vec![1,5],vec![0,4],vec![3,7],vec![2,6],
+            vec![2],vec![3],vec![4],vec![5],vec![6],vec![7],vec![0],vec![1],
+            vec![3,7],vec![2,6],vec![1,5],vec![0,4],vec![3,7],vec![2,6],vec![1,5],vec![0,4],
+            vec![4],vec![5],vec![6],vec![7],vec![0],vec![1],vec![2],vec![3],
+            vec![1,5],vec![0,4],vec![3,7],vec![2,6],vec![1,5],vec![0,4],vec![3,7],vec![2,6],
+            vec![6],vec![7],vec![0],vec![1],vec![2],vec![3],vec![4],vec![5],
+            vec![3,7],vec![2,6],vec![1,5],vec![0,4],vec![3,7],vec![2,6],vec![1,5],vec![0,4],
+            ];
+
+        let hg = HyperGroup::new_from_elements(&input_array, cardinality);
+        let beta = hg.beta_relation().quotient_set();
+        let expected_beta = vec![(0_u64,vec![0,4]),(1_u64,vec![1,5]),(2_u64,vec![2,6]),(3_u64,vec![3,7])];
+        assert_eq!(beta,expected_beta);
+        let cardinality = 4u64;
+        let fundamental_group = hg.get_isomorphic_fundamental_group();
+        let input_array = vec![
+            vec![0],vec![1],vec![2],vec![3],
+            vec![1],vec![0],vec![3],vec![2],
+            vec![2],vec![3],vec![0],vec![1],
+            vec![3],vec![2],vec![1],vec![0]
+            ];
+        let expected_fundamental_group = HyperGroup::new_from_elements(&input_array, cardinality);
+    assert_eq!(expected_fundamental_group,fundamental_group);
+        let heart = hg.heart();
+        let expected_heart:HashSet<u64> = HashSet::from([0,4]);
+    assert_eq!(heart,expected_heart);
+
     }
     #[test]
     fn reza_ameri_3_1(){

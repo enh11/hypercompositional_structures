@@ -1,11 +1,11 @@
-use std::{collections::HashMap, fmt::{self, Display}, panic::PanicHookInfo};
+use std::{collections::{HashMap, HashSet}, fmt::{self, Display}, panic::PanicHookInfo};
 extern crate nalgebra as na;
 use itertools::Itertools;
 use nalgebra::DMatrix;
 use num_rational::Rational64;
 use permutation::Permutation;
 use rayon::iter::{FromParallelIterator, IntoParallelRefIterator, ParallelIterator};
-use crate::{fuzzy::FuzzySubset, hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoid}, quotient_hg::QuotientHyperGroup, relations::Relation, utilities::{chi_a, get_complement_subset, U1024}};
+use crate::{fuzzy::FuzzySubset, hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoid}, quotient_hg::QuotientHyperGroup, relations::Relation, utilities::{chi_a, get_complement_subset, vec_to_set, U1024}};
 #[derive(Debug, Clone)]
 pub enum HyperStructureError {
     NotHypergroup,
@@ -390,32 +390,57 @@ pub fn get_fundamental_group(&self)-> QuotientHyperGroup {
     let beta = self.beta_relation();
     QuotientHyperGroup::new_from_equivalence_relation(self.clone(), beta)
 }
-/// Get the isomprhic image of the fundamental group, representing it as standard hypergroup with `H={0,1,...,n`,
-/// where `n` is the cardinality of the quotient set. In particular, we order the set of classes and we identify 
-/// each class with integers from `0` to `n`. 
-/// 
-/// #Example
+/// Returns the isomorphic image of the fundamental group as a standard hypergroup, 
+/// represented over the set `H = {0, 1, ..., n-1}`, where `n` is the cardinality of 
+/// the quotient set.
+///
+/// This function constructs a new hypergroup by ordering the equivalence classes of the 
+/// fundamental group and assigning each class a unique integer identifier from `0` to `n - 1`. 
+/// The result is a standard representation of the quotient structure, isomorphic to the 
+/// original fundamental group.
+///
+/// # Example
 /// ```
 /// use hyperstruc::hypergroups::HyperGroup;
 /// use nalgebra::DMatrix;
-/// 
-/// let cardinality=4u64;
+///
+/// let cardinality = 4u64;
 /// let hs = HyperGroup::new_from_matrix(
-///             &DMatrix::from_row_slice(
-///             cardinality as usize, 
-///             cardinality as usize, 
-///             &[1,6,6,8,6,8,8,1,6,8,8,1,8,1,1,6]));
-/// let fundamental_group  =hs.get_fundamental_group();
-/// println!("fundamental {}",fundamental_group);
+///     &DMatrix::from_row_slice(
+///         cardinality as usize,
+///         cardinality as usize,
+///         &[1, 6, 6, 8,
+///           6, 8, 8, 1,
+///           6, 8, 8, 1,
+///           8, 1, 1, 6]
+///     )
+/// );
+///
+/// let fundamental_group = hs.get_fundamental_group();
+/// println!("fundamental {}", fundamental_group);
+///
 /// let fundamental_group = hs.get_isomorphic_fundamental_group();
 /// let cardinality_fg = 3u64;
-/// let expected_fundamental_group = HyperGroup::new_from_elements(&vec![
-///             vec![0],vec![1],vec![2],
-///             vec![1],vec![2],vec![0],
-///             vec![2],vec![0],vec![1]]
-///             ,cardinality_fg);
-/// assert_eq!(fundamental_group,expected_fundamental_group)
-/// 
+///
+/// let expected_fundamental_group = HyperGroup::new_from_elements(
+///     &vec![
+///         vec![0], vec![1], vec![2],
+///         vec![1], vec![2], vec![0],
+///         vec![2], vec![0], vec![1],
+///     ],
+///     cardinality_fg,
+/// );
+///
+/// assert_eq!(fundamental_group, expected_fundamental_group);
+/// ```
+///
+/// # Panics
+/// This function may panic if the internal composition structure is invalid, 
+/// such as missing equivalence class mappings or inconsistent dimensions.
+///
+/// # See Also
+/// - [`get_fundamental_group`](Self::get_fundamental_group): Returns the untransformed fundamental group.
+/// - [`HyperGroup::new_from_elements`](HyperGroup::new_from_elements): Constructs a hypergroup from raw data.
 pub fn get_isomorphic_fundamental_group(&self)->HyperGroup{
     let fg = self.get_fundamental_group();
     let mut classes= self.beta_relation().quotient_set().iter().map(|(_,y)|y.clone()).collect_vec();
@@ -435,6 +460,38 @@ pub fn get_isomorphic_fundamental_group(&self)->HyperGroup{
            };
 
     HyperGroup::new_from_function(generating_function, &(cardinality as u64)).unwrap()
+}
+/// Compute the Heart of a hypergroup. This is the β*‐class-class of the identity of the fundamental group  H / β*.
+/// This method returns the heart as a set of elements, rather than its integer representation.
+///
+/// # Returns
+/// A `HashSet<usize>` representing the heart of the hypergroup.
+///
+/// # Example
+/// ```
+/// use hyperstruc::hypergroups::HyperGroup;
+/// use std::collections::HashSet;
+///
+/// let cardinality = 3u64;
+/// let tag = 57784611u128;
+/// let hg = HyperGroup::new_from_tag_u128(&tag, &cardinality);
+///
+/// let heart = hg.heart();
+/// let expected = HashSet::from([0, 1]);
+///
+/// assert_eq!(heart, expected);
+/// ```
+pub fn heart(&self)->HashSet<u64>{
+    let fundamental_group = self.get_isomorphic_fundamental_group();
+    let identity = fundamental_group.collect_identities();
+    assert!(identity.len()==1);
+    let identity  = identity[0];//This is the integer which identifies the singleton {identity}. 
+                                    //The corresponding element is given by identity.trailing_zeros().
+    let identity=identity.trailing_zeros() as u64;
+    let beta_identity = self.beta_relation().get_class(identity);
+    vec_to_set(&beta_identity.1)
+
+
 }
 }
 impl Display for HyperGroup {

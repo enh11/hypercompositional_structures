@@ -419,10 +419,12 @@ pub fn from_tag_u1024_to_vec(tag:&U1024,n:&u64) ->Vec<Vec<u64>>{
     let mut tag = tag.clone();
     let mut tag_vec:Vec<Vec<u64>>=Vec::new();
     let power_set_cardinality = U1024::one()<<*n;
-
+    let mut i = 0;
     loop{
+        if tag==U1024::zero() {break;}
+        i+=1;
         if tag.trailing_zeros()>=*n as u32{
-            panic!("Can't be an hypergroupoid. {} zeroes found",tag.trailing_zeros());
+            panic!("Can't be an hypergroupoid. {:b} zeroes found, step {}",tag,i);
         } else if tag>=power_set_cardinality{
             tag_vec.push(collect_n_digits_u1024(n, &tag));
             tag>>=*n;
