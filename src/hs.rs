@@ -6,7 +6,7 @@ use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
 use rand::Rng;
-use crate::{fuzzy::FuzzySubset, relations::Relation, utilities::{binary_to_n, cartesian_product, from_tag_to_vec, from_tag_u1024_to_vec, get_min_max_u1024, get_subset, n_to_binary_vec, chi_a, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid_u1024, subset_as_u64, vec_to_set, U1024}};
+use crate::{fuzzy::FuzzySubset, relations::Relation, utilities::{binary_to_n, cartesian_product, from_tag_to_vec, from_tag_u1024_to_vec, get_min_max_u1024, get_subset, n_to_binary_vec, support, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid_u1024, subset_as_u64, vec_to_set, U1024}};
 #[derive(Debug, Clone,PartialEq)]
 pub struct HyperGroupoid{
     pub h:HashSet<u64>,
@@ -115,7 +115,41 @@ pub fn new_from_function<F>(function:F,cardinality:&u64)->Self
         n:n as u64
    }
 }
-pub fn new_from_elements(input_array: &Vec<Vec<u64>>, cardinality:u64)->Self{
+/// Constructs a `HyperGroupoid` from a flattened Cayley table.
+///
+/// This function takes a vector of vectors representing the hyperoperation table, 
+/// where each inner vector corresponds to the image of a pair `(a, b) ∈ H × H` under 
+/// the hyperoperation. The index in the flat vector is computed as `cardinality * a + b`, 
+/// assuming row-major order. Each subset is encoded as a bitmask via the sum of `1 << x` 
+/// for all `x ∈ H`.
+///
+/// # Arguments
+/// - `input_array`: A `Vec<Vec<u64>>` of length `n^2` (where `n` is the cardinality),
+///   representing the full Cayley table of the hyperoperation.
+/// - `cardinality`: The size `n` of the underlying set `H`.
+///
+/// # Returns
+/// A `HyperGroupoid` instance built from the encoded table.
+///
+/// # Panics
+/// Panics if `input_array.len() != cardinality^2`, i.e., if the table is not square.
+///
+/// # Example
+/// ```
+/// use hyperstruc::hs::HyperGroupoid;
+/// 
+/// let cardinality = 3u64;
+/// let input_cayley = vec![
+///     vec![0, 1, 2], vec![0],     vec![2],
+///     vec![0, 2],    vec![1, 2],  vec![2],
+///     vec![1],       vec![0, 1, 2], vec![2],
+/// ];
+/// let hypergroupoid = HyperGroupoid::new_from_elements(&input_cayley, &cardinality);
+/// 
+/// let tag = 120776892u128;
+/// let hypergroupoid = HyperGroupoid::new_from_tag_u128(&tag, &cardinality);
+/// 
+pub fn new_from_elements(input_array: &Vec<Vec<u64>>, cardinality:&u64)->Self{
     if input_array.len() as u64!=cardinality.pow(2u32) {panic!("Cardinality is {} and the input vector length is {}. It should be a square-length vector!",cardinality,input_array.len())}
     let function = |a:u64,b:u64| input_array[(cardinality*a+b) as usize].clone().iter().fold(0u64, |acc,x|acc|1<<x);
     HyperGroupoid::new_from_function(function, &cardinality)
@@ -134,7 +168,7 @@ pub fn new_from_elements(input_array: &Vec<Vec<u64>>, cardinality:u64)->Self{
 /// use nalgebra::DMatrix;
 /// let cardinality = 2;
 /// let t=185;
-/// let new_hyperstructure_from_tag = HyperGroupoid::new_from_tag(&t,&cardinality);
+/// let new_hyperstructure_from_tag = HyperGroupoid::new_from_tag_u128(&t,&cardinality);
 /// let new_hyperstructure_from_matrix = HyperGroupoid::new_from_matrix(
 ///         &DMatrix::from_row_slice(
 ///         2usize,
@@ -143,7 +177,7 @@ pub fn new_from_elements(input_array: &Vec<Vec<u64>>, cardinality:u64)->Self{
 /// assert_eq!(new_hyperstructure_from_tag, new_hyperstructure_from_matrix)
 /// 
 /// 
-pub fn new_from_tag(tag:&u128,cardinality:&u64)->Self{
+pub fn new_from_tag_u128(tag:&u128,cardinality:&u64)->Self{
     let vector_of_subsets_as_integers=from_tag_to_vec(&tag, &cardinality);
     let vector_of_subsets_as_integers: Vec<u64>=vector_of_subsets_as_integers.iter().map(|x|binary_to_n(x)).collect();
 
@@ -183,7 +217,7 @@ pub fn new_from_tag_u1024(mut tag:&U1024,cardinality:&u64)->Self{
 /// use nalgebra::DMatrix;
 /// let cardinality = 2;
 /// let t=185;
-/// let new_hyperstructure_from_tag = HyperGroupoid::new_from_tag(&t,&cardinality);
+/// let new_hyperstructure_from_tag = HyperGroupoid::new_from_tag_u128(&t,&cardinality);
 /// let new_hyperstructure_from_matrix = HyperGroupoid::new_from_matrix(
 ///         &DMatrix::from_row_slice(
 ///             2usize,
@@ -210,7 +244,7 @@ pub fn get_integer_tag(&self)->u128{
 /// 
 /// let cardinality = 2;
 /// let t=185;
-/// let new_hyperstructure_from_tag = HyperGroupoid::new_from_tag(&t,&cardinality);
+/// let new_hyperstructure_from_tag = HyperGroupoid::new_from_tag_u128(&t,&cardinality);
 /// let new_hyperstructure_from_matrix = HyperGroupoid::new_from_matrix(
 ///         &DMatrix::from_row_slice(
 ///             2usize,
@@ -285,7 +319,7 @@ pub fn collect_isomorphism_class(&self)->(U1024,Vec<U1024>){
 /// 
 /// let cardinality = 3u64;
 /// let tag = 22150143u128;
-/// let hs = HyperGroupoid::new_from_tag(&tag,&cardinality);
+/// let hs = HyperGroupoid::new_from_tag_u128(&tag,&cardinality);
 /// 
 /// assert!(hs.is_hypergroup());
 /// 
@@ -583,9 +617,9 @@ pub fn beta_relation(&self)->Relation{
     let mut beta:Vec<(u64, u64)>=ph.iter()
         .map(
             |q|
-                chi_a(q, &self.n).into_iter()
+                support(q, &self.n).into_iter()
                 .cartesian_product(
-                    chi_a(q, &self.n).into_iter())
+                    support(q, &self.n).into_iter())
                 .map(|(x,y)|(x as u64,y as u64))
                 .collect()
             ).concat();
@@ -648,8 +682,8 @@ pub fn get_subset_from_k(&self,k:&u64)->HashSet<u64>{
 /// let mul=hyperstructure.mul_by_representation(&a,&b);
 /// assert_eq!(ab,mul);
 pub fn mul_by_representation(&self,subset_a:&u64,subset_b:&u64)->u64{
-    chi_a(subset_a, &(self.n)).iter()
-        .cartesian_product(chi_a(subset_b, &(self.n)))
+    support(subset_a, &(self.n)).iter()
+        .cartesian_product(support(subset_b, &(self.n)))
             .into_iter()
             .fold(
             0u64, 
@@ -921,7 +955,7 @@ impl QuotientHyperGroupoid {
         let n = classes.len() as u64;
         let representants:Vec<u64> = classes.iter().map(|x|x.0).collect();
         let function  = |a:usize,b:usize| 
-            chi_a(
+            support(
                 &base_hypergroupoid.mul_by_representation(
                     &(1<<representants[a]), &(1<<representants[b])),&base_hypergroupoid.n).iter()
                     .map(|x|equivalence.get_class(*x as u64).1)

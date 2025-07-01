@@ -5,7 +5,7 @@ use nalgebra::DMatrix;
 use num_rational::Rational64;
 use permutation::Permutation;
 use rayon::iter::{FromParallelIterator, IntoParallelRefIterator, ParallelIterator};
-use crate::{fuzzy::FuzzySubset, hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoid}, quotient_hg::QuotientHyperGroup, relations::Relation, utilities::{chi_a, get_complement_subset, vec_to_set, U1024}};
+use crate::{fuzzy::FuzzySubset, hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoid}, quotient_hg::QuotientHyperGroup, relations::Relation, utilities::{support, get_complement_subset, vec_to_set, U1024}};
 #[derive(Debug, Clone)]
 pub enum HyperStructureError {
     NotHypergroup,
@@ -28,7 +28,7 @@ impl HyperGroup {
 
     }
     pub fn new_from_tag_u128(tag:&u128,cardinality:&u64)->Self{
-        let hg= HyperGroupoid::new_from_tag(tag,cardinality);
+        let hg= HyperGroupoid::new_from_tag_u128(tag,cardinality);
         assert!(hg.is_hypergroup(),"Not an hypergroup! Tag is {}",tag);
         HyperGroup(hg)
     }
@@ -37,8 +37,8 @@ impl HyperGroup {
         assert!(hg.is_hypergroup(),"Not an hypergroup!");
         HyperGroup(hg)
     }
-    pub fn new_from_elements(input_array: &Vec<Vec<u64>>, cardinality:u64)->Self{
-        let hg = HyperGroupoid::new_from_elements(input_array, cardinality);
+    pub fn new_from_elements(input_array: &Vec<Vec<u64>>, cardinality:&u64)->Self{
+        let hg = HyperGroupoid::new_from_elements(input_array, &cardinality);
         assert!(hg.is_hypergroup(),"Input array doesn't represent a hypergroup!");
         HyperGroup(hg)
 
@@ -178,7 +178,7 @@ pub fn is_canonical(&self)->bool{
 pub fn is_sub_hypergroup(&self,k:&u64)->bool{
     let power_set_cardinality = 1<<self.cardinality();
     assert!(*k<power_set_cardinality,"K is not a subset of H!");
-    let ones:Vec<usize> = chi_a(k, &self.0.n).iter().map(|x|*x as usize).collect();
+    let ones:Vec<usize> = support(k, &self.0.n).iter().map(|x|*x as usize).collect();
     let sub_matrix = self.0.hyper_composition.select_columns(&ones).select_rows(&ones);
         sub_matrix.row_iter().all(
             |row|
@@ -428,7 +428,7 @@ pub fn get_fundamental_group(&self)-> QuotientHyperGroup {
 ///         vec![1], vec![2], vec![0],
 ///         vec![2], vec![0], vec![1],
 ///     ],
-///     cardinality_fg,
+///     &cardinality_fg,
 /// );
 ///
 /// assert_eq!(fundamental_group, expected_fundamental_group);

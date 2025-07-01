@@ -65,7 +65,7 @@ impl HyperGroupoid {
 /// let cardinality =2u64;
 /// let input_values  = vec![vec![0,1],vec![0,1],
 ///                            vec![1],vec![0]];
-/// let hs = HyperGroupoid::new_from_elements(&input_values, cardinality);
+/// let hs = HyperGroupoid::new_from_elements(&input_values, &cardinality);
 /// 
 /// let q_0=hs.get_q_u(&0);
 /// assert_eq!(q_0,3);
@@ -89,7 +89,7 @@ impl HyperGroupoid {
 /// let cardinality =2u64;
 /// let input_values  = vec![vec![0,1],vec![0,1],
 ///                            vec![1],vec![0]];
-/// let hs = HyperGroupoid::new_from_elements(&input_values, cardinality);
+/// let hs = HyperGroupoid::new_from_elements(&input_values, &cardinality);
 
 /// 
 /// let alpha_0=hs.get_alpha_u(&0);

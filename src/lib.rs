@@ -79,7 +79,7 @@ mod tests {
             vec![3],vec![4],vec![4],vec![0],vec![1,2],
             vec![4],vec![0],vec![0],vec![1,2],vec![3]];
 
-        let hg = HyperGroup::new_from_elements(&input_array, cardinality);
+        let hg = HyperGroup::new_from_elements(&input_array, &cardinality);
         let beta = hg.beta_relation().quotient_set();
         let expected_beta = vec![(0_u64,vec![0]),(1_u64,vec![1,2]),(3_u64,vec![3]),(4_u64,vec![4])];
         assert_eq!(beta,expected_beta);
@@ -90,7 +90,7 @@ mod tests {
             vec![1],vec![2],vec![3],vec![0],
             vec![2],vec![3],vec![0],vec![1],
             vec![3],vec![0],vec![1],vec![2]];
-        let expected_fundamental_group = HyperGroup::new_from_elements(&input_array, cardinality);
+        let expected_fundamental_group = HyperGroup::new_from_elements(&input_array, &cardinality);
     assert_eq!(expected_fundamental_group,fundamental_group);
         let heart = hg.heart();
         let expected_heart:HashSet<u64> = HashSet::from([0]);
@@ -109,7 +109,7 @@ mod tests {
             vec![5,6],vec![2],vec![3],vec![1],vec![0],vec![4],vec![4],
             ];
 
-        let hg = HyperGroup::new_from_elements(&input_array, cardinality);
+        let hg = HyperGroup::new_from_elements(&input_array, &cardinality);
         let beta = hg.beta_relation().quotient_set();
         let expected_beta = vec![(0_u64,vec![0]),(1_u64,vec![1]),(2_u64,vec![2]),(3_u64,vec![3]),(4_u64,vec![4]),(5_u64,vec![5,6])];
         assert_eq!(beta,expected_beta);
@@ -123,7 +123,7 @@ mod tests {
             vec![4],vec![3],vec![1],vec![2],vec![5],vec![0],
             vec![5],vec![2],vec![3],vec![1],vec![0],vec![4],
             ];
-        let expected_fundamental_group = HyperGroup::new_from_elements(&input_array, cardinality);
+        let expected_fundamental_group = HyperGroup::new_from_elements(&input_array, &cardinality);
     assert_eq!(expected_fundamental_group,fundamental_group);
         let heart = hg.heart();
         let expected_heart:HashSet<u64> = HashSet::from([0]);
@@ -143,7 +143,7 @@ let cardinality  =8u64;
             vec![3,7],vec![2,6],vec![1,5],vec![0,4],vec![3,7],vec![2,6],vec![1,5],vec![0,4],
             ];
 
-        let hg = HyperGroup::new_from_elements(&input_array, cardinality);
+        let hg = HyperGroup::new_from_elements(&input_array, &cardinality);
         let beta = hg.beta_relation().quotient_set();
         let expected_beta = vec![(0_u64,vec![0,4]),(1_u64,vec![1,5]),(2_u64,vec![2,6]),(3_u64,vec![3,7])];
         assert_eq!(beta,expected_beta);
@@ -155,7 +155,7 @@ let cardinality  =8u64;
             vec![2],vec![3],vec![0],vec![1],
             vec![3],vec![2],vec![1],vec![0]
             ];
-        let expected_fundamental_group = HyperGroup::new_from_elements(&input_array, cardinality);
+        let expected_fundamental_group = HyperGroup::new_from_elements(&input_array, &cardinality);
     assert_eq!(expected_fundamental_group,fundamental_group);
         let heart = hg.heart();
         let expected_heart:HashSet<u64> = HashSet::from([0,4]);
@@ -277,28 +277,28 @@ let cardinality  =8u64;
     let cardinality =2u64;
     let input_values  = vec![vec![0,1],   vec![0,1],
                                             vec![1],vec![0]];
-    let hs = HyperGroupoid::new_from_elements(&input_values, cardinality);
+    let hs = HyperGroupoid::new_from_elements(&input_values, &cardinality);
     let degree = hs.get_fuzzy_grade();
     assert_eq!(degree,1usize);
     //H13
     let cardinality =2u64;
     let input_values  = vec![vec![0,1],   vec![1],
                                             vec![0,1],vec![0]];
-    let hs = HyperGroupoid::new_from_elements(&input_values, cardinality);
+    let hs = HyperGroupoid::new_from_elements(&input_values, &cardinality);
     let degree = hs.get_fuzzy_grade();
     assert_eq!(degree,1usize);
     //H15
     let cardinality =2u64;
     let input_values  = vec![vec![0,1],   vec![0],
                                             vec![1],vec![0,1]];
-    let hs = HyperGroupoid::new_from_elements(&input_values, cardinality);
+    let hs = HyperGroupoid::new_from_elements(&input_values, &cardinality);
     let degree = hs.get_fuzzy_grade();
     assert_eq!(degree,1usize);
     //H9
     let cardinality =2u64;
     let input_values  = vec![vec![0,1],   vec![1],
                                             vec![1],vec![0]];
-    let hs = HyperGroupoid::new_from_elements(&input_values, cardinality);
+    let hs = HyperGroupoid::new_from_elements(&input_values, &cardinality);
     let degree = hs.get_fuzzy_grade();
     assert_eq!(degree,2usize);
             
@@ -306,7 +306,7 @@ let cardinality  =8u64;
     let cardinality =2u64;
     let input_values  = vec![vec![0],   vec![0,1],
                                             vec![1],vec![0]];
-    let hs = HyperGroupoid::new_from_elements(&input_values, cardinality);
+    let hs = HyperGroupoid::new_from_elements(&input_values, &cardinality);
     let degree = hs.get_fuzzy_grade();
     assert_eq!(degree,2usize);
 
@@ -314,35 +314,35 @@ let cardinality  =8u64;
     let cardinality =2u64;
     let input_values  = vec![vec![1],   vec![0,1],
                                             vec![0],vec![1]];
-    let hs = HyperGroupoid::new_from_elements(&input_values, cardinality);
+    let hs = HyperGroupoid::new_from_elements(&input_values, &cardinality);
     let degree = hs.get_fuzzy_grade();
     assert_eq!(degree,2usize);
     //H14
     let cardinality =2u64;
     let input_values  = vec![vec![0,1],   vec![0],
                                             vec![0],vec![0,1]];
-    let hs = HyperGroupoid::new_from_elements(&input_values, cardinality);
+    let hs = HyperGroupoid::new_from_elements(&input_values, &cardinality);
     let degree = hs.get_fuzzy_grade();
     assert_eq!(degree,2usize);
     //H16
     let cardinality =2u64;
     let input_values  = vec![vec![0],   vec![0,1],
                                             vec![0,1],vec![0]];
-    let hs = HyperGroupoid::new_from_elements(&input_values, cardinality);
+    let hs = HyperGroupoid::new_from_elements(&input_values, &cardinality);
     let degree = hs.get_fuzzy_grade();
     assert_eq!(degree,2usize);
    //H17
     let cardinality =2u64;
     let input_values  = vec![vec![0,1],   vec![0,1],
                                             vec![0],vec![0,1]];
-    let hs = HyperGroupoid::new_from_elements(&input_values, cardinality);
+    let hs = HyperGroupoid::new_from_elements(&input_values, &cardinality);
     let degree = hs.get_fuzzy_grade();
     assert_eq!(degree,2usize);
    //H18
     let cardinality =2u64;
     let input_values  = vec![vec![0,1],   vec![0,1],
                                             vec![1],vec![0,1]];
-    let hs = HyperGroupoid::new_from_elements(&input_values, cardinality);
+    let hs = HyperGroupoid::new_from_elements(&input_values, &cardinality);
     let degree = hs.get_fuzzy_grade();
     assert_eq!(degree,2usize);
 

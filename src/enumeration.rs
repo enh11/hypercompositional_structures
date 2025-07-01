@@ -14,7 +14,7 @@ pub fn collect_beta_equivalence(cardinality:&u64)->Vec<u128>{
         into_par_iter().filter(|i|
             (representing_hypergroupoid(i,&cardinality))
             &
-            (HyperGroupoid::new_from_tag(i, cardinality).beta_relation().is_transitive())
+            (HyperGroupoid::new_from_tag_u128(i, cardinality).beta_relation().is_transitive())
         )
         .collect()
 }
@@ -34,7 +34,7 @@ pub fn collect_hypergroupoid_with_scalar_identity(cardinality:&u64)->Vec<u128>{
         .filter(|i|
             representing_hypergroupoid(&i,&cardinality)
             &
-            !(HyperGroupoid::new_from_tag(i, &cardinality).collect_scalar_identities().is_empty())
+            !(HyperGroupoid::new_from_tag_u128(i, &cardinality).collect_scalar_identities().is_empty())
         )
         .collect()
 
@@ -47,9 +47,9 @@ pub fn collect_invertible_magmata(cardinality:&u64)->Vec<u128>{
         .filter(|i|
             representing_hypergroupoid(&mut i.clone(),&cardinality)
             &
-            (HyperGroupoid::new_from_tag(i, &cardinality).collect_scalar_identities().len()==1)
+            (HyperGroupoid::new_from_tag_u128(i, &cardinality).collect_scalar_identities().len()==1)
             &
-            (UnitalMagma::new_from_tag(i, &cardinality).is_invertible_unital_magma())
+            (UnitalMagma::new_from_tag_u128(i, &cardinality).is_invertible_unital_magma())
         )
         .collect()
 
@@ -60,7 +60,7 @@ pub fn collect_hypergroups(cardinality:&u64)->Vec<u128>{
         .filter(|i|
             (representing_hypergroupoid(&mut i.clone(),&cardinality))
             &&
-            (HyperGroupoid::new_from_tag(i, cardinality).is_hypergroup())
+            (HyperGroupoid::new_from_tag_u128(i, cardinality).is_hypergroup())
         )
         .collect()
 }
@@ -94,7 +94,7 @@ pub fn enumeration_hyperstructure(structure:&str,cardinality:&u64)->Vec<usize>{
     let mut isomorphism_classes:Vec<u64>=Vec::new();
 
     for sigma in &permutation {        
-        let isomorphic_image_tag = HyperGroupoid::new_from_tag(&tag, &cardinality).isomorphic_hypergroup_from_permutation(&sigma).get_integer_tag();
+        let isomorphic_image_tag = HyperGroupoid::new_from_tag_u128(&tag, &cardinality).isomorphic_hypergroup_from_permutation(&sigma).get_integer_tag();
         isomorphism_classes.push(isomorphic_image_tag.try_into().unwrap());
 
     }

@@ -164,16 +164,16 @@ pub fn get_complement_subset(k:&u64,cardinality:&u64)->u64 {
 ///
 /// # Example
 /// ```
-/// use hyperstruc::utilities::chi_a;
+/// use hyperstruc::utilities::support;
 ///
 /// let cardinality = 3u64;
 /// let subset_representation = 5u64; // binary: 101
 /// let expected = vec![0, 2];        // positions of 1s
 ///
-/// let result = chi_a(&subset_representation, &cardinality);
+/// let result = support(&subset_representation, &cardinality);
 /// assert_eq!(result, expected);
 /// ```
-pub fn chi_a(subset_a: &u64, cardinality: &u64) -> Vec<usize> {
+pub fn support(subset_a: &u64, cardinality: &u64) -> Vec<usize> {
     let power_set_cardinality = 1 << cardinality;
     if subset_a >= &power_set_cardinality {
         panic!(

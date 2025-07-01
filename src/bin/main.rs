@@ -1,12 +1,20 @@
 use std::{collections::HashSet, default};
 
-use hyperstruc::{generating_functions::{b_hypercomposition, genetics_hypergroup, tropical_hypergroup}, hs::{HyperGroupoid, QuotientHyperGroupoid}, hypergroups::HyperGroup, relations::Relation, tags::TAG_3_REPRESENTANTS, utilities::{binary_to_n, get_min_max, get_min_max_u1024, get_subset, n_to_binary_vec, representing_hypergroupoid_u1024, u64_to_set, vec_to_set, U1024}};
+use hyperstruc::{generating_functions::{b_hypercomposition, genetics_hypergroup, tropical_hypergroup}, hs::{HyperGroupoid, QuotientHyperGroupoid}, hypergroups::HyperGroup, relations::Relation, tags::TAG_3_REPRESENTANTS, utilities::{binary_to_n, support, get_min_max, get_min_max_u1024, get_subset, n_to_binary_vec, representing_hypergroupoid_u1024, u64_to_set, vec_to_set, U1024}};
 use itertools::Itertools;
 use nalgebra::{coordinates::M2x3, DMatrix};
 use rayon::vec;
 
 
 fn main(){
+    let cardinality =3u64;
+    let input_cayley = vec![
+        vec![0,1,2],vec![0],vec![2],
+        vec![0,2],vec![1,2],vec![2],
+        vec![1],vec![0,1,2],vec![2],
+    ];
+    let hypergroupoid = HyperGroupoid::new_from_elements(&input_cayley, &cardinality);
+    
  
   /*  let cardinality = 3u64;
     let h =(1u64<<cardinality)-1; 
@@ -422,7 +430,7 @@ println!("one_from_{} = {:?}",tag,one_from_tag);
     } */
  /*   let ex :Vec<u128>= TAG_HG_3.into_par_iter().filter(|x|
     representing_hypergroupoid(x, &cardinality)&&
-HyperGroupoid::new_from_tag(x, &cardinality).is_hypergroup()&&
+HyperGroupoid::new_from_tag_u128(x, &cardinality).is_hypergroup()&&
 HyperGroup::new_from_tag_u128(x, &cardinality).is_transposition()&&
 HyperGroup::new_from_tag_u128(x, &cardinality).find_reflexive_subhypergroup().is_some()).collect();
 println!("{:?}",ex);
@@ -451,8 +459,8 @@ println!("dist {:?}",dist); */
   let dist = distance_tags(&min, &max, &cardinality);
   println!("dist {}",dist);
   println!("log2dist = {}",dist.ilog2());
-    let any  =(2305843009213693951 +1..some).into_par_iter().find_first(|x|(representing_hypergroupoid(x, &cardinality))&&(HyperGroupoid::new_from_tag(&*x, &cardinality).is_hypergroup()));    /*Some Tests With Metric */
-    let any_hg= HyperGroupoid::new_from_tag(&any.unwrap(), &cardinality);
+    let any  =(2305843009213693951 +1..some).into_par_iter().find_first(|x|(representing_hypergroupoid(x, &cardinality))&&(HyperGroupoid::new_from_tag_u128(&*x, &cardinality).is_hypergroup()));    /*Some Tests With Metric */
+    let any_hg= HyperGroupoid::new_from_tag_u128(&any.unwrap(), &cardinality);
     println!("tag of any is {}",any_hg.get_integer_tag());
     println!("tag of max is {}",max);
 
@@ -503,10 +511,10 @@ println!("dist classes {:?}",dist);  */
     println!("nbeta : {}",nbeta.len()); */
      
  /*    let tag=TAG_HG_2[3];
-    let hg2=HyperGroupoid::new_from_tag(&tag, &2u64);
+    let hg2=HyperGroupoid::new_from_tag_u128(&tag, &2u64);
     println!("core is {:?}",hg2.beta_relation().rel);
     let tag=TAG_HG_3[100];
-    let hg2=HyperGroupoid::new_from_tag(&tag, &3u64);
+    let hg2=HyperGroupoid::new_from_tag_u128(&tag, &3u64);
     println!("core is {:?}",hg2.beta_relation());
     println!("beta is equivalence: {}",hg2.beta_relation().is_equivalence()); */
 
@@ -568,7 +576,7 @@ println!("beta {:?}",beta);
 let cardinality = 2;
 let t=185;
 println!("{:b}",t);
-let new_hyperstructure_from_tag = HyperGroupoid::new_from_tag(&t,&cardinality);
+let new_hyperstructure_from_tag = HyperGroupoid::new_from_tag_u128(&t,&cardinality);
 let new_hyperstructure_from_matrix = HyperGroupoid::new_from_matrix(&DMatrix::from_row_slice(2usize,2usize,&[2,3,2,1]));
 println!("{}", new_hyperstructure_from_tag);
 let t= from_tag_to_vec(&t, &cardinality);
@@ -586,7 +594,7 @@ println!("tag1 {}, tag2 {}", new_hyperstructure_from_matrix.get_integer_tag(),18
 println!("unital magma: {}",magma.is_unital_magma());
 let t  =24368401u128;
  let cardinality=3u64;
-//let magma =UnitalMagma::new_from_tag(&t, &cardinality);
+//let magma =UnitalMagma::new_from_tag_u128(&t, &cardinality);
 println!("magma {}",magma);
  println!("magma is invertible : {}",magma.is_invertible_unital_magma());
  let left_invertible= magma.collect_left_invertible();
@@ -600,7 +608,7 @@ println!("magma {}",magma);
 /*
     let t=71663230u128;
     let cardinality=3u64;
-    let m=UnitalMagma::new_from_tag(&t, &cardinality);
+    let m=UnitalMagma::new_from_tag:u128(&t, &cardinality);
     let l_invertible=m.collect_left_invertible();
     let r_invertible=m.collect_right_invertible();
 
@@ -629,7 +637,7 @@ let end = now.elapsed();
 /* let cardinality=3u64;
 
 for m in TAG_UNITAL_MAGMATA_3{
-    let magma=UnitalMagma::new_from_tag(&m, &cardinality);
+    let magma=UnitalMagma::new_from_tag_u128(&m, &cardinality);
     if magma.is_invertible_unital_magma() {
         println!("{:b} with identity {:b}",m,magma.identity)
     }
@@ -676,7 +684,7 @@ println!("Elapsed:{:?}",end);
 /*    let tag =25830028u128;
     let cardinality=3u64;
     println!("starting tag {}",tag);
-    let hypergroup=HyperGroupoid::new_from_tag(&tag,&cardinality);
+    let hypergroup=HyperGroupoid::new_from_tag_u128(&tag,&cardinality);
     println!("new from tag {}",hypergroup);
     println!("tag is hypergroup: {}",hypergroup.is_hypergroup());
     println!("tag {}",hypergroup.get_integer_tag());
@@ -801,7 +809,7 @@ for tag in tag_2 {
     let mut isomorphism_classes:Vec<u64>=Vec::new();
 
     for sigma in &permutation {        
-        let isomorphic_image_tag = HyperGroupoid::new_from_tag(tag, &CARDINALITY).isomorphic_hypergroup_from_permutation(&sigma).get_integer_tag();
+        let isomorphic_image_tag = HyperGroupoid::new_from_tag_u128(tag, &CARDINALITY).isomorphic_hypergroup_from_permutation(&sigma).get_integer_tag();
         isomorphism_classes.push(isomorphic_image_tag);
 
     }
@@ -826,7 +834,7 @@ let mut c:Vec<usize>=Vec::new();
 
     }
 /* for tag in classes.iter().map(|x|x.0) {
-    let hg  = HyperGroupoid::new_from_tag(tag as u128, &CARDINALITY);
+    let hg  = HyperGroupoid::new_from_tag_u128(tag as u128, &CARDINALITY);
     print!("{}",hg);
 }  */
 
