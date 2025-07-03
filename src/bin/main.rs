@@ -1,5 +1,6 @@
-
 use hyperstruc::hs::HyperGroupoid;
+
+
 
 
 fn main(){

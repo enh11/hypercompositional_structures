@@ -325,7 +325,8 @@ pub fn collect_isomorphism_class(&self)->(U1024,Vec<U1024>){
 /// use hyperstruc::utilities::U1024;
 /// 
 /// let cardinality  =2u64;
-/// use hyperstruc::tags:: TAG_HG_2;
+/// use hyperstruc::hg_2::tag_hypergroups_2::TAG_HG_2;
+/// 
 /// let tag_2:Vec<U1024> = TAG_HG_2.iter().map(|x| U1024::from(*x)).collect();
 /// for tags in tag_2 {
 ///     let hg =  HyperGroupoid::new_from_tag_u1024(&tags,&cardinality);
