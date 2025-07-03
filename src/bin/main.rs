@@ -1,20 +1,50 @@
-use std::{collections::HashSet, default};
 
-use hyperstruc::{generating_functions::{b_hypercomposition, genetics_hypergroup, tropical_hypergroup}, hs::{HyperGroupoid, QuotientHyperGroupoid}, hypergroups::HyperGroup, relations::Relation, tags::TAG_3_REPRESENTANTS, utilities::{binary_to_n, support, get_min_max, get_min_max_u1024, get_subset, n_to_binary_vec, representing_hypergroupoid_u1024, u64_to_set, vec_to_set, U1024}};
-use itertools::Itertools;
-use nalgebra::{coordinates::M2x3, DMatrix};
-use rayon::vec;
+use hyperstruc::hs::HyperGroupoid;
 
 
 fn main(){
-    let cardinality =3u64;
-    let input_cayley = vec![
-        vec![0,1,2],vec![0],vec![2],
-        vec![0,2],vec![1,2],vec![2],
-        vec![1],vec![0,1,2],vec![2],
+    let cardinality = 7u64;
+    let input_array = vec![
+        vec![0],vec![1],vec![2],vec![3],vec![4],vec![5,6],vec![5,6],
+        vec![1],vec![0],vec![4],vec![5,6],vec![2],vec![3],vec![3],
+        vec![2],vec![5,6],vec![0],vec![4],vec![3],vec![1],vec![1],
+        vec![3],vec![4],vec![5,6],vec![0],vec![1],vec![2],vec![2],
+        vec![4],vec![3],vec![1],vec![2],vec![5,6],vec![0],vec![0],
+        vec![5,6],vec![2],vec![3],vec![1],vec![0],vec![4],vec![4],
+        vec![5,6],vec![2],vec![3],vec![1],vec![0],vec![4],vec![4],
     ];
-    let hypergroupoid = HyperGroupoid::new_from_elements(&input_cayley, &cardinality);
+    let hypergroupoid = HyperGroupoid::new_from_elements(&input_array, &cardinality);
+    let hg = match hypergroupoid.is_hypergroup() {
+        true => hyperstruc::hypergroups::HyperGroup::new_from_hypergroupiod(&hypergroupoid),
+        false => panic!()
+    };
+    let left_identities = hg.collect_left_identities();
+    println!("left id are {:?}",left_identities);
+    let right_identities  = hg.collect_right_identities();
+    println!("right id are {:?}",right_identities);
+    let identities= hg.collect_identities();
+    println!("id are {:?}",identities);
+        let right_scalars= hg.collect_right_scalars();
+    println!("right scalars are {:?}",right_scalars);
+    let left_scalars = hg.collect_left_scalars();
+    println!("left scalars are {:?}",left_scalars);
+    let scalars = hg.collect_scalars();
+    println!("scalars are {:?}",scalars);
+    assert!(hg.0.is_left_partial_identity_of_x(&1u64, &4u64));
+    let partial_identities = hg.collect_partial_identities();
+    println!("partial identities {:?}",partial_identities);
+    let sub_hg = hg.collect_proper_subhypergroups();
+    println!("sub are {:?}",sub_hg);
+    let closed = hg.collect_proper_closed_subhypergroups();
+    println!("closed are {:?}",closed);
+    let normals = hg.collect_proper_normal_subhypergroups();
+    println!("normals {:?}",normals);
+    let reflexive = hg.collect_proper_reflexive_subhypergroups();
+    println!("reflexive are {:?}",reflexive);
+        let invertible = hg.collect_proper_invertible_subhypergroups();
+    println!("reflexive are {:?}",invertible);
     
+
  
   /*  let cardinality = 3u64;
     let h =(1u64<<cardinality)-1; 

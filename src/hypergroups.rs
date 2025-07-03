@@ -21,6 +21,10 @@ impl fmt::Display for HyperStructureError {
 pub struct HyperGroup(pub HyperGroupoid);
 
 impl HyperGroup {
+    pub fn new_from_hypergroupiod(h:&HyperGroupoid)-> Self {
+        assert!(h.is_hypergroup());
+        HyperGroup(h.clone())
+    }
     pub fn new_from_matrix(matrix:&DMatrix<u64>)->Self{
         let hg= HyperGroupoid::new_from_matrix(matrix);
         assert!(hg.is_hypergroup(),"Not an hypergroup!");
@@ -210,11 +214,26 @@ pub fn is_sub_hypergroup(&self,k:&u64)->bool{
 pub fn collect_identities(&self)->Vec<u64>{
     self.0.collect_identities()
 }
+pub fn collect_left_identities(&self)-> Vec<u64> {
+    self.0.collect_left_identities()
+}
+pub fn collect_right_identities(&self)-> Vec<u64> {
+    self.0.collect_right_identities()
+}
 pub fn collect_scalars(&self)->Vec<u64>{
     self.0.collect_scalars()
 }
 pub fn collect_scalars_identities(&self)->Vec<u64>{
     self.0.collect_scalar_identities()
+}
+pub fn collect_left_scalars(&self)->Vec<u64> {
+    self.0.collect_left_scalars()
+}
+pub fn collect_right_scalars(&self)-> Vec<u64> {
+    self.0.collect_right_scalars()
+}
+pub fn collect_partial_identities(&self)-> Vec<u64> {
+    self.0.collect_partial_identities()
 }
 pub fn left_inverses_of_x(&self, x:&u64,u:&u64)->u64{
     self.0.left_inverses_of_x(x, u)

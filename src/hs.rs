@@ -142,8 +142,7 @@ pub fn new_from_function<F>(function:F,cardinality:&u64)->Self
 /// let input_cayley = vec![
 ///     vec![0, 1, 2], vec![0],     vec![2],
 ///     vec![0, 2],    vec![1, 2],  vec![2],
-///     vec![1],       vec![0, 1, 2], vec![2],
-/// ];
+///     vec![1],       vec![0, 1, 2], vec![2]];
 /// let hypergroupoid = HyperGroupoid::new_from_elements(&input_cayley, &cardinality);
 /// 
 /// let tag = 120776892u128;
@@ -453,12 +452,12 @@ pub fn is_right_identity(&self,e:&u64)->bool{
 pub fn is_identity(&self,e:&u64)->bool{
     self.is_left_identity(&e)&&self.is_right_identity(&e)
 }
-pub fn collect_left_identity(&self)->Vec<u64>{
+pub fn collect_left_identities(&self)->Vec<u64>{
     self.get_singleton().into_iter()
         .filter(|e|self.is_left_identity(e))
         .collect()
 }
-pub fn collect_right_identity(&self)->Vec<u64>{
+pub fn collect_right_identities(&self)->Vec<u64>{
     self.get_singleton().into_iter()
         .filter(|e|self.is_right_identity(e))
         .collect()
@@ -471,12 +470,18 @@ pub fn collect_identities(&self)->Vec<u64>{
 pub fn is_left_scalar(&self,s:&u64)->bool{
     if !s.is_power_of_two() {panic!("Not an element in hypergroupoid!")}
     let s=s.trailing_zeros();
-    self.hyper_composition.column(s as usize).iter().all(|x|x.is_power_of_two())
+    self.hyper_composition.row(s as usize).iter().all(|x|x.is_power_of_two())
 }
 pub fn is_right_scalar(&self,s:&u64)->bool{
     if !s.is_power_of_two()  {panic!("Not an element in hypergroupoid!")}
     let s=s.trailing_zeros();
-    self.hyper_composition.row(s as usize).iter().all(|x|x.is_power_of_two())
+    self.hyper_composition.column(s as usize).iter().all(|x|x.is_power_of_two())
+}
+pub fn collect_left_scalars(&self)->Vec<u64> {
+    self.get_singleton().into_iter().filter(|x|self.is_left_scalar(x)).collect()
+}
+pub fn collect_right_scalars(&self)-> Vec<u64> {
+        self.get_singleton().into_iter().filter(|x|self.is_right_scalar(x)).collect()
 }
 pub fn is_scalar(&self,s:&u64)->bool {
     self.is_left_scalar(s)&&self.is_right_scalar(s)
@@ -494,16 +499,16 @@ pub fn collect_scalar_identities(&self)->Vec<u64>{
 }
 ///
 /// 
-/// Return the subset of left inverses of x with respect to the unit u.
+/// Return the subset of left inverses of x with respect to the identity e.
 /// Return a u64 representing the subset. To convert it into a HashSet use u64_to_set().
 /// 
 /// 
-pub fn right_inverses_of_x(&self, x:&u64,u:&u64)->u64{
-    let max_subset = 1<<self.n-1;
-    if !x.is_power_of_two()||x>&max_subset {panic!("x is not an element in H")}
-    if !self.is_identity(u) {panic!("u is not and identity in H. Identity in H are {:?}",self.collect_identities())}
-    let i_ru=self.left_division(u, x);
-    let u_as_element = u.trailing_zeros();
+pub fn right_inverses_of_x(&self, x:&u64,e:&u64)->u64{
+    let h = (1<<self.n)-1;
+    if !x.is_power_of_two()||x>&h {panic!("The input value must be an integer representing a singleton, therefore it must be a power of two less than {}",h)}
+    if !self.is_identity(e) {panic!("u is not and identity in H. Identity in H are {:?}",self.collect_identities())}
+    let i_ru=self.left_division(e, x);
+    let u_as_element = e.trailing_zeros();
     i_ru & !(1 << u_as_element)//remove the occurrence of 1 (if there is) in order to remove u from the set of inverses.
 
 }
@@ -513,14 +518,13 @@ pub fn right_inverses_of_x(&self, x:&u64,u:&u64)->u64{
 /// Return a u64 representing the subset. To convert it into a HashSet use u64_to_set().
 /// 
 /// 
-pub fn left_inverses_of_x(&self, x:&u64,u:&u64)->u64{
-    let max_subset = 1<<self.n-1;
-    if !x.is_power_of_two()||x>&max_subset {panic!("{} is not an element in H",x.trailing_zeros())}
-    if !self.is_identity(u) {panic!("u is not and identity in H. Identity in H are {:?}",self.collect_identities())}
-    let i_lu=self.right_division(u, x);
-    let u_as_element = u.trailing_zeros();
-   i_lu & !(1 << u_as_element)//remove the occurrence of 1 (if there is) in order to remove u from the set of inverses.
-   
+pub fn left_inverses_of_x(&self, x:&u64,e:&u64)->u64{
+    let h = (1<<self.n)-1;
+    if !x.is_power_of_two()||x>&h {panic!("The input value must be an integer representing a singleton, therefore it must be a power of two less than {}",h)}
+    if !self.is_identity(e) {panic!("e is not and identity in H. Identity in H are {:?}",self.collect_identities())}
+    let i_lu=self.right_division(e, x);
+    let u_as_element = e.trailing_zeros();
+   i_lu & !(1 << u_as_element)//remove the occurrence of 1 (if there is) in order to remove u from the set of inverses. 
 }
 ///
 /// 

@@ -4,14 +4,14 @@
 pub mod hs;
 pub mod hypergroups;
 pub mod utilities;
-pub mod tags;
+pub mod hg_2;
+pub mod hg_3;
 pub mod enumeration;
 pub mod unital_magma;
 pub mod relations;
 pub mod fuzzy;
 pub mod generating_functions;
 pub mod quotient_hg;
-
 #[cfg(test)]
 mod tests {
     use std::collections::HashSet;
