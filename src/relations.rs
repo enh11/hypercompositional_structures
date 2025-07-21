@@ -78,8 +78,13 @@ impl Relation {
         self.is_reflexive()&&self.is_symmetric()&&self.is_transitive()
     }
     pub fn get_class(&self, x:u64)->(u64,Vec<u64>) {
-        let class:Vec<_> = self.a.iter().filter(|y|self.are_in_relations(x, **y)).map(|x|*x).sorted().collect();
-        let representant = class.iter().min();        (*representant.unwrap(),class)
+        let class:Vec<_> = self.a.iter()
+            .filter(|y|self.are_in_relations(x, **y))
+            .map(|x|*x)
+            .sorted()
+            .collect();
+        let representant = class.iter().min();
+        (*representant.unwrap(),class)
     }
     /// Checks if two elements `x` and `y` are directly related in the relation `R`,
     /// or if there exists a third element `z` such that `(x, z)` and `(z, y)` are in the relation.
