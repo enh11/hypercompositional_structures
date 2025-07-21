@@ -19,6 +19,12 @@ fn main(){
         true => hyperstruc::hypergroups::HyperGroup::new_from_hypergroupiod(&hypergroupoid),
         false => panic!()
     };
+    let beta = hg.collect_beta_classes();
+    println!("beta {:?}",beta);
+    let fundamental = hg.get_isomorphic_fundamental_group();
+    println!("f {}",fundamental);
+    let heart = hg.heart();
+    println!("heart is {:?}",heart);
     let left_identities = hg.collect_left_identities();
     println!("left id are {:?}",left_identities);
     let right_identities  = hg.collect_right_identities();

@@ -562,18 +562,29 @@ pub fn collect_inverses_of_x(&self,x:&u64)->Vec<(u64,u64)>{
     .collect_vec()
 }
 pub fn collect_ph(&self)->Vec<u64>{
-    let  mut a=self.get_singleton();
-    loop {
+    let mut a_current = Vec::new();
+    let  mut a_next=self.get_singleton();
+
+    while a_next!=a_current {
+        a_current = a_next;
+        a_next=a_current.iter().cartesian_product(a_current.iter()).map(|(x,y)|self.mul_by_representation(x, y)).unique().collect();
+        a_next.append(&mut self.get_singleton());
+        a_next.sort();
+        a_next.dedup();
+    }
+    a_current
+    /* loop {
         let ph=a;
         a=ph.iter().cartesian_product(ph.iter()).map(|(x,y)|self.mul_by_representation(x, y)).unique().collect();
-        for x in self.get_singleton(){
+        a.append(&mut self.get_singleton());
+        /* for x in self.get_singleton(){
             a.push(x);
-        }
+        } */
         a=a.into_iter().unique().sorted().collect();
         if a==ph {
             break ph;
         }
-    }
+    } */
 }
 /// # Computing β Relation in Hypergroupoid
 ///
