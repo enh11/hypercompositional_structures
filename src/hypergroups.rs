@@ -1,10 +1,10 @@
-use std::{collections::{HashMap, HashSet}, fmt::{self, Display}, panic::PanicHookInfo};
+use std::{collections::{HashMap, HashSet}, fmt::{self, Display}};
 extern crate nalgebra as na;
 use itertools::Itertools;
 use nalgebra::DMatrix;
 use num_rational::Rational64;
 use permutation::Permutation;
-use rayon::iter::{FromParallelIterator, IntoParallelRefIterator, ParallelIterator};
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use crate::{fuzzy::FuzzySubset, hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoid}, quotient_hg::QuotientHyperGroup, relations::Relation, utilities::{support, get_complement_subset, vec_to_set, U1024}};
 #[derive(Debug, Clone)]
 pub enum HyperStructureError {
@@ -507,7 +507,7 @@ pub fn heart(&self)->HashSet<u64>{
     let identity  = identity[0];//This is the integer which identifies the singleton {identity}. 
                                     //The corresponding element is given by identity.trailing_zeros().
     let identity=identity.trailing_zeros() as u64;
-    let beta_identity = self.beta_relation().get_class(identity);
+    let beta_identity = self.beta_relation().get_class(&identity);
     vec_to_set(&beta_identity.1)
 
 

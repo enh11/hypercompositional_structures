@@ -14,7 +14,7 @@ fn main(){
     ];
     let hs = HyperGroupoid::new_from_elements(&input_array,& cardinality);
     println!("is hg {}",hs.is_hypergroup());
-    let class = hs.beta_relation().get_class(2u64);
+    let class = hs.beta_relation().get_class(&2u64);
     println!("CLASS {:?}",class);
 
     

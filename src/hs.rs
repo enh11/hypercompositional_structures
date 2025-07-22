@@ -974,7 +974,7 @@ impl QuotientHyperGroupoid {
             support(
                 &base_hypergroupoid.mul_by_representation(
                     &(1<<representants[a]), &(1<<representants[b])),&base_hypergroupoid.n).iter()
-                    .map(|x|equivalence.get_class(*x as u64).1)
+                    .map(|x|equivalence.get_class(&(*x as u64)).1)
                     .sorted()
                     .unique()
                     .collect_vec();

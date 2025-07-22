@@ -77,9 +77,9 @@ impl Relation {
     pub fn is_equivalence(&self)->bool{
         self.is_reflexive()&&self.is_symmetric()&&self.is_transitive()
     }
-    pub fn get_class(&self, x:u64)->(u64,Vec<u64>) {
+    pub fn get_class(&self, x:&u64)->(u64,Vec<u64>) {
         let class:Vec<_> = self.a.iter()
-            .filter(|y|self.are_in_relations(x, **y))
+            .filter(|y|self.are_in_relations(x, y))
             .map(|x|*x)
             .sorted()
             .collect();
@@ -110,18 +110,18 @@ impl Relation {
     /// let rel: Vec<(u64,u64)> = vec![(1, 2), (2, 3)];
     /// let r = Relation { a: a.clone(), b: a.clone(), rel };
     ///
-    /// assert_eq!(r.are_in_relations(1, 2), true); // directly in rel
-    /// assert_eq!(r.are_in_relations(1, 3), true); // via 2 (1→2, 2→3)
-    /// assert_eq!(r.are_in_relations(2, 1), false); // not related
+    /// assert_eq!(r.are_in_relations(&1, &2), true); // directly in rel
+    /// assert_eq!(r.are_in_relations(&1, &3), true); // via 2 (1→2, 2→3)
+    /// assert_eq!(r.are_in_relations(&2, &1), false); // not related
     /// ```
-    pub fn are_in_relations(&self,x:u64,y:u64)->bool {
+    pub fn are_in_relations(&self,x:&u64,y:&u64)->bool {
 
-        if self.rel.contains(&(x,y)) {return true}
-        if self.a.iter().any(|z|self.rel.contains(&(x,*z))&&self.rel.contains(&(*z,y))) {return true;}
+        if self.rel.contains(&(*x,*y)) {return true}
+        if self.a.iter().any(|z|self.rel.contains(&(*x,*z))&&self.rel.contains(&(*z,*y))) {return true;}
         false
     }
     pub fn quotient_set(&self)->Vec<(u64,Vec<u64>)>{
     assert!(self.is_equivalence(), "Relation is not an equivalence!");
-    self.a.iter().map(|x|self.get_class(*x)).sorted().unique().collect()
+    self.a.iter().map(|x|self.get_class(x)).sorted().unique().collect()
     }
 }
