@@ -4,6 +4,20 @@ use hyperstruc::hs::HyperGroupoid;
 
 
 fn main(){
+    //hypergroup of order 4
+    let cardinality = 4u64;
+    let input_array = vec![
+        vec![0,1,2,3],vec![1,2],vec![0,3],vec![0,1,2],
+        vec![1,2],vec![0,3],vec![0,1,2],vec![0,1,2,3],
+        vec![0,3],vec![0,1,2],vec![0,1,2,3],vec![1,2],
+        vec![0,1,2],vec![0,1,2,3],vec![1,2],vec![0,3]
+    ];
+    let hs = HyperGroupoid::new_from_elements(&input_array,& cardinality);
+    println!("is hg {}",hs.is_hypergroup());
+    let class = hs.beta_relation().get_class(2u64);
+    println!("CLASS {:?}",class);
+
+    
     let cardinality = 7u64;
     let input_array = vec![
         vec![0],vec![1],vec![2],vec![3],vec![4],vec![5,6],vec![5,6],

@@ -568,7 +568,7 @@ pub fn collect_ph(&self)->Vec<u64>{
     while a_next!=a_current {
         a_current = a_next;
         a_next=a_current.iter().cartesian_product(a_current.iter()).map(|(x,y)|self.mul_by_representation(x, y)).unique().collect();
-        a_next.append(&mut self.get_singleton());
+        a_next.extend(a_current.iter());
         a_next.sort();
         a_next.dedup();
     }
