@@ -6,7 +6,7 @@ use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
 use rand::Rng;
-use crate::{fuzzy::FuzzySubset, relations::Relation, utilities::{binary_to_n, cartesian_product, from_tag_to_vec, from_tag_u1024_to_vec, get_min_max_u1024, get_subset, n_to_binary_vec, support, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid_u1024, subset_as_u64, vec_to_set, U1024}};
+use crate::{fuzzy::FuzzySubset, binary_relations::relations::Relation, utilities::{binary_to_n, cartesian_product, from_tag_to_vec, from_tag_u1024_to_vec, get_min_max_u1024, get_subset, n_to_binary_vec, support, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid_u1024, subset_as_u64, vec_to_set, U1024}};
 #[derive(Debug, Clone,PartialEq)]
 pub struct HyperGroupoid{
     pub h:HashSet<u64>,
@@ -337,6 +337,23 @@ pub fn collect_isomorphism_class(&self)->(U1024,Vec<U1024>){
 pub fn is_hypergroup(&self)->bool{
     self.is_associative()&self.is_reproductive()
 }
+pub fn is_weak_associative(&self)->bool{
+    self.get_singleton().iter().all(|a|
+        self.get_singleton().iter().all(|b|
+            self.get_singleton().iter()
+                .all(|c| {
+                    self.mul_by_representation(
+                    &self.mul_by_representation(a, b),
+                    c)
+                    &
+                    self.mul_by_representation(
+                    a,
+                    &self.mul_by_representation(b, c))!=0
+                })  
+        )
+    )
+
+}
 pub fn is_isomorphic_to(&self,other: &Self)->bool{
     let total_tag = get_min_max_u1024(&self.n).1;
     let total_hg = &HyperGroupoid::new_from_tag_u1024(&total_tag, &self.n);
@@ -498,41 +515,38 @@ pub fn collect_scalar_identities(&self)->Vec<u64>{
         .filter(|s|self.is_identity(s))
         .collect()
 }
-///
 /// 
-/// Return the subset of left inverses of x with respect to the identity e.
-/// Return a u64 representing the subset. To convert it into a HashSet use u64_to_set().
-/// 
+/// Return the subset of right inverses of x with respect to the identity e.
+/// Return a u64 representing the subset `x\e-{e}`. 
+/// To convert it into a HashSet use `u64_to_set()`.
 /// 
 pub fn right_inverses_of_x(&self, x:&u64,e:&u64)->u64{
     let h = (1<<self.n)-1;
-    if !x.is_power_of_two()||x>&h {panic!("The input value must be an integer representing a singleton, therefore it must be a power of two less than {}",h)}
-    if !self.is_identity(e) {panic!("u is not and identity in H. Identity in H are {:?}",self.collect_identities())}
-    let i_ru=self.left_division(e, x);
-    let u_as_element = e.trailing_zeros();
-    i_ru & !(1 << u_as_element)//remove the occurrence of 1 (if there is) in order to remove u from the set of inverses.
+    assert!(x.is_power_of_two()&&x<&h,"{} is not an element in H",x);
+    assert!(self.is_identity(e),"{} is not an identity in H",e);
+    let right_inverses=self.left_division(e, x);
+    let e_as_element = e.trailing_zeros();
+    right_inverses & !(1 << e_as_element)//remove the occurrence of 1 in e^th position (if there is) in order to remove e from the set of inverses.
 
 }
-///
 /// 
-/// Return the subset of left inverses of x with respect to the unit u.
-/// Return a u64 representing the subset. To convert it into a HashSet use u64_to_set().
-/// 
+/// Return the subset of left inverses of x with respect to the identity e.
+/// Return a u64 representing the subset `e/x-{e}`. 
+/// To convert it into a HashSet use `u64_to_set()`.
 /// 
 pub fn left_inverses_of_x(&self, x:&u64,e:&u64)->u64{
     let h = (1<<self.n)-1;
-    if !x.is_power_of_two()||x>&h {panic!("The input value must be an integer representing a singleton, therefore it must be a power of two less than {}",h)}
-    if !self.is_identity(e) {panic!("e is not and identity in H. Identity in H are {:?}",self.collect_identities())}
-    let i_lu=self.right_division(e, x);
-    let u_as_element = e.trailing_zeros();
-   i_lu & !(1 << u_as_element)//remove the occurrence of 1 (if there is) in order to remove u from the set of inverses. 
+    assert!(x.is_power_of_two()&&x<&h,"{} is not an element in H",x);
+    assert!(self.is_identity(e),"{} is not an identity in H",e);    
+    
+    let left_inverses=self.right_division(e, x);
+    let e_as_element = e.trailing_zeros();
+    left_inverses & !(1 << e_as_element)//remove the occurrence of 1 (if there is) in order to remove u from the set of inverses. 
 }
-///
 /// 
 /// Returns left inverses of `x` in the hyperstructure `H`. Returns a `Vec<(u64,u64)>`, where the first element in the tuple is 
 /// the unit `u` with respect to which the identities are computed, and the second `u64` in the tuple is the integer representation 
 /// of the left identities with respect to `u`. To convert them as HashSet use `u64_to_set()`.
-/// 
 /// 
 pub fn collect_left_inverses_of_x(&self,x:&u64)->Vec<(u64,u64)>{
     let left_identities_of_x = Vec::new();

@@ -1,9 +1,50 @@
-use hyperstruc::hs::HyperGroupoid;
-
-
-
-
+use hyperstruc::{hs::HyperGroupoid, hypergroups::HyperGroup};
 fn main(){
+    let car  = 3u64;
+    let tag = 24489468u128;
+    let hg = HyperGroup::new_from_tag_u128(&tag, &car);
+    println!("{}",hg);
+    println!("heart is {:?}",hg.heart());
+        //hypergroupoid of order 4 paper China
+let cardinality = 4u64;
+let input_array1 = vec![
+        vec![0],vec![0,1],vec![0,2],vec![0,3],
+        vec![0],vec![0,1],vec![0,2],vec![0,3],
+        vec![0],vec![1],vec![2],vec![3],
+        vec![0],vec![1],vec![2],vec![3]
+    ];    
+let input_array2 = vec![
+        vec![0],vec![0,1],vec![0,2],vec![0,3],
+        vec![0],vec![0,1],vec![0,2],vec![0,3],
+        vec![0],vec![0,1],vec![0,2],vec![0,3],
+        vec![0],vec![0,1],vec![0,2],vec![0,3]
+    ];/* let input_array = vec![
+        vec![0],vec![1],vec![0,2],vec![3],
+        vec![1],vec![0,1],vec![3],vec![2,3],
+        vec![0,2],vec![3],vec![0,1,2],vec![1,3],
+        vec![3],vec![2,3],vec![1,3],vec![0,1,2,3]
+    ]; */
+    let hs1 = HyperGroupoid::new_from_elements(&input_array1, &cardinality);
+    println!("{}",hs1);
+    println!("Is weak associative {}",hs1.is_weak_associative());
+    
+    println!("beta {:?}",hs1.beta_relation().rel);
+    let pil = hs1.collect_partial_left_identities();
+    let pir  = hs1.collect_partial_right_identities();
+    println!("H1 is associative {}",hs1.is_associative());
+    println!("H1 is reproductive {}", hs1.is_reproductive());
+    println!("H1 partial left identities are {:?}",pil);
+    println!("H1 partial right identities are {:?}",pir);
+    let hs2 = HyperGroupoid::new_from_elements(&input_array2, &cardinality);
+    println!("{}",hs2);
+    println!("H2 is associative {}",hs2.is_associative());
+    println!("H2 is reproductive {}", hs2.is_reproductive());
+    let pil = hs2.collect_partial_left_identities();
+    let pir  = hs2.collect_partial_right_identities();
+    println!("H2 partial left identities are {:?}",pil);
+    println!("H2 partial right identities are {:?}",pir);
+
+
     //hypergroup of order 4
     let cardinality = 4u64;
     let input_array = vec![

@@ -1,4 +1,4 @@
-use std::{collections::HashSet, ops::Mul};
+use std::collections::HashSet;
 
 use itertools::Itertools;
 
@@ -8,77 +8,92 @@ pub struct Relation {
     pub b: HashSet<u64>,
     pub rel: Vec<(u64,u64)>
 }
-impl <'a,'b>Mul<&'a Relation> for &'b Relation{
-    type Output = Relation;
-    fn mul(self, rhs: &'a Relation) -> Self::Output {
-        assert_eq!(self.b,self.a,"product not define!");
-        let pairs:Vec<(&u64, &u64)> =self.a.iter().cartesian_product(rhs.b.iter()).collect();
-        let pairs=pairs.iter()
-            .filter(|(x,z)|
-                    self.b.iter()
-                    .any(|y|self.rel.contains(&(**x,*y))&&rhs.rel.contains(&(*y,**z))))
-                    .map(|p|(*p.0,*p.1)
-                ).sorted().unique().collect();
-    Relation{
-        a:self.a.clone(),
-        b:rhs.b.clone(),
-        rel:pairs
-    }
-    }
-}
 impl Relation {
     pub fn is_reflexive(&self)->bool{
         assert_eq!(self.a,self.b,"Domain and codomain not coincede!");
-        let pairs=self.a.iter().zip(self.b.clone())
-        .map(|(x,y)|(*x,y))
-            .collect_vec();
-        pairs.iter().all(|x|self.rel.contains(x))
+        self.diagonal().rel.iter().all(|x|self.rel.contains(x))
 
     }
     pub fn is_symmetric(&self)->bool{
         assert_eq!(self.a,self.b,"Domain and codomain not coincede!");
         self.rel.iter().all(|(x,y)|self.rel.contains(&(*y,*x)))
     }
+/// Checks whether the relation is transitive.
+///
+/// A relation `R` on a set `A` is transitive if for all `a, b, c ∈ A`,
+/// whenever `(a, b) ∈ R` and `(b, c) ∈ R`, then `(a, c)` must also be in `R`.
+///
+/// # Examples
+/// ```
+/// use hyperstruc::relations::Relation;
+/// use std::collections::HashSet;
+/// 
+/// let a:HashSet<u64>=(1..=3).into_iter().collect();
+/// let rel = vec![(1, 1), (1, 2), (2, 2), (2, 3), (1, 3)];
+/// let trans_rel = Relation{
+/// a: a.clone(),
+/// b: a,
+/// rel: rel};
+/// 
+/// assert!(trans_rel.is_transitive());
+///
+/// ```
+///
+/// # Panics
+/// Panics if the domain and codomain of the relation are not equal,
+/// as transitivity is only defined for homogeneous relations.
+///
     pub fn is_transitive(&self)->bool{
         assert_eq!(self.a,self.b,"Domain and codomain not coincede!");
-        let rr=(self*self).rel;
-        
-            rr.iter().all(|x|self.rel.contains(x))
+        self.rel.iter().all(|&(a, b)| {
+            self.rel.iter().all(|&(c, d)| 
+                b != c || self.rel.contains(&(a, d))
+            )
+})
+    }
+    pub fn diagonal(&self)->Self{
+        assert_eq!(self.a,self.b);
+        let diag:Vec<(u64,u64)> = 
+                self.a.iter()
+                    .zip(self.b.iter())
+                    .map(|(x,y)| (*x,*y)).collect();
+        Relation { a: self.a.clone(), b: self.b.clone(), rel: diag}
+
     }
 /// Checks whether the relation is an **equivalence relation**.
-    ///
-    /// A relation is an equivalence relation if it satisfies:
-    /// - **Reflexivity**: For every `x` in the set, `(x, x)` is in the relation.
-    /// - **Symmetry**: For every `(x, y)` in the relation, `(y, x)` is also in the relation.
-    /// - **Transitivity**: For all `(x, y)` and `(y, z)` in the relation, `(x, z)` is also in the relation.
-    ///
-    /// # Returns
-    ///
-    /// `true` if the relation is reflexive, symmetric, and transitive; otherwise `false`.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use std::collections::HashSet;
-    /// use hyperstruc::relations::Relation;
-    ///
-    /// let a: HashSet<u64> = [1, 2, 3].into_iter().collect();
-    /// let rel: Vec<(u64, u64)> = vec![
-    ///     (1, 1), (2, 2), (3, 3),
-    ///     (1, 2), (2, 1),
-    ///     (2, 3), (3, 2),
-    ///     (1, 3), (3, 1)
-    /// ];
-    ///
-    /// let r = Relation { a: a.clone(), b: a.clone(), rel };
-    /// assert!(r.is_equivalence());
-    /// 
-    /// ```
+///
+/// A relation is an equivalence relation if it satisfies:
+/// - **Reflexivity**: For every `x` in the set, `(x, x)` is in the relation.
+/// - **Symmetry**: For every `(x, y)` in the relation, `(y, x)` is also in the relation.
+/// - **Transitivity**: For all `(x, y)` and `(y, z)` in the relation, `(x, z)` is also in the relation.
+///
+/// # Returns
+///
+/// `true` if the relation is reflexive, symmetric, and transitive; otherwise `false`.
+///
+/// # Example
+///
+/// ```
+/// use std::collections::HashSet;
+/// use hyperstruc::relations::Relation;
+///
+/// let a: HashSet<u64> = [1, 2, 3].into_iter().collect();
+/// let rel: Vec<(u64, u64)> = vec![
+///     (1, 1), (2, 2), (3, 3),
+///     (1, 2), (2, 1),
+///     (2, 3), (3, 2),
+///     (1, 3), (3, 1)
+/// ];
+///
+/// let r = Relation { a: a.clone(), b: a.clone(), rel };
+/// assert!(r.is_equivalence());
+/// 
+/// ```
     pub fn is_equivalence(&self)->bool{
         self.is_reflexive()&&self.is_symmetric()&&self.is_transitive()
     }
     pub fn get_class(&self, x:&u64)->(u64,Vec<u64>) {
-        let class:Vec<_> = self.a.iter()
+        let class:Vec<u64> = self.a.iter()
             .filter(|y|self.are_in_relations(x, y))
             .map(|x|*x)
             .sorted()
@@ -86,39 +101,9 @@ impl Relation {
         let representant = class.iter().min();
         (*representant.unwrap(),class)
     }
-    /// Checks if two elements `x` and `y` are directly related in the relation `R`,
-    /// or if there exists a third element `z` such that `(x, z)` and `(z, y)` are in the relation.
-    ///
-    /// This is a **partial transitivity check**, useful when computing or testing transitive closure manually.
-    ///
-    /// # Arguments
-    ///
-    /// * `x` - The first element.
-    /// * `y` - The second element.
-    ///
-    /// # Returns
-    ///
-    /// `true` if `(x, y)` ∈ R or if ∃z such that `(x, z)` ∈ R and `(z, y)` ∈ R.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use std::collections::HashSet;
-    /// use hyperstruc::relations::Relation;
-    ///
-    /// let a: HashSet<u64> = [1, 2, 3].into_iter().collect();
-    /// let rel: Vec<(u64,u64)> = vec![(1, 2), (2, 3)];
-    /// let r = Relation { a: a.clone(), b: a.clone(), rel };
-    ///
-    /// assert_eq!(r.are_in_relations(&1, &2), true); // directly in rel
-    /// assert_eq!(r.are_in_relations(&1, &3), true); // via 2 (1→2, 2→3)
-    /// assert_eq!(r.are_in_relations(&2, &1), false); // not related
-    /// ```
-    pub fn are_in_relations(&self,x:&u64,y:&u64)->bool {
 
-        if self.rel.contains(&(*x,*y)) {return true}
-        if self.a.iter().any(|z|self.rel.contains(&(*x,*z))&&self.rel.contains(&(*z,*y))) {return true;}
-        false
+    pub fn are_in_relations(&self,x:&u64,y:&u64)->bool {
+        self.rel.contains(&(*x,*y)) 
     }
     pub fn quotient_set(&self)->Vec<(u64,Vec<u64>)>{
     assert!(self.is_equivalence(), "Relation is not an equivalence!");
