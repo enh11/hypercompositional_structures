@@ -1,6 +1,6 @@
 use hyperstruc::{hs::{HyperGroupoid, QuotientHyperGroupoid}, hypergroups::HyperGroup, quotient_hg::{self, QuotientHyperGroup}};
 fn main(){
-//Example Hv-group order 10
+//Example Hv-group of order 10
 let cardinality = 10u64;
 let input_array1 = vec![
         vec![0],vec![1],vec![2],vec![3],vec![4],vec![0,5],vec![6],vec![7],vec![8],vec![9],
