@@ -354,6 +354,9 @@ pub fn is_weak_associative(&self)->bool{
     )
 
 }
+pub fn is_hv_group(&self)->bool {
+    self.is_weak_associative()&&self.is_reproductive()
+}
 pub fn is_isomorphic_to(&self,other: &Self)->bool{
     let total_tag = get_min_max_u1024(&self.n).1;
     let total_hg = &HyperGroupoid::new_from_tag_u1024(&total_tag, &self.n);

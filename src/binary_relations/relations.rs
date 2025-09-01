@@ -14,7 +14,6 @@ impl Relation {
     pub fn is_reflexive(&self)->bool{
         assert_eq!(self.a,self.b,"Domain and codomain not coincede!");
         self.diagonal().rel.iter().all(|x|self.rel.contains(x))
-
     }
     pub fn is_symmetric(&self)->bool{
         assert_eq!(self.a,self.b,"Domain and codomain not coincede!");

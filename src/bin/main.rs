@@ -1,18 +1,20 @@
-use hyperstruc::{hs::HyperGroupoid, hypergroups::HyperGroup};
+use hyperstruc::{hs::{HyperGroupoid, QuotientHyperGroupoid}, hypergroups::HyperGroup, quotient_hg::{self, QuotientHyperGroup}};
 fn main(){
-    let car  = 3u64;
-    let tag = 24489468u128;
-    let hg = HyperGroup::new_from_tag_u128(&tag, &car);
-    println!("{}",hg);
-    println!("heart is {:?}",hg.heart());
-        //hypergroupoid of order 4 paper China
-let cardinality = 4u64;
+//Example Hv-group order 10
+let cardinality = 10u64;
 let input_array1 = vec![
-        vec![0],vec![0,1],vec![0,2],vec![0,3],
-        vec![0],vec![0,1],vec![0,2],vec![0,3],
-        vec![0],vec![1],vec![2],vec![3],
-        vec![0],vec![1],vec![2],vec![3]
-    ];    
+        vec![0],vec![1],vec![2],vec![3],vec![4],vec![0,5],vec![6],vec![7],vec![8],vec![9],
+        vec![1],vec![2],vec![3],vec![4],vec![5],vec![6],vec![7],vec![8],vec![9],vec![0],
+        vec![2],vec![3],vec![4],vec![5],vec![6],vec![7],vec![8],vec![9],vec![0],vec![1],
+        vec![3],vec![4],vec![5],vec![6],vec![7],vec![8],vec![9],vec![0],vec![1],vec![2],
+        vec![4],vec![5],vec![6],vec![7],vec![8],vec![9],vec![0],vec![1],vec![2],vec![3],
+        vec![0,5],vec![6],vec![7],vec![8],vec![9],vec![0],vec![1],vec![2],vec![3],vec![4],
+        vec![6],vec![7],vec![8],vec![9],vec![0],vec![1],vec![2],vec![3],vec![4],vec![5],
+        vec![7],vec![8],vec![9],vec![0],vec![1],vec![2],vec![3],vec![4],vec![5],vec![6],
+        vec![8],vec![9],vec![0],vec![1],vec![2],vec![3],vec![4],vec![5],vec![6],vec![7],
+        vec![9],vec![0],vec![1],vec![2],vec![3],vec![4],vec![5],vec![6],vec![7],vec![8]
+    ];
+
 let input_array2 = vec![
         vec![0],vec![0,1],vec![0,2],vec![0,3],
         vec![0],vec![0,1],vec![0,2],vec![0,3],
@@ -26,15 +28,24 @@ let input_array2 = vec![
     ]; */
     let hs1 = HyperGroupoid::new_from_elements(&input_array1, &cardinality);
     println!("{}",hs1);
-    println!("Is weak associative {}",hs1.is_weak_associative());
-    
-    println!("beta {:?}",hs1.beta_relation().rel);
+    let x  =1u64<<0;
+    let y = 1u64<<1;
+    let x_right_y = hs1.right_division(&x, &y);
+    println!("x right y = {}",x_right_y);
     let pil = hs1.collect_partial_left_identities();
     let pir  = hs1.collect_partial_right_identities();
     println!("H1 is associative {}",hs1.is_associative());
     println!("H1 is reproductive {}", hs1.is_reproductive());
+    println!("is weak associative {}",hs1.is_weak_associative());
     println!("H1 partial left identities are {:?}",pil);
     println!("H1 partial right identities are {:?}",pir);
+    println!("identities are {:?}",hs1.collect_identities());
+    let beta = hs1.beta_relation();
+    let beta_star =beta.transitive_closure();
+    assert!(beta_star.is_transitive());
+    let quotient_hg = QuotientHyperGroupoid::new_from_equivalence_relation(&hs1, &beta_star);
+    println!("quotient {}",quotient_hg);
+    let cardinality = 4u64;
     let hs2 = HyperGroupoid::new_from_elements(&input_array2, &cardinality);
     println!("{}",hs2);
     println!("H2 is associative {}",hs2.is_associative());
@@ -54,9 +65,11 @@ let input_array2 = vec![
         vec![0,1,2],vec![0,1,2,3],vec![1,2],vec![0,3]
     ];
     let hs = HyperGroupoid::new_from_elements(&input_array,& cardinality);
+    println!("hypergroup {}",hs);
     println!("is hg {}",hs.is_hypergroup());
     let class = hs.beta_relation().get_class(&2u64);
     println!("CLASS {:?}",class);
+    println!("identities {:?}",hs.collect_identities());
 
     
     let cardinality = 7u64;
