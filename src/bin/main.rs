@@ -92,13 +92,14 @@ let input_array2 = vec![
         false => panic!()
     };
     let now = Instant::now();
-    hg.heart_fast();
+    let heart1 = hg.heart_fast();
     let end1 = now.elapsed();
     println!("time {:?}",now.elapsed());
         let now = Instant::now();
-    hg.heart();
+    let heart2 = hg.heart();
     let end2= now.elapsed();
     println!("time {:?}",now.elapsed());
+    assert_eq!(heart2,heart1);
     println!("ratio {}",end2.as_secs_f64()/end1.as_secs_f64());
     let beta = hg.collect_beta_classes();
     println!("beta {:?}",beta);

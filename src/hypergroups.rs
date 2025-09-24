@@ -514,7 +514,8 @@ pub fn heart(&self)->HashSet<u64>{
 
 }
 pub fn heart_fast(&self)->HashSet<u64> {
-    let pid = self.collect_partial_identities()[0];
+    let pid = self.collect_partial_identities();
+    let pid = pid[0].trailing_zeros() as u64; //convert from singleton to element in H
      self.beta_relation().get_class(&pid).1.into_iter().collect()
 }
 }
