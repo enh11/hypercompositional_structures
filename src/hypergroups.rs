@@ -1,3 +1,4 @@
+use core::panic;
 use std::{collections::{HashMap, HashSet}, fmt::{self, Display}};
 extern crate nalgebra as na;
 use itertools::Itertools;
@@ -511,6 +512,10 @@ pub fn heart(&self)->HashSet<u64>{
     vec_to_set(&beta_identity.1)
 
 
+}
+pub fn heart_fast(&self)->HashSet<u64> {
+    let pid = self.collect_partial_identities()[0];
+     self.beta_relation().get_class(&pid).1.into_iter().collect()
 }
 }
 impl Display for HyperGroup {

@@ -1,3 +1,6 @@
+use core::time;
+use std::time::{Duration, Instant};
+
 use hyperstruc::{hs::{HyperGroupoid, QuotientHyperGroupoid}, hypergroups::HyperGroup, quotient_hg::{self, QuotientHyperGroup}};
 fn main(){
 //Example Hv-group of order 10
@@ -28,6 +31,7 @@ let input_array2 = vec![
     ]; */
     let hs1 = HyperGroupoid::new_from_elements(&input_array1, &cardinality);
     println!("{}",hs1);
+    assert!(hs1.is_hv_group());
     let x  =1u64<<0;
     let y = 1u64<<1;
     let x_right_y = hs1.right_division(&x, &y);
@@ -87,6 +91,15 @@ let input_array2 = vec![
         true => hyperstruc::hypergroups::HyperGroup::new_from_hypergroupiod(&hypergroupoid),
         false => panic!()
     };
+    let now = Instant::now();
+    hg.heart_fast();
+    let end1 = now.elapsed();
+    println!("time {:?}",now.elapsed());
+        let now = Instant::now();
+    hg.heart();
+    let end2= now.elapsed();
+    println!("time {:?}",now.elapsed());
+    println!("ratio {}",end2.as_secs_f64()/end1.as_secs_f64());
     let beta = hg.collect_beta_classes();
     println!("beta {:?}",beta);
     let fundamental = hg.get_isomorphic_fundamental_group();
