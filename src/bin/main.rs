@@ -5,39 +5,6 @@ use hyperstruc::{hs::{get_random_hypercomposition_table, HyperGroupoid, Quotient
 use itertools::Itertools;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 fn main(){
-    let hg = get_random_hypercomposition_table(&2);
-    println!("hg {:?} ",hg);
-for card in 3..=12 {
-    let ms: Vec<u64> = (0..500).into_par_iter()
-        .map(|_| {
-            let hg = HyperGroupoid::new_random_from_cardinality(&card);
-            hg.collect_all_finite_hyperproducts().1
-        })
-        .collect();
-
-    let count = ms.len() as f64;
-    let sum: u64 = ms.iter().sum();
-    let mean = sum as f64 / count;
-
-    let variance = ms.iter()
-        .map(|&x| {
-            let dx = x as f64 - mean;
-            dx * dx
-        })
-        .sum::<f64>() / count;
-    let std_dev = variance.sqrt();
-
-    let min = ms.iter().min().unwrap();
-    let max = ms.iter().max().unwrap();
-
-    let ratio = mean / card as f64;
-
-    println!(
-        "card {:2} mean {:6.2} std {:6.2} min {:2} max {:2} ratio {:.3}",
-        card, mean, std_dev, min, max, ratio
-    );
-}
-
 
 //Example Hv-group of order 10
 let cardinality = 10u64;
@@ -127,37 +94,14 @@ let input_array2 = vec![
         true => hyperstruc::hypergroups::HyperGroup::new_from_hypergroupiod(&hypergroupoid),
         false => panic!()
     };
-    let now = Instant::now();
-    let heart1 = hg.heart_fast();
-    let end1 = now.elapsed();
-    println!("time {:?}",now.elapsed());
-        let now = Instant::now();
-    let heart2 = hg.heart();
-    let end2= now.elapsed();
-    println!("time {:?}",now.elapsed());
-    assert_eq!(heart2,heart1);
-    println!("ratio {}",end2.as_secs_f64()/end1.as_secs_f64());
     let beta = hg.collect_beta_classes();
     println!("beta {:?}",beta);
     let fundamental = hg.get_isomorphic_fundamental_group();
     println!("f {}",fundamental);
     let heart = hg.heart();
     println!("heart is {:?}",heart);
-    let left_identities = hg.collect_left_identities();
-    println!("left id are {:?}",left_identities);
-    let right_identities  = hg.collect_right_identities();
-    println!("right id are {:?}",right_identities);
-    let identities= hg.collect_identities();
-    println!("id are {:?}",identities);
-        let right_scalars= hg.collect_right_scalars();
-    println!("right scalars are {:?}",right_scalars);
-    let left_scalars = hg.collect_left_scalars();
-    println!("left scalars are {:?}",left_scalars);
-    let scalars = hg.collect_scalars();
-    println!("scalars are {:?}",scalars);
-    assert!(hg.0.is_left_partial_identity_of_x(&1u64, &4u64));
-    let partial_identities = hg.collect_partial_identities();
-    println!("partial identities {:?}",partial_identities);
+    
+    
     let sub_hg = hg.collect_proper_subhypergroups();
     println!("sub are {:?}",sub_hg);
     let closed = hg.collect_proper_closed_subhypergroups();
