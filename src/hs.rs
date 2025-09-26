@@ -578,30 +578,19 @@ pub fn collect_inverses_of_x(&self,x:&u64)->Vec<(u64,u64)>{
     .map(|x|*x)
     .collect_vec()
 }
-pub fn collect_ph(&self)->Vec<u64>{
+pub fn collect_all_finite_hyperproducts(&self)->(Vec<u64>,u64){
     let mut a_current = Vec::new();
     let  mut a_next=self.get_singleton();
-
+    let mut stabilization_index = 0u64;
     while a_next!=a_current {
         a_current = a_next;
         a_next=a_current.iter().cartesian_product(a_current.iter()).map(|(x,y)|self.mul_by_representation(x, y)).unique().collect();
         a_next.extend(a_current.iter());
         a_next.sort();
         a_next.dedup();
+        stabilization_index+=1;
     }
-    a_current
-    /* loop {
-        let ph=a;
-        a=ph.iter().cartesian_product(ph.iter()).map(|(x,y)|self.mul_by_representation(x, y)).unique().collect();
-        a.append(&mut self.get_singleton());
-        /* for x in self.get_singleton(){
-            a.push(x);
-        } */
-        a=a.into_iter().unique().sorted().collect();
-        if a==ph {
-            break ph;
-        }
-    } */
+    (a_current,stabilization_index)
 }
 /// # Computing β Relation in Hypergroupoid
 ///
@@ -645,9 +634,9 @@ pub fn collect_ph(&self)->Vec<u64>{
 /// assert_eq!(beta.rel,expected_beta);
 ///
 pub fn beta_relation(&self)->Relation{
-    let ph=self.collect_ph();
+    let ph=self.collect_all_finite_hyperproducts();
 
-    let mut beta:Vec<(u64, u64)>=ph.iter()
+    let mut beta:Vec<(u64, u64)>=ph.0.iter()
         .map(
             |q|
                 support(q, &self.n).into_iter()
@@ -906,15 +895,15 @@ impl Display for HyperGroupoid{
     }
 }
 pub fn get_random_hypercomposition_table(n:&u64)->Vec<Vec<u64>>{
-    let vec: Vec<u64>=(0u64..*n as u64).into_iter().map(|x|x).collect();
-    let index_cartesian=cartesian_product(&vec);
+    let hypercomposition_table=vec![vec![0u64;*n as usize];*n as usize];
     let mut rng = rand::thread_rng();
-    let mut hypercomposition_table=vec![vec![0u64;*n as usize];*n as usize];
-    
-    for item in index_cartesian {
-        hypercomposition_table[item.0 as usize][item.1 as usize]=rng.gen_range(1..2u64.pow(*n as u32))
-} 
-hypercomposition_table
+    hypercomposition_table.iter()
+        .map(|a|
+            a.iter()
+            .map(
+                |_| rng.gen_range(1u64..1<<n)
+            ).collect_vec()
+        ).collect_vec()
 }
 pub fn get_random_hypercomposition_matrix(n:&u64)->DMatrix<u64>{
     let mut rng = rand::thread_rng();

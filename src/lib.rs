@@ -29,7 +29,7 @@ mod tests {
                     &[6,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10]));
         assert!(hs.is_associative());
 
-        let ph = hs.collect_ph();
+        let ph = hs.collect_all_finite_hyperproducts().0;
         let expected_ph  = vec![1,2,4,6,8,10];
         assert_eq!(ph,expected_ph);
 
@@ -47,7 +47,7 @@ mod tests {
                 &[1,3,5,1,2,5,1,3,4]));
         assert!(hs.is_associative());
 
-        let ph = hs.collect_ph();
+        let ph = hs.collect_all_finite_hyperproducts().0;
         let expected_ph  = vec![1,2,3,4,5];
         assert_eq!(ph,expected_ph);
 
