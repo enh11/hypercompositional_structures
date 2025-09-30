@@ -1,10 +1,27 @@
-use core::time;
 use std::time::{Duration, Instant};
 
-use hyperstruc::{hs::{get_random_hypercomposition_table, HyperGroupoid, QuotientHyperGroupoid}, hypergroups::HyperGroup, quotient_hg::{self, QuotientHyperGroup}};
-use itertools::Itertools;
+use hyperstruc::{hs::{ HyperGroupoid, QuotientHyperGroupoid}, utilities::representing_hypergroupoid};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
+
 fn main(){
+let cardinality =3u64 ;
+   let q:Vec<u128> = (100u128..(1<<cardinality.pow(3))-1).into_par_iter()
+    .filter(|tag| representing_hypergroupoid(tag, &cardinality))
+    .into_par_iter().find_any(|tag| {
+        let h= HyperGroupoid::new_from_tag_u128(tag,&cardinality);
+        let quotient = QuotientHyperGroupoid::new_from_equivalence_relation(&h, &h.beta_relation().transitive_closure());
+        quotient.n!=1&&quotient.n!=3
+    }
+).into_iter().collect();
+let h = HyperGroupoid::new_from_tag_u128(q.first().unwrap(),&cardinality);
+let quotient = QuotientHyperGroupoid::new_from_equivalence_relation(&h,&h.beta_relation().transitive_closure());
+println!("hypergroupoid {}",h);
+println!("quotient q {}",quotient);
+println!("Is hypergroup {}",h.is_hypergroup());
+println!("Is Hv-group {}",h.is_hv_group());
+let classes = h.beta_relation().transitive_closure().quotient_set();
+println!("quotient set {:?}", classes);
+
 
 //Example Hv-group of order 10
 let cardinality = 10u64;
@@ -79,39 +96,9 @@ let input_array2 = vec![
     println!("identities {:?}",hs.collect_identities());
 
     
-    let cardinality = 7u64;
-    let input_array = vec![
-        vec![0],vec![1],vec![2],vec![3],vec![4],vec![5,6],vec![5,6],
-        vec![1],vec![0],vec![4],vec![5,6],vec![2],vec![3],vec![3],
-        vec![2],vec![5,6],vec![0],vec![4],vec![3],vec![1],vec![1],
-        vec![3],vec![4],vec![5,6],vec![0],vec![1],vec![2],vec![2],
-        vec![4],vec![3],vec![1],vec![2],vec![5,6],vec![0],vec![0],
-        vec![5,6],vec![2],vec![3],vec![1],vec![0],vec![4],vec![4],
-        vec![5,6],vec![2],vec![3],vec![1],vec![0],vec![4],vec![4],
-    ];
-    let hypergroupoid = HyperGroupoid::new_from_elements(&input_array, &cardinality);
-    let hg = match hypergroupoid.is_hypergroup() {
-        true => hyperstruc::hypergroups::HyperGroup::new_from_hypergroupiod(&hypergroupoid),
-        false => panic!()
-    };
-    let beta = hg.collect_beta_classes();
-    println!("beta {:?}",beta);
-    let fundamental = hg.get_isomorphic_fundamental_group();
-    println!("f {}",fundamental);
-    let heart = hg.heart();
-    println!("heart is {:?}",heart);
+
     
     
-    let sub_hg = hg.collect_proper_subhypergroups();
-    println!("sub are {:?}",sub_hg);
-    let closed = hg.collect_proper_closed_subhypergroups();
-    println!("closed are {:?}",closed);
-    let normals = hg.collect_proper_normal_subhypergroups();
-    println!("normals {:?}",normals);
-    let reflexive = hg.collect_proper_reflexive_subhypergroups();
-    println!("reflexive are {:?}",reflexive);
-        let invertible = hg.collect_proper_invertible_subhypergroups();
-    println!("reflexive are {:?}",invertible);
     
 
  
