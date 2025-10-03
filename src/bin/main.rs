@@ -54,6 +54,9 @@ let input_array2 = vec![
     ]; */
     let hs1 = HyperGroupoid::new_from_elements(&input_array1, &cardinality);
     println!("{}",hs1);
+    for x in hs1.get_sets_singleton(){
+        println!("inverses of {:?} are {:?}",x,hs1.show_inverses_of_x(&x));
+    }
     assert!(hs1.is_hv_group());
     let x  =1u64<<0;
     let y = 1u64<<1;

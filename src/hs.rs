@@ -548,7 +548,7 @@ pub fn left_inverses_of_x(&self, x:&u64,e:&u64)->u64{
 }
 /// 
 /// Returns left inverses of `x` in the hyperstructure `H`. Returns a `Vec<(u64,u64)>`, where the first element in the tuple is 
-/// the unit `u` with respect to which the identities are computed, and the second `u64` in the tuple is the integer representation 
+/// the identity `u` with respect to which the inverses are computed, and the second `u64` in the tuple is the integer representation 
 /// of the left identities with respect to `u`. To convert them as HashSet use `u64_to_set()`.
 /// 
 pub fn collect_left_inverses_of_x(&self,x:&u64)->Vec<(u64,u64)>{
@@ -556,6 +556,14 @@ pub fn collect_left_inverses_of_x(&self,x:&u64)->Vec<(u64,u64)>{
     let units = self.collect_identities();
     if units.is_empty() {return left_identities_of_x}
     units.iter().map(|u|(*u,self.left_inverses_of_x(x,u))).collect_vec()
+}
+pub fn show_letf_inverses_of_x(&self,singleton_x:&HashSet<u64>)->Vec<(HashSet<u64>,HashSet<u64>)> {
+    let x = subset_as_u64(singleton_x);
+    assert!(x.is_power_of_two(),"Input subset must be a singleton!");
+    self.collect_left_inverses_of_x(&x)
+        .iter()
+        .map(|(identity,inverses)|
+            (u64_to_set(identity, &self.n),u64_to_set(inverses, &self.n))).collect()
 }
 ///
 /// 
@@ -570,6 +578,14 @@ pub fn collect_right_inverses_of_x(&self,x:&u64)->Vec<(u64,u64)>{
     if units.is_empty() {return right_identities_of_x}
     units.iter().map(|u|(*u,self.right_inverses_of_x(x,u))).collect_vec()
 }
+pub fn show_right_inverses_of_x(&self,singleton_x:&HashSet<u64>)->Vec<(HashSet<u64>,HashSet<u64>)> {
+    let x = subset_as_u64(singleton_x);
+    assert!(x.is_power_of_two(),"Input subset must be a singleton!");
+    self.collect_right_inverses_of_x(&x)
+        .iter()
+        .map(|(identity,inverses)|
+            (u64_to_set(identity, &self.n),u64_to_set(inverses, &self.n))).collect()
+}
 pub fn collect_inverses_of_x(&self,x:&u64)->Vec<(u64,u64)>{
     self.collect_left_inverses_of_x(x).iter()
     .filter(|inverses|
@@ -577,6 +593,14 @@ pub fn collect_inverses_of_x(&self,x:&u64)->Vec<(u64,u64)>{
         .contains(&inverses))
     .map(|x|*x)
     .collect_vec()
+}
+pub fn show_inverses_of_x(&self,singleton_x:&HashSet<u64>)->Vec<(HashSet<u64>,HashSet<u64>)> {
+    let x = subset_as_u64(singleton_x);
+    assert!(x.is_power_of_two(),"Input subset must be a singleton!");
+    self.collect_inverses_of_x(&x)
+        .iter()
+        .map(|(identity,inverses)|
+            (u64_to_set(identity, &self.n),u64_to_set(inverses, &self.n))).collect()
 }
 pub fn collect_all_finite_hyperproducts(&self)->(Vec<u64>,u64){
     let mut a_current = Vec::new();
@@ -966,6 +990,9 @@ pub fn is_associative(&self)->bool{
 }
 pub fn get_singleton(&self)->Vec<u64>{
     (0..self.n).into_iter().map(|i|1<<i).collect()
+}
+pub fn get_sets_singleton(&self)->Vec<HashSet<u64>>{
+    (0..self.n).into_iter().map(|i|[i].into()).collect()
 }
 /// Calculate the distance between two hyperstructures. The distance is defined as the the 
 /// Hamming distance between binary representations of hyperstructure's tags, i.e., 
