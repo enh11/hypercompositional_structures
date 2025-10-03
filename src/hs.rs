@@ -6,7 +6,7 @@ use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
 use rand::Rng;
-use crate::{fuzzy::FuzzySubset, binary_relations::relations::Relation, utilities::{binary_to_n, from_tag_to_vec, from_tag_u1024_to_vec, get_min_max_u1024, get_subset, n_to_binary_vec, support, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid_u1024, subset_as_u64, vec_to_set, U1024}};
+use crate::{binary_relations::relations::Relation, fuzzy::FuzzySubset, utilities::{binary_to_n, from_tag_to_vec, from_tag_u1024_to_vec, get_min_max_u1024, get_subset, n_to_binary_vec, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid_u1024, subset_as_u64, support, u64_to_set, vec_to_set, U1024}};
 #[derive(Debug, Clone,PartialEq)]
 pub struct HyperGroupoid{
     pub h:HashSet<u64>,
@@ -719,9 +719,9 @@ pub fn mul_by_representation(&self,subset_a:&u64,subset_b:&u64)->u64{
 /// use std::collections::HashSet;
 /// let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
 /// let hyperstructure=HyperGroupoid::new_from_matrix(&matrix);
-/// let a:HashSet<u64>=[1].into();
-/// let b:HashSet<u64>=[0].into();
-/// let ab=2u64;
+/// let a = [1].into();
+/// let b = [0].into();
+/// let ab = 2u64;
 /// let mul=hyperstructure.mul(&a,&b);
 /// assert_eq!(ab,mul);
 /// 
@@ -731,10 +731,101 @@ pub fn mul(&self,subset_k:&HashSet<u64>,subset_l:&HashSet<u64>)->u64{
     let int_l=subset_as_u64(&subset_l);
 self.mul_by_representation(&int_k, &int_l)   
 }
-/// Compute b\a={x in H : a in bx}.
-/// Input a and b must be type u64, representing non empty subset of H. Therefore, singleton are powers of 2.
+/// # Example
+/// ```
+/// use hyperstruc::hs::HyperGroupoid;
+/// use nalgebra::DMatrix;
+/// use std::collections::HashSet;
+/// let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,7,2,7,7,7,7,5]);
+/// let hyperstructure=HyperGroupoid::new_from_matrix(&matrix);
+/// let a = [1].into();
+/// let b = [0].into();
+/// let expected_ab = [1].into();
+/// let ab=hyperstructure.subsets_multiplication(&a,&b);
+/// assert_eq!(ab,expected_ab);
 /// 
-/// /// # Example
+pub fn subsets_multiplication(&self,set_a:&HashSet<u64>,set_b:&HashSet<u64>)->HashSet<u64> {
+    let a = subset_as_u64(&set_a);
+    let b = subset_as_u64(&set_b);
+    let ab = self.mul_by_representation(&a, &b);
+    
+    u64_to_set(&ab, &self.n)
+
+}
+/// 
+/// 
+/// Returns `b\a = {x in H : a in bx}`.
+/// Input `subset_a` and `subset_b` are `HashSet<u64>`, representing subsets of `H`. 
+/// 
+/// 
+/// # Example
+/// 
+/// ```
+/// use hyperstruc::hs::HyperGroupoid;
+/// use nalgebra::DMatrix;
+/// use std::collections::HashSet;
+/// 
+/// let cardinality = 3u64;
+/// let input_array=vec![
+///     vec![0],     vec![1],     vec![0,1,2],
+///     vec![1],     vec![0,1,2], vec![0,1,2],
+///     vec![0,1,2], vec![0,1,2], vec![0,2]
+///     ];
+/// let hyperstructure=HyperGroupoid::new_from_elements(&input_array,&cardinality);
+/// let subset_a:HashSet<u64> = [1].into();
+/// let subset_b:HashSet<u64> = [2].into();
+/// let expected_division:HashSet<u64> = [0,1].into();
+/// let a_left_divided_by_b = hyperstructure.subset_left_division(&subset_a,&subset_b);
+/// assert_eq!(expected_division,a_left_divided_by_b);
+/// 
+pub fn subset_left_division(&self,subset_a:&HashSet<u64>,subset_b:&HashSet<u64>)->HashSet<u64> {
+    let a = subset_as_u64(subset_a);
+    let b = subset_as_u64(subset_b);
+    let a_left_divided_by_b = self.left_division(&a, &b);
+    
+    u64_to_set(&a_left_divided_by_b, &self.n)
+}
+/// 
+/// 
+/// Returns `a/b={x in H : a in xb}`.
+/// Input `subset_a` and `subset_b` are `HashSet<u64>`, representing subsets of `H`. 
+/// 
+/// 
+/// # Example
+/// 
+/// ```
+/// use hyperstruc::hs::HyperGroupoid;
+/// use nalgebra::DMatrix;
+/// use std::collections::HashSet;
+/// 
+/// let cardinality = 3u64;
+/// let input_array=vec![
+///     vec![0],     vec![1],     vec![0,1,2],
+///     vec![1],     vec![0,1,2], vec![0,1,2],
+///     vec![0,1,2], vec![0,1,2], vec![0,2]
+///     ];
+/// let hyperstructure=HyperGroupoid::new_from_elements(&input_array,&cardinality);
+/// let a:HashSet<u64> = [0].into();
+/// let b:HashSet<u64> = [1].into();
+/// let expected_division:HashSet<u64> = [1,2].into();
+/// let a_right_divided_by_b=hyperstructure.subset_right_division(&a,&b);
+/// assert_eq!(expected_division,a_right_divided_by_b);
+/// 
+pub fn subset_right_division(&self,subset_a:&HashSet<u64>,subset_b:&HashSet<u64>)->HashSet<u64> {
+    let a = subset_as_u64(subset_a);
+    let b = subset_as_u64(subset_b);
+    let a_right_divided_by_b = self.right_division(&a, &b);
+    
+    u64_to_set(&a_right_divided_by_b, &self.n)
+}
+/// 
+/// 
+/// Compute the integer representation of `b\a = {x in H : a in bx}`.
+/// Input `a` and `b` must be type `u64`, representing subsets of `H`. 
+/// You can use the function `subset_as_u64()` to convert an `HashSet<u64>` into its unique integer representation.
+/// 
+/// # Example
+/// 
 /// ```
 /// use hyperstruc::hs::HyperGroupoid;
 /// use nalgebra::DMatrix;
@@ -744,11 +835,11 @@ self.mul_by_representation(&int_k, &int_l)
 ///         3usize,
 ///         &[1,2,7,2,7,7,7,7,5]);
 /// let hyperstructure=HyperGroupoid::new_from_matrix(&matrix);
-/// let a=2u64;
-/// let b=4u64;
-/// let ab=3u64;
-/// let mul=hyperstructure.left_division(&a,&b);
-/// assert_eq!(ab,mul);
+/// let a = 2u64;
+/// let b = 4u64;
+/// let expected_division = 3u64;
+/// let a_left_divided_by_b = hyperstructure.left_division(&a,&b);
+/// assert_eq!(expected_division,a_left_divided_by_b);
 pub fn left_division(&self,a:&u64,b:&u64)->u64{    
     self.get_singleton().iter()
         .filter(|x| 
@@ -756,10 +847,12 @@ pub fn left_division(&self,a:&u64,b:&u64)->u64{
         )
         .fold(0, |acc, x| acc|x)  
 }
-/// Compute a/b={x in H : a in xb}.
-/// Input a and b must be type u64, representing non empty subset of H. Therefore, singleton are powers of 2.
+/// Returns the integer representation of `a/b={x in H : a in xb}`.
+/// Input `a` and `b` must be type `u64`, representing non empty subset of `H`.
+/// You can use the function `subset_as_u64()` to convert an `HashSet<u64>` into its unique integer representation.
 /// 
-/// /// # Example
+/// # Example
+/// 
 /// ```
 /// use hyperstruc::hs::HyperGroupoid;
 /// use nalgebra::DMatrix;
@@ -769,11 +862,11 @@ pub fn left_division(&self,a:&u64,b:&u64)->u64{
 ///         3usize,
 ///         &[1,2,7,2,7,7,7,7,5]);
 /// let hyperstructure=HyperGroupoid::new_from_matrix(&matrix);
-/// let a=1u64;
-/// let b=2u64;
-/// let ab=6u64;
-/// let mul=hyperstructure.right_division(&a,&b);
-/// assert_eq!(ab,mul);
+/// let a = 1u64;
+/// let b = 2u64;
+/// let expected_division = 6u64;
+/// let a_right_divided_by_b=hyperstructure.right_division(&a,&b);
+/// assert_eq!(expected_division,a_right_divided_by_b);
 /// 
 pub fn right_division(&self,a:&u64,b:&u64)->u64{    
     self.get_singleton().iter()
@@ -974,9 +1067,7 @@ impl QuotientHyperGroupoid {
     pub fn new_from_equivalence_relation(base_hypergroupoid:&HyperGroupoid,equivalence:&Relation)->Self{
 
         assert!(equivalence.is_equivalence(),"The input relation is not an equivalence! The quotinet is not defined!");
-        println!("equivalence is {:?}",equivalence.rel);
         let classes = equivalence.quotient_set();
-        println!("classes {:?}",classes);
         let n = classes.len() as u64;
         let representants:Vec<u64> = classes.iter().map(|x|x.0).collect();
         let function  = |a:usize,b:usize| 

@@ -1,26 +1,35 @@
-use std::time::{Duration, Instant};
+use std::{collections::HashSet, time::{Duration, Instant}};
 
 use hyperstruc::{hs::{ HyperGroupoid, QuotientHyperGroupoid}, utilities::representing_hypergroupoid};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 fn main(){
- let cardinality =3u64;
- let hs_bad = HyperGroupoid::new_from_tag_u128(&25565283u128, &cardinality);
- let beta = hs_bad.beta_relation();
- println!("hs_bad = {}",hs_bad);
- println!("beta {:?}",beta.rel);
- let transitive_closure = beta.transitive_closure();
- println!("transitive_closure {:?}",transitive_closure.rel);
+    let cardinality = 3u64;
+    let input_array=vec![
+    vec![0],vec![1],vec![0,1,2],
+    vec![1],vec![0,1,2],vec![0,1,2],
+    vec![0,1,2],vec![0,1,2],vec![0,2]
+    ];
 
-let quotient = QuotientHyperGroupoid::new_from_equivalence_relation(&hs_bad, &transitive_closure);
-println!("quaotient {}",quotient);
+let hyperstructure=HyperGroupoid::new_from_elements(&input_array,&cardinality);
+let subset_a:HashSet<u64> = [1].into();
+let subset_b:HashSet<u64> = [2].into();
+let expected_division:HashSet<u64> = [0,1].into();
+let a_left_divided_by_b = hyperstructure.subset_left_division(&subset_a,&subset_b);
+assert_eq!(expected_division,a_left_divided_by_b);
+
+ let cardinality =3u64;
+ let hs = HyperGroupoid::new_from_tag_u128(&25565293u128, &cardinality);
+ let subset_a: HashSet<u64> = [0,1].into();
+ let subset_b: HashSet<u64> = [1,2].into();
+ let ab = hs.subsets_multiplication(&subset_a, &subset_b);
+println!("h is {}",hs);
+println!("ab = {:?}",ab); 
   let q:Vec<u128> = (25565280..=25565296).into_iter()
     .filter(|tag| representing_hypergroupoid(tag, &cardinality))
     .into_iter().find(|tag| {
         let h= HyperGroupoid::new_from_tag_u128(tag,&cardinality);
         let beta = h.beta_relation().transitive_closure_warshall();
-        println!("h {}",h.get_integer_tag());
-        println!("beta {:?}",beta);
         let quotient = QuotientHyperGroupoid::new_from_equivalence_relation(&h, &h.beta_relation().transitive_closure_warshall());
         quotient.n!=1&&quotient.n!=3  
   }

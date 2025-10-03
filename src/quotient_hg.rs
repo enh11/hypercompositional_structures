@@ -5,9 +5,10 @@ extern crate nalgebra as na;
 #[derive(Debug,Clone,PartialEq)]
 pub struct QuotientHyperGroup(pub QuotientHyperGroupoid);
 impl QuotientHyperGroup {
-    pub fn new_from_equivalence_relation(hg:HyperGroup,rel:Relation)->Self{
+    pub fn new_from_equivalence_relation(hg:HyperGroup,equivalence:Relation)->Self{
+        assert!(equivalence.is_equivalence(),"Error, {:?} is not an equivalence!",equivalence.rel);
         let hs = hg.0;
-        let hs_quotient = QuotientHyperGroupoid::new_from_equivalence_relation(&hs, &rel);
+        let hs_quotient = QuotientHyperGroupoid::new_from_equivalence_relation(&hs, &equivalence);
 
         QuotientHyperGroup(hs_quotient)
     }
