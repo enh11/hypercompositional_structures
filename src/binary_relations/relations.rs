@@ -91,7 +91,7 @@ impl Relation {
 /// 
 /// ```
     pub fn is_equivalence(&self)->bool{
-        self.is_reflexive()&&self.is_symmetric()&&self.is_transitive()
+self.is_reflexive()&&self.is_symmetric()&&self.is_transitive()
     }
     pub fn get_class(&self, x:&u64)->(u64,Vec<u64>) {
         let class:Vec<u64> = self.a.iter()
@@ -107,7 +107,7 @@ impl Relation {
         self.rel.contains(&(*x,*y)) 
     }
     pub fn quotient_set(&self)->Vec<(u64,Vec<u64>)>{
-    assert!(self.is_equivalence(), "Relation is not an equivalence!");
+    assert!(self.is_equivalence(), "Relation {:?} is not an equivalence!",self.rel);
     self.a.iter().map(|x|
         self.get_class(x)
         ).sorted().unique().collect()
@@ -137,11 +137,8 @@ impl Relation {
 /// use hyperstruc::binary_relations::relations::Relation;
 /// use std::collections::HashSet;
 /// 
-/// let a: HashSet<u64> = (0..=3).into_iter().collect();
-/// let rel: Vec<(u64, u64)> = vec![
-///     (0,1), (1,2),
-///     (0,2), (3,4), (4,5)
-///  ];
+/// let a: HashSet<u64> = (0..3).into_iter().collect();
+/// let rel: Vec<(u64, u64)> = vec![(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (2, 0), (2, 2)];
 ///  let relation  = Relation{
 ///     a: a.clone(),
 ///     b: a.clone(),
@@ -152,6 +149,7 @@ impl Relation {
 /// 
 /// 
     pub fn transitive_closure(&self)-> Self {
+        if self.is_equivalence() {return self.clone();}
     //This is Algorithm 3.3
     let mut x  = self.clone();
     for _ in 2..=self.a.len() {
@@ -167,7 +165,28 @@ impl Relation {
     }
     x
 }
+///
+/// Compute the transitive closure of a relation on a set H
+/// 
+/// #Example
+/// ```
+/// use hyperstruc::binary_relations::relations::Relation;
+/// use std::collections::HashSet;
+/// 
+/// let a: HashSet<u64> = (0..3).into_iter().collect();
+/// let rel: Vec<(u64, u64)> = vec![(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (2, 0), (2, 2)];
+///  let relation  = Relation{
+///     a: a.clone(),
+///     b: a.clone(),
+///     rel,
+/// };
+/// let cl_trans = relation.transitive_closure();
+/// assert!(cl_trans.is_transitive());
+/// 
+///
 pub fn transitive_closure_warshall(&self)-> Self {
+        if self.is_equivalence() {return self.clone();}
+
     let mut r = self.zero_one_matrix();
     for k in 0..r.0.ncols() {
         let col_k  =r.0.column(k);
@@ -176,7 +195,6 @@ pub fn transitive_closure_warshall(&self)-> Self {
         let mul_rel = RelationMatrix(mul);
         r = r|mul_rel;
     }
-    println!("r is {}", r);
     r.into_relation()
 }
 }

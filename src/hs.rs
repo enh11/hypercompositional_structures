@@ -972,8 +972,11 @@ pub struct QuotientHyperGroupoid{
 }
 impl QuotientHyperGroupoid {
     pub fn new_from_equivalence_relation(base_hypergroupoid:&HyperGroupoid,equivalence:&Relation)->Self{
+
         assert!(equivalence.is_equivalence(),"The input relation is not an equivalence! The quotinet is not defined!");
-        let classes = base_hypergroupoid.beta_relation().quotient_set();
+        println!("equivalence is {:?}",equivalence.rel);
+        let classes = equivalence.quotient_set();
+        println!("classes {:?}",classes);
         let n = classes.len() as u64;
         let representants:Vec<u64> = classes.iter().map(|x|x.0).collect();
         let function  = |a:usize,b:usize| 
@@ -1001,7 +1004,7 @@ impl QuotientHyperGroupoid {
 }
 impl Display for QuotientHyperGroupoid{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let representants = self.base_hypergroup.collect_beta_classes().iter().map(|x|x.0).collect_vec();
+        let representants = self.equivalence_relation.quotient_set().iter().map(|x|x.0).collect_vec();
         let table:DMatrix<String>=DMatrix::from_iterator(self.n as usize, self.n as usize, 
             self.hyper_composition.iter().map(|x| format!("{:?}", x.concat())));
         

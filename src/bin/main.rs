@@ -4,23 +4,36 @@ use hyperstruc::{hs::{ HyperGroupoid, QuotientHyperGroupoid}, utilities::represe
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 fn main(){
-let cardinality =3u64 ;
-   let q:Vec<u128> = (100u128..(1<<cardinality.pow(3))-1).into_par_iter()
+ let cardinality =3u64;
+ let hs_bad = HyperGroupoid::new_from_tag_u128(&25565283u128, &cardinality);
+ let beta = hs_bad.beta_relation();
+ println!("hs_bad = {}",hs_bad);
+ println!("beta {:?}",beta.rel);
+ let transitive_closure = beta.transitive_closure();
+ println!("transitive_closure {:?}",transitive_closure.rel);
+
+let quotient = QuotientHyperGroupoid::new_from_equivalence_relation(&hs_bad, &transitive_closure);
+println!("quaotient {}",quotient);
+  let q:Vec<u128> = (25565280..=25565296).into_iter()
     .filter(|tag| representing_hypergroupoid(tag, &cardinality))
-    .into_par_iter().find_any(|tag| {
+    .into_iter().find(|tag| {
         let h= HyperGroupoid::new_from_tag_u128(tag,&cardinality);
-        let quotient = QuotientHyperGroupoid::new_from_equivalence_relation(&h, &h.beta_relation().transitive_closure());
-        quotient.n!=1&&quotient.n!=3
-    }
+        let beta = h.beta_relation().transitive_closure_warshall();
+        println!("h {}",h.get_integer_tag());
+        println!("beta {:?}",beta);
+        let quotient = QuotientHyperGroupoid::new_from_equivalence_relation(&h, &h.beta_relation().transitive_closure_warshall());
+        quotient.n!=1&&quotient.n!=3  
+  }
 ).into_iter().collect();
+println!("q is {:?}",q);
 let h = HyperGroupoid::new_from_tag_u128(q.first().unwrap(),&cardinality);
-let quotient = QuotientHyperGroupoid::new_from_equivalence_relation(&h,&h.beta_relation().transitive_closure());
+let quotient = QuotientHyperGroupoid::new_from_equivalence_relation(&h,&h.beta_relation().transitive_closure_warshall());
 println!("hypergroupoid {}",h);
 println!("quotient q {}",quotient);
 println!("Is hypergroup {}",h.is_hypergroup());
 println!("Is Hv-group {}",h.is_hv_group());
 let classes = h.beta_relation().transitive_closure().quotient_set();
-println!("quotient set {:?}", classes);
+println!("quotient set {:?}", classes); 
 
 
 //Example Hv-group of order 10
@@ -81,15 +94,31 @@ let input_array2 = vec![
 
 
     //hypergroup of order 4
-    let cardinality = 4u64;
+/*     let cardinality = 4u64;
     let input_array = vec![
         vec![0,1,2,3],vec![1,2],vec![0,3],vec![0,1,2],
         vec![1,2],vec![0,3],vec![0,1,2],vec![0,1,2,3],
         vec![0,3],vec![0,1,2],vec![0,1,2,3],vec![1,2],
         vec![0,1,2],vec![0,1,2,3],vec![1,2],vec![0,3]
+    ]; */
+    // Hypergroupo of order 7
+        let cardinality = 7u64;
+    let input_array = vec![
+        vec![0],vec![1],vec![2],vec![3],vec![4],vec![5,6],vec![5,6],
+        vec![1],vec![0],vec![4],vec![5,6],vec![2],vec![3],vec![3],
+        vec![2],vec![5,6],vec![0],vec![4],vec![3],vec![1],vec![1],
+        vec![3],vec![4],vec![5,6],vec![0],vec![1],vec![2],vec![2],
+        vec![4],vec![3],vec![1],vec![2],vec![5,6],vec![0],vec![0],
+        vec![5,6],vec![2],vec![3],vec![1],vec![0],vec![4],vec![4],
+        vec![5,6],vec![2],vec![3],vec![1],vec![0],vec![4],vec![4],
     ];
     let hs = HyperGroupoid::new_from_elements(&input_array,& cardinality);
-    println!("hypergroup {}",hs);
+    let now = Instant::now();
+
+    println!("hypergroup associativity {}",hs.is_associative());
+    let end = now.elapsed();
+    print!("time ass= {:?}",end);
+
     println!("is hg {}",hs.is_hypergroup());
     let class = hs.beta_relation().get_class(&2u64);
     println!("CLASS {:?}",class);
