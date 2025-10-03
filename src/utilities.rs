@@ -1,4 +1,5 @@
 
+use std::path::Iter;
 use std::{collections::HashSet, fmt::Binary, fs::File, io::Write};
 use std::fmt::Debug;
 use itertools::Itertools;
@@ -187,15 +188,41 @@ pub fn support(subset_a: &u64, cardinality: &u64) -> Vec<usize> {
         .filter(|x| (subset_a >> x) & 1 == 1)
         .collect()
 }
-pub fn cartesian_product(set: &Vec<u64>) -> Vec<(u64, u64)> {
-    let mut product: Vec<(u64, u64)> = Vec::new();
-    for &a in set {
-        for &b in set {
-            product.push((a, b));
-        }
-    }
-    product
+/// Returns an iterator over all ordered triplets `(a, b, c)`
+/// where each element ranges from `0` up to (but not including) `n`.
+///
+/// # Arguments
+///
+/// * `n` - Upper bound (exclusive) for the values of `a`, `b`, and `c`.
+///
+/// # Example:
+/// 
+/// ```
+/// use hyperstruc::utilities::all_triplets;
+/// 
+/// let triplets: Vec<_> = all_triplets(3).collect();
+///
+/// assert_eq!(triplets, vec![
+/// (0, 0, 0), (0, 0, 1), (0, 0, 2), 
+/// (0, 1, 0), (0, 1, 1), (0, 1, 2), 
+/// (0, 2, 0), (0, 2, 1), (0, 2, 2), 
+/// (1, 0, 0), (1, 0, 1), (1, 0, 2), 
+/// (1, 1, 0), (1, 1, 1), (1, 1, 2), 
+/// (1, 2, 0), (1, 2, 1), (1, 2, 2), 
+/// (2, 0, 0), (2, 0, 1), (2, 0, 2), 
+/// (2, 1, 0), (2, 1, 1), (2, 1, 2), 
+/// (2, 2, 0), (2, 2, 1), (2, 2, 2)]);
+/// 
+/// ```
+pub fn all_triplets(n: u64) -> impl Iterator<Item = (u64, u64, u64)> {
+    (0..n).flat_map(move |a| {
+        (0..n).flat_map(move |b| {
+            (0..n).map(move |c| (a, b, c))
+        })
+    })
 }
+
+
 /// Represents a subset $S$ as an integer in H={0,1,..,n-1}.
 /// There are 2^n different subsets of H. It will panic if $k is greater then 2^n.
 /// Elements in S correspond to indices of occurrences of ones for the binary representation of the integer k which identifies S.

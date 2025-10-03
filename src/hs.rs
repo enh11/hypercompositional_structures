@@ -6,7 +6,7 @@ use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
 use rand::Rng;
-use crate::{binary_relations::relations::Relation, fuzzy::FuzzySubset, utilities::{binary_to_n, from_tag_to_vec, from_tag_u1024_to_vec, get_min_max_u1024, get_subset, n_to_binary_vec, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid_u1024, subset_as_u64, support, u64_to_set, vec_to_set, U1024}};
+use crate::{binary_relations::relations::Relation, fuzzy::FuzzySubset, utilities::{all_triplets, binary_to_n, from_tag_to_vec, from_tag_u1024_to_vec, get_min_max_u1024, get_subset, n_to_binary_vec, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid_u1024, subset_as_u64, support, u64_to_set, vec_to_set, U1024}};
 #[derive(Debug, Clone,PartialEq)]
 pub struct HyperGroupoid{
     pub h:HashSet<u64>,
@@ -847,6 +847,8 @@ pub fn left_division(&self,a:&u64,b:&u64)->u64{
         )
         .fold(0, |acc, x| acc|x)  
 }
+/// 
+/// 
 /// Returns the integer representation of `a/b={x in H : a in xb}`.
 /// Input `a` and `b` must be type `u64`, representing non empty subset of `H`.
 /// You can use the function `subset_as_u64()` to convert an `HashSet<u64>` into its unique integer representation.
@@ -876,7 +878,9 @@ pub fn right_division(&self,a:&u64,b:&u64)->u64{
         .fold(0, |acc, x| acc|x)
 }
 
-/// Return true if hyperstructure is reproductive, i.e., xH = H = Hx holds for all x in H.
+///
+/// Return true if hyperstructure is `reproductive`, i.e., `xH = H = Hx` holds for all `x` in `H`.
+///
 /// # Example
 /// ```
 /// use hyperstruc::hs::HyperGroupoid;
@@ -903,7 +907,10 @@ pub fn is_reproductive(&self)->bool{
             x.iter().fold(0u64, |acc,element|
                 acc|element)==h)
 }
-/// Return true if hyperstructure is associative, i.e., (xy)z = x(zy) holds for all x in H.
+/// 
+/// 
+/// Return true if hyperstructure is associative, i.e., `(xy)z = x(zy)` holds for all `x` in `H`.
+///
 /// # Example
 /// ```
 /// use hyperstruc::hs::HyperGroupoid;
@@ -917,17 +924,16 @@ pub fn is_reproductive(&self)->bool{
 /// assert!(hyperstructure.assert_associativity())
 ///
 pub fn assert_associativity(&self)->bool{
-    for a in &self.get_singleton(){
-        for b in &self.get_singleton(){
-            for c in &self.get_singleton(){
-                let ab_c=self.mul_by_representation(
-                    &self.mul_by_representation(&a, &b),&c);
-                let a_bc = self.mul_by_representation(&a, &self.mul_by_representation(&b, &c));
-                assert_eq!(ab_c,a_bc,"{a}{b}_{c},{a}_{b}{c}")
+    all_triplets(self.n)
+        .all(
+        |(a,b,c)|
+                {
+                self.mul_by_representation(
+                    &self.mul_by_representation(&(1<<a), &(1<<b)),&(1<<c))
+                == 
+                self.mul_by_representation(&(1<<a), &self.mul_by_representation(&(1<<b), &(1<<c)))
             }
-        }
-    } 
-true
+    )
 }
 /// Return true if hyperstructure is associative, i.e., (xy)z = x(zy) holds for all x in H.
 /// # Example

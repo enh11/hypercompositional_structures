@@ -1,31 +1,12 @@
 use std::{collections::HashSet, time::{Duration, Instant}};
-
+use hyperstruc::utilities::all_triplets;
 use hyperstruc::{hs::{ HyperGroupoid, QuotientHyperGroupoid}, utilities::representing_hypergroupoid};
+use itertools::Itertools;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 fn main(){
-    let cardinality = 3u64;
-    let input_array=vec![
-    vec![0],vec![1],vec![0,1,2],
-    vec![1],vec![0,1,2],vec![0,1,2],
-    vec![0,1,2],vec![0,1,2],vec![0,2]
-    ];
-
-let hyperstructure=HyperGroupoid::new_from_elements(&input_array,&cardinality);
-let subset_a:HashSet<u64> = [1].into();
-let subset_b:HashSet<u64> = [2].into();
-let expected_division:HashSet<u64> = [0,1].into();
-let a_left_divided_by_b = hyperstructure.subset_left_division(&subset_a,&subset_b);
-assert_eq!(expected_division,a_left_divided_by_b);
-
- let cardinality =3u64;
- let hs = HyperGroupoid::new_from_tag_u128(&25565293u128, &cardinality);
- let subset_a: HashSet<u64> = [0,1].into();
- let subset_b: HashSet<u64> = [1,2].into();
- let ab = hs.subsets_multiplication(&subset_a, &subset_b);
-println!("h is {}",hs);
-println!("ab = {:?}",ab); 
-  let q:Vec<u128> = (25565280..=25565296).into_iter()
+/*  
+let q:Vec<u128> = (25565280..=25565296).into_iter()
     .filter(|tag| representing_hypergroupoid(tag, &cardinality))
     .into_iter().find(|tag| {
         let h= HyperGroupoid::new_from_tag_u128(tag,&cardinality);
@@ -44,7 +25,7 @@ println!("Is Hv-group {}",h.is_hv_group());
 let classes = h.beta_relation().transitive_closure().quotient_set();
 println!("quotient set {:?}", classes); 
 
-
+ */
 //Example Hv-group of order 10
 let cardinality = 10u64;
 let input_array1 = vec![
@@ -123,10 +104,13 @@ let input_array2 = vec![
     ];
     let hs = HyperGroupoid::new_from_elements(&input_array,& cardinality);
     let now = Instant::now();
-
+    println!("hypergroup associativity {}",hs.assert_associativity());
+    let end = now.elapsed();
+    println!("time ass= {:?}",end);
+        let now = Instant::now();
     println!("hypergroup associativity {}",hs.is_associative());
     let end = now.elapsed();
-    print!("time ass= {:?}",end);
+    println!("time ass= {:?}",end);
 
     println!("is hg {}",hs.is_hypergroup());
     let class = hs.beta_relation().get_class(&2u64);
