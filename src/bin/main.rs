@@ -1,10 +1,17 @@
-use std::{collections::HashSet, time::{Duration, Instant}};
-use hyperstruc::utilities::all_triplets;
-use hyperstruc::{hs::{ HyperGroupoid, QuotientHyperGroupoid}, utilities::representing_hypergroupoid};
-use itertools::Itertools;
-use rayon::iter::{IntoParallelIterator, ParallelIterator};
-
+use std::{time::{Instant}};
+use hyperstruc::{hs::{ HyperGroupoid}};
 fn main(){
+    let now = Instant::now();
+   
+    
+    let cardinality = 6u64;
+for _i in 0u64..1000{
+    let hs = HyperGroupoid::new_random_from_cardinality(&cardinality);
+    hs.is_associative();
+}
+let end = now.elapsed();
+println!("time = {:?}",end);
+
 /*  
 let q:Vec<u128> = (25565280..=25565296).into_iter()
     .filter(|tag| representing_hypergroupoid(tag, &cardinality))
@@ -25,65 +32,65 @@ println!("Is Hv-group {}",h.is_hv_group());
 let classes = h.beta_relation().transitive_closure().quotient_set();
 println!("quotient set {:?}", classes); 
 
- */
-//Example Hv-group of order 10
-let cardinality = 10u64;
-let input_array1 = vec![
-        vec![0],vec![1],vec![2],vec![3],vec![4],vec![0,5],vec![6],vec![7],vec![8],vec![9],
-        vec![1],vec![2],vec![3],vec![4],vec![5],vec![6],vec![7],vec![8],vec![9],vec![0],
-        vec![2],vec![3],vec![4],vec![5],vec![6],vec![7],vec![8],vec![9],vec![0],vec![1],
-        vec![3],vec![4],vec![5],vec![6],vec![7],vec![8],vec![9],vec![0],vec![1],vec![2],
-        vec![4],vec![5],vec![6],vec![7],vec![8],vec![9],vec![0],vec![1],vec![2],vec![3],
-        vec![0,5],vec![6],vec![7],vec![8],vec![9],vec![0],vec![1],vec![2],vec![3],vec![4],
-        vec![6],vec![7],vec![8],vec![9],vec![0],vec![1],vec![2],vec![3],vec![4],vec![5],
-        vec![7],vec![8],vec![9],vec![0],vec![1],vec![2],vec![3],vec![4],vec![5],vec![6],
-        vec![8],vec![9],vec![0],vec![1],vec![2],vec![3],vec![4],vec![5],vec![6],vec![7],
-        vec![9],vec![0],vec![1],vec![2],vec![3],vec![4],vec![5],vec![6],vec![7],vec![8]
-    ];
+//  */
+// //Example Hv-group of order 10
+// let cardinality = 10u64;
+// let input_array1 = vec![
+//         vec![0],vec![1],vec![2],vec![3],vec![4],vec![0,5],vec![6],vec![7],vec![8],vec![9],
+//         vec![1],vec![2],vec![3],vec![4],vec![5],vec![6],vec![7],vec![8],vec![9],vec![0],
+//         vec![2],vec![3],vec![4],vec![5],vec![6],vec![7],vec![8],vec![9],vec![0],vec![1],
+//         vec![3],vec![4],vec![5],vec![6],vec![7],vec![8],vec![9],vec![0],vec![1],vec![2],
+//         vec![4],vec![5],vec![6],vec![7],vec![8],vec![9],vec![0],vec![1],vec![2],vec![3],
+//         vec![0,5],vec![6],vec![7],vec![8],vec![9],vec![0],vec![1],vec![2],vec![3],vec![4],
+//         vec![6],vec![7],vec![8],vec![9],vec![0],vec![1],vec![2],vec![3],vec![4],vec![5],
+//         vec![7],vec![8],vec![9],vec![0],vec![1],vec![2],vec![3],vec![4],vec![5],vec![6],
+//         vec![8],vec![9],vec![0],vec![1],vec![2],vec![3],vec![4],vec![5],vec![6],vec![7],
+//         vec![9],vec![0],vec![1],vec![2],vec![3],vec![4],vec![5],vec![6],vec![7],vec![8]
+//     ];
 
-let input_array2 = vec![
-        vec![0],vec![0,1],vec![0,2],vec![0,3],
-        vec![0],vec![0,1],vec![0,2],vec![0,3],
-        vec![0],vec![0,1],vec![0,2],vec![0,3],
-        vec![0],vec![0,1],vec![0,2],vec![0,3]
-    ];/* let input_array = vec![
-        vec![0],vec![1],vec![0,2],vec![3],
-        vec![1],vec![0,1],vec![3],vec![2,3],
-        vec![0,2],vec![3],vec![0,1,2],vec![1,3],
-        vec![3],vec![2,3],vec![1,3],vec![0,1,2,3]
-    ]; */
-    let hs1 = HyperGroupoid::new_from_elements(&input_array1, &cardinality);
-    println!("{}",hs1);
-    for x in hs1.get_sets_singleton(){
-        println!("inverses of {:?} are {:?}",x,hs1.show_inverses_of_x(&x));
-    }
-    assert!(hs1.is_hv_group());
-    let x  =1u64<<0;
-    let y = 1u64<<1;
-    let x_right_y = hs1.right_division(&x, &y);
-    println!("x right y = {}",x_right_y);
-    let pil = hs1.collect_partial_left_identities();
-    let pir  = hs1.collect_partial_right_identities();
-    println!("H1 is associative {}",hs1.is_associative());
-    println!("H1 is reproductive {}", hs1.is_reproductive());
-    println!("is weak associative {}",hs1.is_weak_associative());
-    println!("H1 partial left identities are {:?}",pil);
-    println!("H1 partial right identities are {:?}",pir);
-    println!("identities are {:?}",hs1.collect_identities());
-    let beta = hs1.beta_relation();
-    let beta_star =beta.transitive_closure();
-    assert!(beta_star.is_transitive());
-    let quotient_hg = QuotientHyperGroupoid::new_from_equivalence_relation(&hs1, &beta_star);
-    println!("quotient {}",quotient_hg);
-    let cardinality = 4u64;
-    let hs2 = HyperGroupoid::new_from_elements(&input_array2, &cardinality);
-    println!("{}",hs2);
-    println!("H2 is associative {}",hs2.is_associative());
-    println!("H2 is reproductive {}", hs2.is_reproductive());
-    let pil = hs2.collect_partial_left_identities();
-    let pir  = hs2.collect_partial_right_identities();
-    println!("H2 partial left identities are {:?}",pil);
-    println!("H2 partial right identities are {:?}",pir);
+// let input_array2 = vec![
+//         vec![0],vec![0,1],vec![0,2],vec![0,3],
+//         vec![0],vec![0,1],vec![0,2],vec![0,3],
+//         vec![0],vec![0,1],vec![0,2],vec![0,3],
+//         vec![0],vec![0,1],vec![0,2],vec![0,3]
+//     ];/* let input_array = vec![
+//         vec![0],vec![1],vec![0,2],vec![3],
+//         vec![1],vec![0,1],vec![3],vec![2,3],
+//         vec![0,2],vec![3],vec![0,1,2],vec![1,3],
+//         vec![3],vec![2,3],vec![1,3],vec![0,1,2,3]
+//     ]; */
+//     let hs1 = HyperGroupoid::new_from_elements(&input_array1, &cardinality);
+//     println!("{}",hs1);
+//     for x in hs1.get_sets_singleton(){
+//         println!("inverses of {:?} are {:?}",x,hs1.show_inverses_of_x(&x));
+//     }
+//     assert!(hs1.is_hv_group());
+//     let x  =1u64<<0;
+//     let y = 1u64<<1;
+//     let x_right_y = hs1.right_division(&x, &y);
+//     println!("x right y = {}",x_right_y);
+//     let pil = hs1.collect_partial_left_identities();
+//     let pir  = hs1.collect_partial_right_identities();
+//     println!("H1 is associative {}",hs1.is_associative());
+//     println!("H1 is reproductive {}", hs1.is_reproductive());
+//     println!("is weak associative {}",hs1.is_weak_associative());
+//     println!("H1 partial left identities are {:?}",pil);
+//     println!("H1 partial right identities are {:?}",pir);
+//     println!("identities are {:?}",hs1.collect_identities());
+//     let beta = hs1.beta_relation();
+//     let beta_star =beta.transitive_closure();
+//     assert!(beta_star.is_transitive());
+//     let quotient_hg = QuotientHyperGroupoid::new_from_equivalence_relation(&hs1, &beta_star);
+//     println!("quotient {}",quotient_hg);
+//     let cardinality = 4u64;
+//     let hs2 = HyperGroupoid::new_from_elements(&input_array2, &cardinality);
+//     println!("{}",hs2);
+//     println!("H2 is associative {}",hs2.is_associative());
+//     println!("H2 is reproductive {}", hs2.is_reproductive());
+//     let pil = hs2.collect_partial_left_identities();
+//     let pir  = hs2.collect_partial_right_identities();
+//     println!("H2 partial left identities are {:?}",pil);
+//     println!("H2 partial right identities are {:?}",pir);
 
 
     //hypergroup of order 4
@@ -94,8 +101,8 @@ let input_array2 = vec![
         vec![0,3],vec![0,1,2],vec![0,1,2,3],vec![1,2],
         vec![0,1,2],vec![0,1,2,3],vec![1,2],vec![0,3]
     ]; */
-    // Hypergroupo of order 7
-        let cardinality = 7u64;
+    /* // Hypergroupo of order 7
+    let cardinality = 7u64;
     let input_array = vec![
         vec![0],vec![1],vec![2],vec![3],vec![4],vec![5,6],vec![5,6],
         vec![1],vec![0],vec![4],vec![5,6],vec![2],vec![3],vec![3],
@@ -106,22 +113,12 @@ let input_array2 = vec![
         vec![5,6],vec![2],vec![3],vec![1],vec![0],vec![4],vec![4],
     ];
     let hs = HyperGroupoid::new_from_elements(&input_array,& cardinality);
-    let now = Instant::now();
-    println!("hypergroup associativity {}",hs.assert_associativity());
-    let end = now.elapsed();
-    println!("time ass= {:?}",end);
-        let now = Instant::now();
-    println!("hypergroup associativity {}",hs.is_associative());
-    let end = now.elapsed();
-    println!("time ass= {:?}",end);
-
-    println!("is hg {}",hs.is_hypergroup());
-    let class = hs.beta_relation().get_class(&2u64);
-    println!("CLASS {:?}",class);
-    println!("identities {:?}",hs.collect_identities());
-
     
-
+    let now = Instant::now();
+    hs.is_associative();
+    let end = now.elapsed();
+    println!("time ass= {:?}",end);   
+ */
     
     
     
@@ -993,7 +990,5 @@ new_new.is_associative();
 new_new.check_associativity();
 
  */
-println!("THE END\n");
-
 
 }

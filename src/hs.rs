@@ -150,7 +150,12 @@ pub fn new_from_function<F>(function:F,cardinality:&u64)->Self
 /// 
 pub fn new_from_elements(input_array: &Vec<Vec<u64>>, cardinality:&u64)->Self{
     if input_array.len() as u64!=cardinality.pow(2u32) {panic!("Cardinality is {} and the input vector length is {}. It should be a square-length vector!",cardinality,input_array.len())}
-    let function = |a:u64,b:u64| input_array[(cardinality*a+b) as usize].clone().iter().fold(0u64, |acc,x|acc|1<<x);
+    let function = |a:u64,b:u64| 
+        input_array[(cardinality*a+b) as usize]
+            .iter()
+            .fold(
+                0u64, 
+                |acc,x|acc|1<<x);
     HyperGroupoid::new_from_function(function, &cardinality)
     
 }
@@ -478,15 +483,54 @@ pub fn collect_left_identities(&self)->Vec<u64>{
         .filter(|e|self.is_left_identity(e))
         .collect()
 }
+pub fn show_left_identities(&self){
+    let li = self.collect_left_identities();
+    if li.is_empty() {println!("No left identity found.")}
+    else {
+        let left_id:Vec<String> = li
+            .iter()
+            .map(|e| 
+                format!("{}",e.trailing_zeros())
+            ).collect();
+        println!("Left identities: {:?}",left_id.join(", "));
+        }
+    
+}
 pub fn collect_right_identities(&self)->Vec<u64>{
     self.get_singleton().into_iter()
         .filter(|e|self.is_right_identity(e))
         .collect()
 }
+pub fn show_right_identities(&self){
+    let ri = self.collect_right_identities();
+    if ri.is_empty() {println!("No right identity found.")}
+    else {
+        let right_id:Vec<String> = ri
+            .iter()
+            .map(|e| 
+                format!("{}",e.trailing_zeros())
+            ).collect();
+        println!("Right identities: {:?}",right_id.join(", "));
+        }
+    
+}
 pub fn collect_identities(&self)->Vec<u64>{
     self.get_singleton().into_iter()
         .filter(|e|self.is_identity(&e))
         .collect()
+}
+pub fn show_identities(&self) {
+    let identities = self.collect_identities();
+    if identities.is_empty() {println!("No identity found.")}
+    else {
+        let id:Vec<String> = identities
+            .iter()
+            .map(|e| 
+                format!("{}",e.trailing_zeros())
+            ).collect();
+        println!("Left identities: {:?}",id.join(", "));
+        
+    }
 }
 pub fn is_left_scalar(&self,s:&u64)->bool{
     if !s.is_power_of_two() {panic!("Not an element in hypergroupoid!")}
@@ -1033,8 +1077,13 @@ pub fn get_random_hypercomposition_table(n:&u64)->Vec<Vec<u64>>{
 }
 pub fn get_random_hypercomposition_matrix(n:&u64)->DMatrix<u64>{
     let mut rng = rand::thread_rng();
-    let m  =DMatrix::from_iterator(*n as usize, *n as usize, (0..n.pow(2)).into_iter().map(|_|rng.gen_range(1..2u64.pow(*n as u32))));
-    m
+    DMatrix::from_iterator(
+        *n as usize,
+        *n as usize,
+        (0..n.pow(2))
+            .into_iter()
+            .map(|_| rng.gen_range(1..(1<<n))))
+    
 } 
 pub fn distance_tags(tag1:&u128,tag2:&u128,cardinality:&u64)->u64 {
     let width = cardinality.pow(3);
