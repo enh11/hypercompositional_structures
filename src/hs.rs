@@ -738,7 +738,7 @@ pub fn show_right_inverses_of_x(&self,x:&u64){
         Some(r_inverses) => {
             let inverses_to_print :Vec<&(u64, u64)> = r_inverses.iter().filter(|(_e,e_inverses)| *e_inverses!=0).collect();
             match inverses_to_print.is_empty() {
-                true => println!("{} has no left inverse in H",x),
+                true => println!("{} is not invertible on the right.",x),
                 false => println!("{}", 
                 r_inverses.iter().map(|(e,e_inverses)|
                 format!("Right inverses of {} with respect to the identity {} are {:?}",

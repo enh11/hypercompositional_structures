@@ -1,12 +1,12 @@
 use core::panic;
 use std::{collections::{HashMap, HashSet}, fmt::{self, Display}};
 extern crate nalgebra as na;
-use itertools::Itertools;
+use itertools::{join, Itertools};
 use nalgebra::DMatrix;
 use num_rational::Rational64;
 use permutation::Permutation;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
-use crate::{fuzzy::FuzzySubset, hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoid}, quotient_hg::QuotientHyperGroup, binary_relations::relations::Relation, utilities::{support, get_complement_subset, vec_to_set, U1024}};
+use crate::{binary_relations::relations::Relation, fuzzy::FuzzySubset, hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoid}, quotient_hg::QuotientHyperGroup, utilities::{get_complement_subset, support, u64_to_set, vec_to_set, U1024}};
 #[derive(Debug, Clone)]
 pub enum HyperStructureError {
     NotHypergroup,
@@ -254,10 +254,31 @@ pub fn collect_inverses_of_x(&self,x:&u64)->Option<Vec<(u64,u64)>>{
 pub fn get_corsini_fuzzysubset(&self)->FuzzySubset{
         self.0.get_corsini_fuzzysubset()
     }
-pub fn collect_proper_subhypergroups(&self)->Vec<u64> {
-    let power_set_cardinality: u64 =1<<self.cardinality()-1;
-    (1..power_set_cardinality).into_iter().filter(|x|self.is_sub_hypergroup(x)).collect_vec()
+pub fn collect_proper_subhypergroups(&self)->Option<Vec<u64>> {
+    let power_set_cardinality: u64 =(1<<self.cardinality())-1;
+    let sub_hg:Vec<u64>=(1..power_set_cardinality)
+        .into_iter()
+        .filter(|x|self.is_sub_hypergroup(x))
+        .collect();
+    match sub_hg.is_empty() {
+        true => None,
+        false => Some(sub_hg)
     }
+}
+pub fn show_proper_subhypergroups(&self) {
+match  self.collect_proper_subhypergroups(){
+    Some(sub_hgs) => {
+        println!("Proper subhypregroups of H are:\n{}",
+        (0..sub_hgs.len()).into_iter().map(|i|
+            format!("K_{} = {:?}",
+            i,
+            u64_to_set(&sub_hgs[i],&self.cardinality()))
+        ).join("\n")
+    )
+    },
+    None => println!("H has no non-trivial subhypergroups."),
+}
+}
 pub fn subhypergroup_is_closed(&self,subset_k:&u64)->bool {
     if !self.is_sub_hypergroup(&subset_k) {return false;}
     let kc=get_complement_subset(subset_k, &self.cardinality());
@@ -334,32 +355,127 @@ pub fn subhypergroup_is_left_invertible(&self,subset_k:&u64)->bool {
 pub fn subhypergroup_is_invertible(&self,subset_k:&u64)->bool {
     self.subhypergroup_is_left_invertible(subset_k)&&self.subhypergroup_is_right_invertible(subset_k)
 }
-pub fn collect_proper_invertible_subhypergroups(&self)->Vec<u64>{
-    self.collect_proper_subhypergroups()
-        .into_iter()
-        .filter(|x|
-            self.subhypergroup_is_invertible(&x))
-        .collect()
+pub fn collect_proper_invertible_subhypergroups(&self)->Option<Vec<u64>>{
+    match self.collect_proper_subhypergroups() {
+        Some(sub_hgs) => {
+            let sub_invertible:Vec<u64> = sub_hgs.into_iter()
+                .filter(|x|
+                self.subhypergroup_is_invertible(&x)
+                )
+            .collect();
+            match sub_invertible.is_empty() {
+                true => None,
+                false => Some(sub_invertible)
+            }
+        },
+        None => None,
+    }
 }
-pub fn collect_proper_closed_subhypergroups(&self)->Vec<u64>{
-    self.collect_proper_subhypergroups()
-        .into_iter()
-        .filter(|x|
-            self.subhypergroup_is_closed(&x))
-        .collect()
+pub fn show_proper_invertible_subhypergroups(&self) {
+match  self.collect_proper_invertible_subhypergroups(){
+    Some(sub_hg_invertible) => {
+        println!("Proper invertible subhypregroups of H are:\n{}",
+        (0..sub_hg_invertible.len()).into_iter().map(|i|
+            format!("K_{} = {:?}",
+            i,
+            u64_to_set(&sub_hg_invertible[i],&self.cardinality()))
+        ).join("\n")
+    )
+    },
+    None => println!("H has no non-trivial subhypergroup."),
 }
-pub fn collect_proper_reflexive_subhypergroups(&self)->Vec<u64>{
-    self.collect_proper_subhypergroups()
-        .into_iter()
-        .filter(|x| self.subhypergroup_is_reflexive(x))
-        .collect()
 }
-pub fn collect_proper_normal_subhypergroups(&self)->Vec<u64>{
-    self.collect_proper_subhypergroups()
-        .into_iter()
-        .filter(|x| self.subhypergroup_is_normal(x))
-        .collect()
+pub fn collect_proper_closed_subhypergroups(&self)->Option<Vec<u64>>{
+    match self.collect_proper_subhypergroups() {
+        Some(sub_hgs) => {
+            let sub_closed:Vec<u64> = sub_hgs.into_iter()
+                .filter(|x|
+                self.subhypergroup_is_closed(&x)
+                )
+            .collect();
+            match sub_closed.is_empty() {
+                true => None,
+                false => Some(sub_closed)
+            }
+        },
+        None => None,
+    }
 }
+pub fn show_proper_closed_subhypergroups(&self) {
+match  self.collect_proper_closed_subhypergroups(){
+    Some(sub_hg_closed) => {
+        println!("Proper closed subhypregroups of H are:\n{}",
+        (0..sub_hg_closed.len()).into_iter().map(|i|
+            format!("K_{} = {:?}",
+            i,
+            u64_to_set(&sub_hg_closed[i],&self.cardinality()))
+        ).join("\n")
+    )
+    },
+    None => println!("H has no non-trivial closed subhypergroup."),
+}
+}
+pub fn collect_proper_reflexive_subhypergroups(&self)->Option<Vec<u64>>{
+    match self.collect_proper_subhypergroups() {
+        Some(sub_hgs) => {
+            let sub_reflexive:Vec<u64> = sub_hgs.into_iter()
+                .filter(|x|
+                self.subhypergroup_is_reflexive(&x)
+                )
+            .collect();
+            match sub_reflexive.is_empty() {
+                true => None,
+                false => Some(sub_reflexive)
+            }
+        },
+        None => None,
+    }
+}
+pub fn show_proper_reflexive_subhypergroups(&self) {
+match  self.collect_proper_reflexive_subhypergroups(){
+    Some(sub_hg_reflexive) => {
+        println!("Proper reflexive subhypregroups of H are:\n{}",
+        (0..sub_hg_reflexive.len()).into_iter().map(|i|
+            format!("K_{} = {:?}",
+            i,
+            u64_to_set(&sub_hg_reflexive[i],&self.cardinality()))
+        ).join("\n")
+    )
+    },
+    None => println!("H has no non-trivial reflexive subhypergroup."),
+}
+}
+pub fn collect_proper_normal_subhypergroups(&self)->Option<Vec<u64>>{
+    match self.collect_proper_subhypergroups() {
+        Some(sub_hgs) => {
+            let sub_normal:Vec<u64> = sub_hgs.into_iter()
+                .filter(|x|
+                self.subhypergroup_is_normal(&x)
+                )
+            .collect();
+            match sub_normal.is_empty() {
+                true => None,
+                false => Some(sub_normal)
+            }
+        },
+        None => None,
+    }
+}
+pub fn show_proper_normal_subhypergroups(&self) {
+match  self.collect_proper_normal_subhypergroups(){
+    Some(sub_hg_normal) => {
+        println!("Proper normal subhypregroups of H are:\n{}",
+        (0..sub_hg_normal.len()).into_iter().map(|i|
+            format!("K_{} = {:?}",
+            i,
+            u64_to_set(&sub_hg_normal[i],&self.cardinality()))
+        ).join("\n")
+    )
+    },
+    None => println!("H has no non-trivial normal subhypergroup."),
+}
+}
+
 ///
 /// Explore the graph of hypergroups starting from it. It returns a tuple ((representant,classes),enumeration of hypergroup in the tree)).
 /// 
