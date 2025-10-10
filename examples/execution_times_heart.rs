@@ -25,6 +25,6 @@ let cardinality = 7u64;
     let heart2 = hg.heart();
     let end2= now.elapsed();
         println!("time {:?}",now.elapsed());
-    assert_eq!(heart1,heart2);
+    assert_eq!(heart1,heart2.unwrap());
     println!("ratio {}",end2.as_secs_f64()/end1.as_secs_f64());
 }

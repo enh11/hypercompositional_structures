@@ -2,7 +2,6 @@
 use itertools::Itertools;
 use permutation::Permutation;
 use rayon::iter::{IntoParallelIterator, ParallelBridge, ParallelIterator};
-use crate::unital_magma::UnitalMagma;
 use crate::utilities::{get_min_max, get_min_max_u1024, representing_hypergroupoid_u1024, write, U1024RangeExt, U1024};
 use crate::hs::HyperGroupoid;
 use crate::utilities::representing_hypergroupoid;
@@ -39,21 +38,6 @@ pub fn collect_hypergroupoid_with_scalar_identity(cardinality:&u64)->Vec<u128>{
         .collect()
 
 }
-pub fn collect_invertible_magmata(cardinality:&u64)->Vec<u128>{
-    //find a way to improve this my looking at binary representation of tag
-    let size = cardinality.pow(3);
-    (2u128.pow((size-cardinality) as u32)..2u128.pow(size as u32))
-        .into_par_iter()
-        .filter(|i|
-            representing_hypergroupoid(&mut i.clone(),&cardinality)
-            &
-            (HyperGroupoid::new_from_tag_u128(i, &cardinality).collect_scalar_identities().len()==1)
-            &
-            (UnitalMagma::new_from_tag_u128(i, &cardinality).is_invertible_unital_magma())
-        )
-        .collect()
-
-}
 pub fn collect_hypergroups(cardinality:&u64)->Vec<u128>{
     let (min,max)= get_min_max(cardinality);
     (min..=max).into_par_iter()
@@ -81,7 +65,6 @@ pub fn enumeration_hyperstructure(structure:&str,cardinality:&u64)->Vec<usize>{
     let tags= match structure {
         "hypergroups"=> collect_hypergroups(&cardinality),
         "unital magmata"=>collect_hypergroupoid_with_scalar_identity(&*cardinality),
-        "invertible magmata"=> collect_invertible_magmata(&cardinality),
         _=>panic!("unknown structure! Works with 'hypergroups, unital magmata,invertible magmata, L_mosaics'. ")
     };
     //let tags = collect_hypergroups(&cardinality);

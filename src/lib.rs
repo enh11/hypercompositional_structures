@@ -8,7 +8,6 @@ pub mod hg_2;
 pub mod hg_3;
 pub mod binary_relations;
 pub mod enumeration;
-pub mod unital_magma;
 //pub mod relations;
 pub mod fuzzy;
 pub mod generating_functions;
@@ -94,7 +93,7 @@ mod tests {
         let expected_fundamental_group = HyperGroup::new_from_elements(&input_array, &cardinality);
     assert_eq!(expected_fundamental_group,fundamental_group);
         let heart = hg.heart();
-        let expected_heart:HashSet<u64> = HashSet::from([0]);
+        let expected_heart = Some(HashSet::from([0]));
     assert_eq!(heart,expected_heart);
     }
     #[test]
@@ -127,7 +126,7 @@ mod tests {
         let expected_fundamental_group = HyperGroup::new_from_elements(&input_array, &cardinality);
     assert_eq!(expected_fundamental_group,fundamental_group);
         let heart = hg.heart();
-        let expected_heart:HashSet<u64> = HashSet::from([0]);
+        let expected_heart = Some(HashSet::from([0]));
     assert_eq!(heart,expected_heart);
     }
     #[test]
@@ -159,7 +158,7 @@ let cardinality  =8u64;
         let expected_fundamental_group = HyperGroup::new_from_elements(&input_array, &cardinality);
     assert_eq!(expected_fundamental_group,fundamental_group);
         let heart = hg.heart();
-        let expected_heart:HashSet<u64> = HashSet::from([0,4]);
+        let expected_heart = Some(HashSet::from([0,4]));
     assert_eq!(heart,expected_heart);
 
     }
@@ -201,7 +200,7 @@ let cardinality  =8u64;
                     &[1,2,4,1,2,4,7,7,7]));
         let id = hg.collect_identities();
         
-        assert!(id.is_empty())
+        assert!(id.is_none())
     }
 
     #[test]

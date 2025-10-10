@@ -1,4 +1,5 @@
 use core::panic;
+use num_traits::identities;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use std::{collections::HashSet, fmt::Display, vec};
 extern crate nalgebra as na;
@@ -502,58 +503,61 @@ pub fn collect_left_identities(&self)->Option<Vec<u64>>{
         true => None,
         false => Some(left_identities)
     }
-
 }
 pub fn show_left_identities(&self){
     match self.collect_left_identities() {
         Some(l_ids) => {
- 
-        println!("Left identities: {:?}",l_ids
-            .iter()
-            .map(|e| 
-                format!("{}",e.trailing_zeros())
-            ).join(", "));
-            
+        println!("Left identities: {:?}",
+                l_ids
+                    .iter()
+                    .map(|e| 
+                        format!("{}",e.trailing_zeros())
+                    ).join(", ")
+            );
         },
         None => println!("No left identity found.")
     } 
 }
-pub fn collect_right_identities(&self)->Vec<u64>{
-    self.get_singleton().into_iter()
+pub fn collect_right_identities(&self)->Option<Vec<u64>>{
+    let right_identities:Vec<u64> = self.get_singleton().into_iter()
         .filter(|e|self.is_right_identity(e))
-        .collect()
+        .collect();
+    match right_identities.is_empty() {
+        true => None,
+        false => Some(right_identities)
+    }
 }
 pub fn show_right_identities(&self){
-    let ri = self.collect_right_identities();
-    match ri.is_empty() {
-        true => println!("No right identity found."),
-        false => {
-            let right_id:Vec<String> = ri
-                .iter()
-                .map(|e| 
-                    format!("{}",e.trailing_zeros())
-                ).collect();
-            println!("Right identities: {:?}",right_id.join(", "));
+    match self.collect_right_identities() {
+        None => println!("No right identity found."),
+        Some(rids) => {
+            println!("Right identities: {:?}",
+                rids
+                    .iter()
+                    .map(|e| 
+                        format!("{}",e.trailing_zeros())
+                    ).join(", ")
+                );
             }
         }
-    
 }
-pub fn collect_identities(&self)->Vec<u64>{
-    self.get_singleton().into_iter()
+pub fn collect_identities(&self)->Option<Vec<u64>>{
+    let identities:Vec<u64> = self.get_singleton().into_iter()
         .filter(|e|self.is_identity(&e))
-        .collect()
+        .collect();
+    match identities.is_empty() {
+        true => None,
+        false => Some(identities)
+    }
 }
 pub fn show_identities(&self) {
-    let identities = self.collect_identities();
-    match identities.is_empty() {
-        true => println!("No identity found."),
-        false => {
-            let id:Vec<String> = identities
-                .iter()
-                .map(|e| 
+    match self.collect_identities() {
+        None => println!("No identity found."),
+        Some(id) => {
+            println!("Identities: {:?}",
+                id.iter().map(|e| 
                     format!("{}",e.trailing_zeros())
-                ).collect();
-            println!("Left identities: {:?}",id.join(", "));
+                ).join(", "));
         }
     }
 }
@@ -667,19 +671,16 @@ pub fn left_inverses_of_x(&self, x:&u64,e:&u64)->u64{
 /// the identity `u` with respect to which the inverses are computed, and the second `u64` in the tuple is the integer representation 
 /// of the left identities with respect to `u`. To convert them as HashSet use `u64_to_set()`.
 /// 
-pub fn collect_left_inverses_of_x(&self,x:&u64)->Vec<(u64,u64)>{
-    let left_identities_of_x = Vec::new();
-    let units = self.collect_identities();
-    if units.is_empty() {return left_identities_of_x}
-    units.iter().map(|u|(*u,self.left_inverses_of_x(x,u))).collect_vec()
+pub fn collect_left_inverses_of_x(&self,x:&u64)->Option<Vec<(u64,u64)>>{
+    match self.collect_identities() {
+        Some(identities) => {
+               Some(identities.iter().map(|u|(*u,self.left_inverses_of_x(x,u))).collect())
+        },
+        None => None
+    }
 }
 pub fn show_letf_inverses_of_x(&self,singleton_x:&HashSet<u64>)->Vec<(HashSet<u64>,HashSet<u64>)> {
-    let x = subset_as_u64(singleton_x);
-    assert!(x.is_power_of_two(),"Input subset must be a singleton!");
-    self.collect_left_inverses_of_x(&x)
-        .iter()
-        .map(|(identity,inverses)|
-            (u64_to_set(identity, &self.n),u64_to_set(inverses, &self.n))).collect()
+    todo!()
 }
 ///
 /// 
@@ -688,35 +689,42 @@ pub fn show_letf_inverses_of_x(&self,singleton_x:&HashSet<u64>)->Vec<(HashSet<u6
 /// of the right identities with respect to `u`. To convert them as HashSet `use u64_to_set()`.
 /// 
 /// 
-pub fn collect_right_inverses_of_x(&self,x:&u64)->Vec<(u64,u64)>{
-    let right_identities_of_x = Vec::new();
-    let units = self.collect_identities();
-    if units.is_empty() {return right_identities_of_x}
-    units.iter().map(|u|(*u,self.right_inverses_of_x(x,u))).collect_vec()
+pub fn collect_right_inverses_of_x(&self,x:&u64)->Option<Vec<(u64,u64)>>{
+    match self.collect_identities() {
+        Some(identities) => Some(
+            identities.iter()
+            .map(|u|(*u,self.right_inverses_of_x(x,u))).collect()),
+        None => None,
+    }
 }
 pub fn show_right_inverses_of_x(&self,singleton_x:&HashSet<u64>)->Vec<(HashSet<u64>,HashSet<u64>)> {
-    let x = subset_as_u64(singleton_x);
-    assert!(x.is_power_of_two(),"Input subset must be a singleton!");
-    self.collect_right_inverses_of_x(&x)
-        .iter()
-        .map(|(identity,inverses)|
-            (u64_to_set(identity, &self.n),u64_to_set(inverses, &self.n))).collect()
+    todo!()
 }
-pub fn collect_inverses_of_x(&self,x:&u64)->Vec<(u64,u64)>{
-    self.collect_left_inverses_of_x(x).iter()
-    .filter(|inverses|
-        self.collect_right_inverses_of_x(x)
-        .contains(&inverses))
-    .map(|x|*x)
-    .collect_vec()
+pub fn collect_inverses_of_x(&self,x:&u64)->Option<Vec<(u64,u64)>>{
+    match self.collect_identities() {
+        Some(_identities) => {
+            match self.collect_left_inverses_of_x(x) {
+                Some(left_inverses) => {
+                    match self.collect_right_inverses_of_x(x) {
+                        Some(right_inverses) => {
+                            Some(
+                            left_inverses.iter()
+                                        .filter(|l_inverses|
+                                        right_inverses.contains(l_inverses))
+                            .map(|x|*x)
+                            .collect_vec())
+                        },
+                        None => None
+                    }
+                },
+                None => None,
+            }
+        },
+        None => None,
+    }
 }
 pub fn show_inverses_of_x(&self,singleton_x:&HashSet<u64>)->Vec<(HashSet<u64>,HashSet<u64>)> {
-    let x = subset_as_u64(singleton_x);
-    assert!(x.is_power_of_two(),"Input subset must be a singleton!");
-    self.collect_inverses_of_x(&x)
-        .iter()
-        .map(|(identity,inverses)|
-            (u64_to_set(identity, &self.n),u64_to_set(inverses, &self.n))).collect()
+    todo!()
 }
 pub fn collect_all_finite_hyperproducts(&self)->(Vec<u64>,u64){
     let mut a_current = Vec::new();

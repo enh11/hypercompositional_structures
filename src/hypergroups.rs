@@ -209,16 +209,16 @@ pub fn is_sub_hypergroup(&self,k:&u64)->bool{
 /// let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,4,1,2,4,7,7,7]);
 /// let hyperstructure=HyperGroupoid::new_from_matrix(&matrix);
 /// let identities = hyperstructure.collect_identities();
-/// assert!(identities.is_empty())
+/// assert!(identities.is_none())
 /// 
 ///
-pub fn collect_identities(&self)->Vec<u64>{
+pub fn collect_identities(&self)->Option<Vec<u64>>{
     self.0.collect_identities()
 }
 pub fn collect_left_identities(&self)-> Option<Vec<u64>> {
     self.0.collect_left_identities()
 }
-pub fn collect_right_identities(&self)-> Vec<u64> {
+pub fn collect_right_identities(&self)-> Option<Vec<u64>> {
     self.0.collect_right_identities()
 }
 pub fn collect_scalars(&self)->Vec<u64>{
@@ -242,13 +242,13 @@ pub fn left_inverses_of_x(&self, x:&u64,u:&u64)->u64{
 pub fn right_inverses_of_x(&self,x:&u64,u:&u64)->u64{
     self.0.right_inverses_of_x(x, u)
 }
-pub fn collect_right_inverses_of_x(&self,x:&u64)->Vec<(u64,u64)>{
+pub fn collect_right_inverses_of_x(&self,x:&u64)->Option<Vec<(u64,u64)>>{
     self.0.collect_right_inverses_of_x(x)
 }
-pub fn collect_left_inverses_of_x(&self,x:&u64)->Vec<(u64,u64)>{
+pub fn collect_left_inverses_of_x(&self,x:&u64)->Option<Vec<(u64,u64)>>{
     self.0.collect_left_inverses_of_x(x)
 }
-pub fn collect_inverses_of_x(&self,x:&u64)->Vec<(u64,u64)>{
+pub fn collect_inverses_of_x(&self,x:&u64)->Option<Vec<(u64,u64)>>{
     self.0.collect_inverses_of_x(x)
 }
 pub fn get_corsini_fuzzysubset(&self)->FuzzySubset{
@@ -485,7 +485,7 @@ pub fn get_isomorphic_fundamental_group(&self)->HyperGroup{
 /// This method returns the heart as a set of elements, rather than its integer representation.
 ///
 /// # Returns
-/// A `HashSet<usize>` representing the heart of the hypergroup.
+/// A `Option<HashSet<usize>>` representing the heart of the hypergroup.
 ///
 /// # Example
 /// ```
@@ -497,21 +497,22 @@ pub fn get_isomorphic_fundamental_group(&self)->HyperGroup{
 /// let hg = HyperGroup::new_from_tag_u128(&tag, &cardinality);
 ///
 /// let heart = hg.heart();
-/// let expected = HashSet::from([0, 1]);
+/// let expected = Some(HashSet::from([0, 1]));
 ///
 /// assert_eq!(heart, expected);
 /// ```
-pub fn heart(&self)->HashSet<u64>{
+pub fn heart(&self)->Option<HashSet<u64>>{
     let fundamental_group = self.get_isomorphic_fundamental_group();
     let identity = fundamental_group.collect_identities();
-    assert!(identity.len()==1);
-    let identity  = identity[0];//This is the integer which identifies the singleton {identity}. 
-                                    //The corresponding element is given by identity.trailing_zeros().
-    let identity=identity.trailing_zeros() as u64;
-    let beta_identity = self.beta_relation().get_class(&identity);
-    vec_to_set(&beta_identity.1)
+    //assert!(identity.len()==1);
+    match identity {
+        Some(e) => {
+            let id = e[0].trailing_zeros() as u64;
+            let beta_identity = self.beta_relation().get_class(&id);
+                Some(vec_to_set(&beta_identity.1))}
 
-
+        None => None,
+    }
 }
 pub fn heart_fast(&self)->HashSet<u64> {
     let pid = self.collect_partial_identities();
