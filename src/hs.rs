@@ -115,6 +115,22 @@ pub fn new_from_function<F>(function:F,cardinality:&u64)->Self
         n:n as u64
    }
 }
+///
+/// Print out the hypergroupoid `H` and its Cayley table. 
+/// 
+pub fn show(&self){
+    println!("H = {:?}",self.h);
+    let table:DMatrix<String>=DMatrix::from_iterator(
+        self.n as usize, 
+        self.n as usize, 
+        self.hyper_composition.iter()
+                    .map(|x|
+                            format!("{:?}", u64_to_set(x, &self.n))
+                        )
+                    );
+        
+    println!("Cayley table : \n{}",table)
+}
 /// Constructs a `HyperGroupoid` from a flattened Cayley table.
 ///
 /// This function takes a vector of vectors representing the hyperoperation table, 
@@ -478,23 +494,29 @@ pub fn is_right_identity(&self,e:&u64)->bool{
 pub fn is_identity(&self,e:&u64)->bool{
     self.is_left_identity(&e)&&self.is_right_identity(&e)
 }
-pub fn collect_left_identities(&self)->Vec<u64>{
-    self.get_singleton().into_iter()
+pub fn collect_left_identities(&self)->Option<Vec<u64>>{
+    let left_identities:Vec<u64> = self.get_singleton().into_iter()
         .filter(|e|self.is_left_identity(e))
-        .collect()
+        .collect();
+    match left_identities.is_empty() {
+        true => None,
+        false => Some(left_identities)
+    }
+
 }
 pub fn show_left_identities(&self){
-    let li = self.collect_left_identities();
-    if li.is_empty() {println!("No left identity found.")}
-    else {
-        let left_id:Vec<String> = li
+    match self.collect_left_identities() {
+        Some(l_ids) => {
+ 
+        println!("Left identities: {:?}",l_ids
             .iter()
             .map(|e| 
                 format!("{}",e.trailing_zeros())
-            ).collect();
-        println!("Left identities: {:?}",left_id.join(", "));
-        }
-    
+            ).join(", "));
+            
+        },
+        None => println!("No left identity found.")
+    } 
 }
 pub fn collect_right_identities(&self)->Vec<u64>{
     self.get_singleton().into_iter()
@@ -503,14 +525,16 @@ pub fn collect_right_identities(&self)->Vec<u64>{
 }
 pub fn show_right_identities(&self){
     let ri = self.collect_right_identities();
-    if ri.is_empty() {println!("No right identity found.")}
-    else {
-        let right_id:Vec<String> = ri
-            .iter()
-            .map(|e| 
-                format!("{}",e.trailing_zeros())
-            ).collect();
-        println!("Right identities: {:?}",right_id.join(", "));
+    match ri.is_empty() {
+        true => println!("No right identity found."),
+        false => {
+            let right_id:Vec<String> = ri
+                .iter()
+                .map(|e| 
+                    format!("{}",e.trailing_zeros())
+                ).collect();
+            println!("Right identities: {:?}",right_id.join(", "));
+            }
         }
     
 }
@@ -521,15 +545,16 @@ pub fn collect_identities(&self)->Vec<u64>{
 }
 pub fn show_identities(&self) {
     let identities = self.collect_identities();
-    if identities.is_empty() {println!("No identity found.")}
-    else {
-        let id:Vec<String> = identities
-            .iter()
-            .map(|e| 
-                format!("{}",e.trailing_zeros())
-            ).collect();
-        println!("Left identities: {:?}",id.join(", "));
-        
+    match identities.is_empty() {
+        true => println!("No identity found."),
+        false => {
+            let id:Vec<String> = identities
+                .iter()
+                .map(|e| 
+                    format!("{}",e.trailing_zeros())
+                ).collect();
+            println!("Left identities: {:?}",id.join(", "));
+        }
     }
 }
 pub fn is_left_scalar(&self,s:&u64)->bool{
@@ -543,10 +568,45 @@ pub fn is_right_scalar(&self,s:&u64)->bool{
     self.hyper_composition.column(s as usize).iter().all(|x|x.is_power_of_two())
 }
 pub fn collect_left_scalars(&self)->Vec<u64> {
-    self.get_singleton().into_iter().filter(|x|self.is_left_scalar(x)).collect()
+    self.get_singleton()
+        .into_iter()
+        .filter(|x|
+            self.is_left_scalar(x)
+        ).collect()
+}
+pub fn show_left_scalars(&self){
+    let left_scalars = self.collect_left_scalars();
+    match left_scalars.is_empty(){
+        true => println!("No left scalar found."),
+        false => {
+            let left_s:Vec<String> = left_scalars
+                .iter()
+                .map(|e| 
+                    format!("{}",e.trailing_zeros())
+                ).collect();
+            println!("Left scalars: {:?}",left_s.join(", "));
+        }
+    }
 }
 pub fn collect_right_scalars(&self)-> Vec<u64> {
-        self.get_singleton().into_iter().filter(|x|self.is_right_scalar(x)).collect()
+        self.get_singleton()
+            .into_iter()
+            .filter(|x|
+                self.is_right_scalar(x)
+            ).collect()
+}
+pub fn show_right_scalars(&self){
+    let right_scalars = self.collect_right_scalars();
+    match right_scalars.is_empty(){
+        true => println!("No right scalar found."),
+        false =>  {
+            let right_s:Vec<String> = right_scalars
+                    .iter()
+                    .map(|e| format!("{}",e.trailing_zeros())
+                ).collect();
+        println!("Right scalars: {:?}",right_s.join(", "));
+        }
+    }
 }
 pub fn is_scalar(&self,s:&u64)->bool {
     self.is_left_scalar(s)&&self.is_right_scalar(s)
@@ -555,6 +615,18 @@ pub fn collect_scalars(&self)->Vec<u64>{
     self.get_singleton().into_iter()
         .filter(|s|self.is_scalar(&s))
         .collect()
+}
+pub fn show_scalars(&self) {
+    let scalars = self.collect_scalars();
+    match scalars.is_empty() {
+        true => println!("No scalar elements found."),
+        false => {
+            let scalar_str:Vec<String> = scalars.iter()
+                                                .map(|e| format!("{}",e.trailing_zeros()))
+                                                .collect();
+            println!("Scalar elements: {}",scalar_str.join(", "));
+        }
+    }
 }
 pub fn collect_scalar_identities(&self)->Vec<u64>{
     self.collect_scalars()

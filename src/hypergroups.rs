@@ -215,7 +215,7 @@ pub fn is_sub_hypergroup(&self,k:&u64)->bool{
 pub fn collect_identities(&self)->Vec<u64>{
     self.0.collect_identities()
 }
-pub fn collect_left_identities(&self)-> Vec<u64> {
+pub fn collect_left_identities(&self)-> Option<Vec<u64>> {
     self.0.collect_left_identities()
 }
 pub fn collect_right_identities(&self)-> Vec<u64> {

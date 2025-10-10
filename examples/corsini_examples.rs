@@ -12,12 +12,20 @@ fn main() {
     ];
 // Now we can initialize the Hypergroupoid.
 let hg = HyperGroupoid::new_from_elements(&cayley_table_array, &cardinality);
+//Show the hypergruopoid
+hg.show(); 
 //Show the left_identities of hg 
 hg.show_left_identities();
 //Show the right identities of hg
 hg.show_right_identities();
 //Show the identities of hg
 hg.show_identities();
+//Show left scalar elements
+hg.show_left_scalars();
+//Show right scalar elements
+hg.show_right_scalars();
+// Show scalar elements
+hg.show_scalars();
 // We can check if the hypergroupoid is a hypergroup
 println!("Is hypergroup: {}", hg.is_hypergroup());
 
