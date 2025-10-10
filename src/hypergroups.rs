@@ -507,7 +507,7 @@ pub fn heart(&self)->Option<HashSet<u64>>{
     //assert!(identity.len()==1);
     match identity {
         Some(e) => {
-            let id = e[0].trailing_zeros() as u64;
+            let id = e[0] as u64;
             let beta_identity = self.beta_relation().get_class(&id);
                 Some(vec_to_set(&beta_identity.1))}
 

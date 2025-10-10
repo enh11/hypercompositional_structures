@@ -2,8 +2,6 @@ use std::{time::{Instant}};
 use hyperstruc::{hs::{ HyperGroupoid}};
 fn main(){
     let now = Instant::now();
-   
-    
     let cardinality = 6u64;
 for _i in 0u64..1000{
     let hs = HyperGroupoid::new_random_from_cardinality(&cardinality);

@@ -480,23 +480,20 @@ pub fn collect_partial_identities(&self)->Vec<u64>{
     i_pl
 }
 pub fn is_left_identity(&self,e:&u64)->bool{
-    if !e.is_power_of_two() {panic!("Not an element in hypergroupoid!")}
-    let e=e.trailing_zeros();//the number of trailing_zeros in a power of two integer is equal to the exponent of that power.
-    let row_e=self.hyper_composition.row(e as usize);
+    
+    let row_e=self.hyper_composition.row(*e as usize);
     (0..self.n).into_iter().all(|x| (row_e.index(x as usize)>>x)&1==1)
 
 }
 pub fn is_right_identity(&self,e:&u64)->bool{
-    if !e.is_power_of_two() {panic!("Not an element in hypergroupoid!")}
-    let e=e.trailing_zeros();//the number of trailing_zeros in a power of two integer is equal to the exponent of that power.
-    let col_e=self.hyper_composition.column(e as usize);
+    let col_e=self.hyper_composition.column(*e as usize);
     (0..self.n).into_iter().all(|x| (col_e.index(x as usize)>>x)&1==1)
     }
 pub fn is_identity(&self,e:&u64)->bool{
     self.is_left_identity(&e)&&self.is_right_identity(&e)
 }
 pub fn collect_left_identities(&self)->Option<Vec<u64>>{
-    let left_identities:Vec<u64> = self.get_singleton().into_iter()
+    let left_identities:Vec<u64> = (0..self.n).into_iter()
         .filter(|e|self.is_left_identity(e))
         .collect();
     match left_identities.is_empty() {
@@ -511,7 +508,7 @@ pub fn show_left_identities(&self){
                 l_ids
                     .iter()
                     .map(|e| 
-                        format!("{}",e.trailing_zeros())
+                        format!("{}",e)
                     ).join(", ")
             );
         },
@@ -519,7 +516,7 @@ pub fn show_left_identities(&self){
     } 
 }
 pub fn collect_right_identities(&self)->Option<Vec<u64>>{
-    let right_identities:Vec<u64> = self.get_singleton().into_iter()
+    let right_identities:Vec<u64> = (0..self.n).into_iter()
         .filter(|e|self.is_right_identity(e))
         .collect();
     match right_identities.is_empty() {
@@ -535,14 +532,14 @@ pub fn show_right_identities(&self){
                 rids
                     .iter()
                     .map(|e| 
-                        format!("{}",e.trailing_zeros())
+                        format!("{}",e)
                     ).join(", ")
                 );
             }
         }
 }
 pub fn collect_identities(&self)->Option<Vec<u64>>{
-    let identities:Vec<u64> = self.get_singleton().into_iter()
+    let identities:Vec<u64> = (0..self.n).into_iter()
         .filter(|e|self.is_identity(&e))
         .collect();
     match identities.is_empty() {
@@ -556,24 +553,23 @@ pub fn show_identities(&self) {
         Some(id) => {
             println!("Identities: {:?}",
                 id.iter().map(|e| 
-                    format!("{}",e.trailing_zeros())
+                    format!("{}",e)
                 ).join(", "));
         }
     }
 }
 pub fn is_left_scalar(&self,s:&u64)->bool{
-    if !s.is_power_of_two() {panic!("Not an element in hypergroupoid!")}
-    let s=s.trailing_zeros();
-    self.hyper_composition.row(s as usize).iter().all(|x|x.is_power_of_two())
+    self.hyper_composition.row(*s as usize).iter().all(|x|x.is_power_of_two())
 }
+///
+/// Return true if `s` is a right scalar.
+/// The input value `s` is an element in `H`, i.e., an integer in `{0,1, ... n-1}`.
+/// 
 pub fn is_right_scalar(&self,s:&u64)->bool{
-    if !s.is_power_of_two()  {panic!("Not an element in hypergroupoid!")}
-    let s=s.trailing_zeros();
-    self.hyper_composition.column(s as usize).iter().all(|x|x.is_power_of_two())
+    self.hyper_composition.column(*s as usize).iter().all(|x|x.is_power_of_two())
 }
 pub fn collect_left_scalars(&self)->Vec<u64> {
-    self.get_singleton()
-        .into_iter()
+    (0..self.n).into_iter()
         .filter(|x|
             self.is_left_scalar(x)
         ).collect()
@@ -593,11 +589,10 @@ pub fn show_left_scalars(&self){
     }
 }
 pub fn collect_right_scalars(&self)-> Vec<u64> {
-        self.get_singleton()
-            .into_iter()
-            .filter(|x|
+    (0..self.n).into_iter()
+        .filter(|x|
                 self.is_right_scalar(x)
-            ).collect()
+        ).collect()
 }
 pub fn show_right_scalars(&self){
     let right_scalars = self.collect_right_scalars();
@@ -616,7 +611,7 @@ pub fn is_scalar(&self,s:&u64)->bool {
     self.is_left_scalar(s)&&self.is_right_scalar(s)
 }
 pub fn collect_scalars(&self)->Vec<u64>{
-    self.get_singleton().into_iter()
+    (0..self.n).into_iter()
         .filter(|s|self.is_scalar(&s))
         .collect()
 }
@@ -625,10 +620,11 @@ pub fn show_scalars(&self) {
     match scalars.is_empty() {
         true => println!("No scalar elements found."),
         false => {
-            let scalar_str:Vec<String> = scalars.iter()
-                                                .map(|e| format!("{}",e.trailing_zeros()))
-                                                .collect();
-            println!("Scalar elements: {}",scalar_str.join(", "));
+            println!("Scalar elements: {}",
+            scalars
+                .iter()
+                .map(|e| format!("{}",e.trailing_zeros()))
+                .join(", "));
         }
     }
 }
@@ -645,26 +641,31 @@ pub fn collect_scalar_identities(&self)->Vec<u64>{
 /// 
 pub fn right_inverses_of_x(&self, x:&u64,e:&u64)->u64{
     let h = (1<<self.n)-1;
-    assert!(x.is_power_of_two()&&x<&h,"{} is not an element in H",x);
-    assert!(self.is_identity(e),"{} is not an identity in H",e);
+    let singleton_x = 1u64<<x;
+    assert!(singleton_x<h,"{} is not an element in H",x);
+    assert!(self.is_identity(&e),"{} is not an identity in H",e);    
     let right_inverses=self.left_division(e, x);
-    let e_as_element = e.trailing_zeros();
-    right_inverses & !(1 << e_as_element)//remove the occurrence of 1 in e^th position (if there is) in order to remove e from the set of inverses.
-
+    //remove the occurrence of 1 in e^th position (if there is) in order to remove e from the set of inverses.
+    right_inverses & !(1 << e)
 }
 /// 
-/// Return the subset of left inverses of x with respect to the identity e.
+/// Return the subset of left inverses of x with respect to the identity e. 
+/// The input value `x` and `e` are elements in `H` and they are internally converted into 
+/// their integer representation as the singletons `{x}` and `{e}`, respectively,
+/// i.e., 2^x and 2^e are computed.
 /// Return a u64 representing the subset `e/x-{e}`. 
 /// To convert it into a HashSet use `u64_to_set()`.
 /// 
 pub fn left_inverses_of_x(&self, x:&u64,e:&u64)->u64{
     let h = (1<<self.n)-1;
-    assert!(x.is_power_of_two()&&x<&h,"{} is not an element in H",x);
-    assert!(self.is_identity(e),"{} is not an identity in H",e);    
+    // Make x into the singleton {x}, i.e., compute 2^x
+    let singleton_x = 1u64<<x;
+    assert!(singleton_x<h,"{} is not an element in H",x);
+    assert!(self.is_identity(&e),"{} is not an identity in H",e);    
     
     let left_inverses=self.right_division(e, x);
-    let e_as_element = e.trailing_zeros();
-    left_inverses & !(1 << e_as_element)//remove the occurrence of 1 (if there is) in order to remove u from the set of inverses. 
+    //remove the occurrence of 1 in e-th position (if there is) in order to remove e from the set of inverses. 
+    left_inverses & !(1 << e)
 }
 /// 
 /// Returns left inverses of `x` in the hyperstructure `H`. Returns a `Vec<(u64,u64)>`, where the first element in the tuple is 
@@ -674,13 +675,42 @@ pub fn left_inverses_of_x(&self, x:&u64,e:&u64)->u64{
 pub fn collect_left_inverses_of_x(&self,x:&u64)->Option<Vec<(u64,u64)>>{
     match self.collect_identities() {
         Some(identities) => {
-               Some(identities.iter().map(|u|(*u,self.left_inverses_of_x(x,u))).collect())
+            let left_inverses:Vec<(u64,u64)> = identities
+                .iter()
+                .map(|e|(*e,self.left_inverses_of_x(x,e))).collect();
+            match left_inverses.is_empty() {
+                true => None,
+                false => {
+                    let left_inverses:Vec<(u64,u64)> = left_inverses
+                        .into_iter()
+                        .filter(|(_e,e_left_inverses)|*e_left_inverses!=0)
+                        .collect();
+                    match left_inverses.is_empty() {
+                        true => None,
+                        false => Some(left_inverses),
+                    }
+                }                
+            }
         },
         None => None
     }
 }
-pub fn show_letf_inverses_of_x(&self,singleton_x:&HashSet<u64>)->Vec<(HashSet<u64>,HashSet<u64>)> {
-    todo!()
+pub fn is_left_invertible_x(&self,x:&u64)->bool {
+    self.collect_left_inverses_of_x(x).is_some()
+}
+pub fn show_left_inverses_of_x(&self,x:&u64){
+    match self.collect_left_inverses_of_x(x) {
+        Some(l_inverses) => 
+                println!("{}", 
+                l_inverses.iter().map(|(e,e_inverses)|
+                    format!("Left inverses of {} with respect to the identity {} are {:?}",
+                    x,
+                    e,
+                    u64_to_set(e_inverses, &self.n)
+                    )
+                ).join("\n")),
+        None => println!("{} is not invertible on the left.",x)
+    }
 }
 ///
 /// 
@@ -691,14 +721,38 @@ pub fn show_letf_inverses_of_x(&self,singleton_x:&HashSet<u64>)->Vec<(HashSet<u6
 /// 
 pub fn collect_right_inverses_of_x(&self,x:&u64)->Option<Vec<(u64,u64)>>{
     match self.collect_identities() {
-        Some(identities) => Some(
-            identities.iter()
-            .map(|u|(*u,self.right_inverses_of_x(x,u))).collect()),
+        Some(identities) => {
+            let right_inverses: Vec<(u64, u64)> = identities
+                .iter()
+                .map(|e|(*e,self.right_inverses_of_x(x,e))).collect();
+            match right_inverses.is_empty() {
+                true => None,
+                false => Some(right_inverses)                
+            }
+        },
         None => None,
     }
 }
-pub fn show_right_inverses_of_x(&self,singleton_x:&HashSet<u64>)->Vec<(HashSet<u64>,HashSet<u64>)> {
-    todo!()
+pub fn show_right_inverses_of_x(&self,x:&u64){
+    match self.collect_right_inverses_of_x(x) {
+        Some(r_inverses) => {
+            let inverses_to_print :Vec<&(u64, u64)> = r_inverses.iter().filter(|(_e,e_inverses)| *e_inverses!=0).collect();
+            match inverses_to_print.is_empty() {
+                true => println!("{} has no left inverse in H",x),
+                false => println!("{}", 
+                r_inverses.iter().map(|(e,e_inverses)|
+                format!("Right inverses of {} with respect to the identity {} are {:?}",
+                x,
+                e,
+                u64_to_set(e_inverses, &self.n)
+                )
+            ).join("\n")
+        )
+            }
+        
+        },
+        None => println!("{} is not invertible on the right.",x)
+    }
 }
 pub fn collect_inverses_of_x(&self,x:&u64)->Option<Vec<(u64,u64)>>{
     match self.collect_identities() {
@@ -707,12 +761,15 @@ pub fn collect_inverses_of_x(&self,x:&u64)->Option<Vec<(u64,u64)>>{
                 Some(left_inverses) => {
                     match self.collect_right_inverses_of_x(x) {
                         Some(right_inverses) => {
-                            Some(
-                            left_inverses.iter()
+                            let inverses_of_x = left_inverses.iter()
                                         .filter(|l_inverses|
-                                        right_inverses.contains(l_inverses))
-                            .map(|x|*x)
-                            .collect_vec())
+                                            right_inverses.contains(l_inverses))
+                                        .map(|x|*x)
+                                        .collect_vec();
+                            match inverses_of_x.is_empty() {
+                                true => None,
+                                false => Some(inverses_of_x),
+                            }
                         },
                         None => None
                     }
@@ -723,8 +780,15 @@ pub fn collect_inverses_of_x(&self,x:&u64)->Option<Vec<(u64,u64)>>{
         None => None,
     }
 }
-pub fn show_inverses_of_x(&self,singleton_x:&HashSet<u64>)->Vec<(HashSet<u64>,HashSet<u64>)> {
-    todo!()
+///
+/// Return the inverses of the element `x` in `H`.
+/// 
+pub fn show_inverses_of_x(&self,x:&u64)->Vec<(HashSet<u64>,HashSet<u64>)> {
+    assert!(x<&self.n);
+    match self.collect_inverses_of_x(x) {
+        Some(_) => todo!(),
+        None => todo!(),
+    }
 }
 pub fn collect_all_finite_hyperproducts(&self)->(Vec<u64>,u64){
     let mut a_current = Vec::new();
