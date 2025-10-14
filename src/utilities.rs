@@ -1,20 +1,178 @@
 
-use std::path::Iter;
+use std::iter::Sum;
 use std::{collections::HashSet, fmt::Binary, fs::File, io::Write};
 use std::fmt::Debug;
 use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
-
+use rayon::iter::plumbing::{bridge, bridge_unindexed, Consumer, Producer, ProducerCallback, UnindexedConsumer, UnindexedProducer};
+use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterator};
 use uint::construct_uint;
 construct_uint!{
     pub struct U1024(32);
+}
+impl Sum for U1024 {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+        iter.fold(U1024::zero(), |a, b| a + b)
+    }
 }
 /*THIS IS A WORK in PROGRESS*/
 #[derive(Clone, Debug)]
 pub struct U1024Range {
     start: U1024,
     end: U1024,
+}
+impl U1024Range {
+    pub fn new(start:U1024,end:U1024)->Self{
+        U1024Range{
+            start,
+            end
+        }
+
+    }
+    pub fn len(&self) -> Option<U1024> {
+        if self.end > self.start {
+            Some(self.end - self.start)
+        } else {
+            None
+        }
+    }
+
+    pub fn split_at(&self) -> Option<(U1024Range, U1024Range)> {
+        let len = self.len()?;
+        if len <= U1024::from(1u8) {
+            return None;
+        }
+        let mid = self.start + (len >> 1); // divide by 2
+        Some((
+            U1024Range::new(self.start, mid),
+            U1024Range::new(mid, self.end),
+        ))
+    }
+}
+// ---- RAYON INTEGRATION ----
+pub struct U1024Collection{
+   pub  data : Vec<U1024>
+}
+pub struct ParU1024Iter<'a> {
+  data_slice : &'a [U1024]
+}
+impl<'a> ParallelIterator for ParU1024Iter<'a> {
+    type Item = &'a U1024;
+
+    fn drive_unindexed<C>(self, consumer: C) -> C::Result
+    where C: UnindexedConsumer<Self::Item> {
+     bridge(self,consumer)   
+     }
+    fn opt_len(&self) -> Option<usize> {
+      Some(self.len())
+    }
+}
+
+impl<'a> IndexedParallelIterator for ParU1024Iter<'a> {
+    fn with_producer<CB: ProducerCallback<Self::Item>>(
+        self,
+        callback: CB,
+    ) -> CB::Output {
+         let producer = U1024Producer::from(self);
+        callback.callback(producer)
+    }
+
+    fn drive<C: Consumer<Self::Item>>(self, consumer: C) -> C::Result {
+        bridge(self,consumer)
+    }
+
+    fn len(&self) -> usize {
+        self.data_slice.len()    
+    }
+}
+struct U1024Producer<'a> {
+  data_slice : &'a [U1024],
+}
+impl<'a> Producer for U1024Producer<'a> {
+    type Item = &'a U1024;
+    type IntoIter = std::slice::Iter<'a, U1024>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.data_slice.iter()
+    }
+
+    fn split_at(self, index: usize) -> (Self, Self) {
+        let (left, right) = self.data_slice.split_at(index);
+        (
+            U1024Producer { data_slice: left },
+            U1024Producer { data_slice: right },
+        )
+    }
+}
+impl<'a> From<ParU1024Iter<'a>> for U1024Producer<'a> {
+    fn from(iterator: ParU1024Iter<'a>) -> Self {
+        Self {
+            data_slice: iterator.data_slice,
+        }
+    }
+}
+impl U1024Collection {
+    pub fn parallel_iterator(&self) -> ParU1024Iter {
+    ParU1024Iter {
+      data_slice : &self.data,
+    }
+  }
+}
+impl<'a> IntoParallelIterator for &'a U1024Collection {
+    type Iter = ParU1024Iter<'a>;
+    type Item = &'a U1024;
+
+    fn into_par_iter(self) -> Self::Iter {
+        ParU1024Iter { data_slice: &self.data }
+    }
+}
+
+
+
+
+
+
+/// ENd Rayon
+
+
+
+
+
+impl UnindexedProducer for U1024Range {
+    type Item = U1024;
+
+    fn split(mut self) -> (Self, Option<Self>) {
+        if let Some((left, right)) = self.split_at() {
+            (left, Some(right))
+        } else {
+            (self, None)
+        }
+    }
+
+    fn fold_with<F>(mut self, mut folder: F) -> F
+    where
+        F: rayon::iter::plumbing::Folder<Self::Item>,
+    {
+        while let Some(item) = self.next() {
+            folder = folder.consume(item);
+            if folder.full() {
+                break;
+            }
+        }
+        folder
+    }
+}
+
+impl ParallelIterator for U1024Range {
+    type Item = U1024;
+
+    fn drive_unindexed<C>(self, consumer: C) -> C::Result
+    where
+        C: UnindexedConsumer<Self::Item>,
+    {
+        bridge_unindexed(self, consumer)
+    }
 }
 
 impl Iterator for U1024Range {
@@ -23,7 +181,7 @@ impl Iterator for U1024Range {
     fn next(&mut self) -> Option<Self::Item> {
         if self.start < self.end {
             let current = self.start;
-            self.start += U1024::from(1u8);
+            self.start += U1024::from(1);
             Some(current)
         } else {
             None

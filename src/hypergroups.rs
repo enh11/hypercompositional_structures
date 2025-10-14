@@ -1,7 +1,7 @@
 use core::panic;
 use std::{collections::{HashMap, HashSet}, fmt::{self, Display}};
 extern crate nalgebra as na;
-use itertools::{join, Itertools};
+use itertools::Itertools;
 use nalgebra::DMatrix;
 use num_rational::Rational64;
 use permutation::Permutation;
@@ -376,13 +376,13 @@ match  self.collect_proper_invertible_subhypergroups(){
     Some(sub_hg_invertible) => {
         println!("Proper invertible subhypregroups of H are:\n{}",
         (0..sub_hg_invertible.len()).into_iter().map(|i|
-            format!("K_{} = {:?}",
+            format!("I_{} = {:?}",
             i,
             u64_to_set(&sub_hg_invertible[i],&self.cardinality()))
         ).join("\n")
     )
     },
-    None => println!("H has no non-trivial subhypergroup."),
+    None => println!("H has no non-trivial invertible subhypergroup."),
 }
 }
 pub fn collect_proper_closed_subhypergroups(&self)->Option<Vec<u64>>{
@@ -406,7 +406,7 @@ match  self.collect_proper_closed_subhypergroups(){
     Some(sub_hg_closed) => {
         println!("Proper closed subhypregroups of H are:\n{}",
         (0..sub_hg_closed.len()).into_iter().map(|i|
-            format!("K_{} = {:?}",
+            format!("C_{} = {:?}",
             i,
             u64_to_set(&sub_hg_closed[i],&self.cardinality()))
         ).join("\n")
@@ -436,7 +436,7 @@ match  self.collect_proper_reflexive_subhypergroups(){
     Some(sub_hg_reflexive) => {
         println!("Proper reflexive subhypregroups of H are:\n{}",
         (0..sub_hg_reflexive.len()).into_iter().map(|i|
-            format!("K_{} = {:?}",
+            format!("R_{} = {:?}",
             i,
             u64_to_set(&sub_hg_reflexive[i],&self.cardinality()))
         ).join("\n")
@@ -466,7 +466,7 @@ match  self.collect_proper_normal_subhypergroups(){
     Some(sub_hg_normal) => {
         println!("Proper normal subhypregroups of H are:\n{}",
         (0..sub_hg_normal.len()).into_iter().map(|i|
-            format!("K_{} = {:?}",
+            format!("N_{} = {:?}",
             i,
             u64_to_set(&sub_hg_normal[i],&self.cardinality()))
         ).join("\n")

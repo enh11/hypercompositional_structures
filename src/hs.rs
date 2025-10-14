@@ -1,5 +1,4 @@
 use core::panic;
-use num_traits::identities;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use std::{collections::HashSet, fmt::Display, vec};
 extern crate nalgebra as na;
@@ -783,11 +782,20 @@ pub fn collect_inverses_of_x(&self,x:&u64)->Option<Vec<(u64,u64)>>{
 ///
 /// Return the inverses of the element `x` in `H`.
 /// 
-pub fn show_inverses_of_x(&self,x:&u64)->Vec<(HashSet<u64>,HashSet<u64>)> {
+pub fn show_inverses_of_x(&self,x:&u64){
     assert!(x<&self.n);
     match self.collect_inverses_of_x(x) {
-        Some(_) => todo!(),
-        None => todo!(),
+        Some(inverses_of_x) => 
+                println!("{}",
+                inverses_of_x.iter().map(|(e,inv)|
+                format!("Inverses of {} with respect to the identity {} are {:?}",
+                x,
+                e,
+                u64_to_set(inv, &self.n)
+                )
+            ).join("\n")
+        ),
+        None => println!("{} has no inverses.",x),
     }
 }
 pub fn collect_all_finite_hyperproducts(&self)->(Vec<u64>,u64){

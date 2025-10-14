@@ -16,8 +16,7 @@ let input_array1 = vec![
     ];
 let hs1 = HyperGroupoid::new_from_elements(&input_array1, &cardinality);
     println!("{}",hs1);
-    
 for x in 0..cardinality{
-    println!("inverses of {:?} are {:?}",x,hs1.show_inverses_of_x(&x));
+    hs1.show_inverses_of_x(&x);
     }
 }
