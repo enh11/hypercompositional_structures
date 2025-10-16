@@ -5,8 +5,8 @@ use itertools::Itertools;
 use nalgebra::DMatrix;
 use num_rational::Rational64;
 use permutation::Permutation;
-use rayon::iter::{IntoParallelRefIterator, PanicFuse, ParallelIterator};
-use crate::{binary_relations::relations::Relation, fuzzy::FuzzySubset, hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoid}, hypergroups, quotient_hg::QuotientHyperGroup, utilities::{get_complement_subset, support, u64_to_set, vec_to_set, U1024}};
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+use crate::{binary_relations::relations::Relation, fuzzy::FuzzySubset, hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoid}, quotient_hg::QuotientHyperGroup, utilities::{get_complement_subset, support, u64_to_set, vec_to_set, U1024}};
 #[derive(Debug, Clone)]
 pub enum HyperStructureError {
     NotHypergroup,
@@ -25,29 +25,25 @@ impl HyperGroup {
     pub fn new_from_hypergroupoid(h : HyperGroupoid)->Self{
         match h.try_into() {
             Ok(hg) => HyperGroup(hg),
-            Err(error) => panic!("{}",error),
+            _ => panic!("The input hypergroupoid is not a hypergroup."),
         }
     }
     pub fn new_from_matrix(matrix:&DMatrix<u64>)->Self{
         let hg= HyperGroupoid::new_from_matrix(matrix);
-        assert!(hg.is_hypergroup(),"Not an hypergroup!");
-        HyperGroup(hg)
+        HyperGroup::new_from_hypergroupoid(hg)
 
     }
     pub fn new_from_tag_u128(tag:&u128,cardinality:&u64)->Self{
         let hg= HyperGroupoid::new_from_tag_u128(tag,cardinality);
-        assert!(hg.is_hypergroup(),"Not an hypergroup! Tag is {}",tag);
-        HyperGroup(hg)
+        HyperGroup::new_from_hypergroupoid(hg)
     }
     pub fn new_from_tag_u1024(tag:&U1024,cardinality:&u64)->Self{
         let hg= HyperGroupoid::new_from_tag_u1024(tag,cardinality);
-        assert!(hg.is_hypergroup(),"Not an hypergroup!");
-        HyperGroup(hg)
+        HyperGroup::new_from_hypergroupoid(hg)
     }
     pub fn new_from_elements(input_array: &Vec<Vec<u64>>, cardinality:&u64)->Self{
         let hg = HyperGroupoid::new_from_elements(input_array, &cardinality);
-        assert!(hg.is_hypergroup(),"Input array doesn't represent a hypergroup!");
-        HyperGroup(hg)
+        HyperGroup::new_from_hypergroupoid(hg)
 
     }
 /// Generates a new hypergroup from a binary function Fn(u64, u64) -> u64.
@@ -270,7 +266,7 @@ pub fn collect_proper_subhypergroups(&self)->Option<Vec<u64>> {
 pub fn show_proper_subhypergroups(&self) {
 match  self.collect_proper_subhypergroups(){
     Some(sub_hgs) => {
-        println!("Proper subhypregroups of H are:\n{}",
+        println!("Proper subhypergroups of H are:\n{}",
         (0..sub_hgs.len()).into_iter().map(|i|
             format!("K_{} = {:?}",
             i,
@@ -376,7 +372,7 @@ pub fn collect_proper_invertible_subhypergroups(&self)->Option<Vec<u64>>{
 pub fn show_proper_invertible_subhypergroups(&self) {
 match  self.collect_proper_invertible_subhypergroups(){
     Some(sub_hg_invertible) => {
-        println!("Proper invertible subhypregroups of H are:\n{}",
+        println!("Proper invertible subhypergroups of H are:\n{}",
         (0..sub_hg_invertible.len()).into_iter().map(|i|
             format!("I_{} = {:?}",
             i,
@@ -406,7 +402,7 @@ pub fn collect_proper_closed_subhypergroups(&self)->Option<Vec<u64>>{
 pub fn show_proper_closed_subhypergroups(&self) {
 match  self.collect_proper_closed_subhypergroups(){
     Some(sub_hg_closed) => {
-        println!("Proper closed subhypregroups of H are:\n{}",
+        println!("Proper closed subhypergroups of H are:\n{}",
         (0..sub_hg_closed.len()).into_iter().map(|i|
             format!("C_{} = {:?}",
             i,
@@ -436,7 +432,7 @@ pub fn collect_proper_reflexive_subhypergroups(&self)->Option<Vec<u64>>{
 pub fn show_proper_reflexive_subhypergroups(&self) {
 match  self.collect_proper_reflexive_subhypergroups(){
     Some(sub_hg_reflexive) => {
-        println!("Proper reflexive subhypregroups of H are:\n{}",
+        println!("Proper reflexive subhypergroups of H are:\n{}",
         (0..sub_hg_reflexive.len()).into_iter().map(|i|
             format!("R_{} = {:?}",
             i,
@@ -466,7 +462,7 @@ pub fn collect_proper_normal_subhypergroups(&self)->Option<Vec<u64>>{
 pub fn show_proper_normal_subhypergroups(&self) {
 match  self.collect_proper_normal_subhypergroups(){
     Some(sub_hg_normal) => {
-        println!("Proper normal subhypregroups of H are:\n{}",
+        println!("Proper normal subhypergroups of H are:\n{}",
         (0..sub_hg_normal.len()).into_iter().map(|i|
             format!("N_{} = {:?}",
             i,
@@ -581,11 +577,11 @@ pub fn get_fundamental_group(&self)-> QuotientHyperGroup {
 /// - [`HyperGroup::new_from_elements`](HyperGroup::new_from_elements): Constructs a hypergroup from raw data.
 pub fn get_isomorphic_fundamental_group(&self)->HyperGroup{
     let fg = self.get_fundamental_group();
-    let mut classes= self.beta_relation().quotient_set().iter().map(|(_,y)|y.clone()).collect_vec();
+    let mut classes:Vec<Vec<u64>>= self.beta_relation().quotient_set().into_iter().map(|(_,y)|y).collect();
     classes.sort();
     let cardinality = classes.len();
 
-    let hash:HashMap<Vec<u64>,usize>= classes.iter().cloned().enumerate().map(|(i, x)| (x, i)).collect();    
+    let hash:HashMap<Vec<u64>,usize>= classes.into_iter().enumerate().map(|(i, x)| (x, i)).collect();    
     let generating_function = |a:u64,b:u64| 
            {
            let get =  match hash.get(

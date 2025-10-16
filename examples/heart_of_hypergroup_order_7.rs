@@ -15,8 +15,10 @@ fn main() {
     let hg = HyperGroup::new_from_hypergroupoid(hypergroupoid);
     let beta = hg.collect_beta_classes();
     println!("beta {:?}",beta);
-    let fundamental = hg.get_isomorphic_fundamental_group();
+    let fundamental = hg.get_fundamental_group();
     println!("f {}",fundamental);
     let heart = hg.heart();
     println!("heart is {:?}",heart);
+    let isomorphic_fg = hg.get_isomorphic_fundamental_group();
+    println!("{}",isomorphic_fg);
 }

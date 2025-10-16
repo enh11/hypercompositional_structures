@@ -1,7 +1,6 @@
-use std::{time::{Instant}};
-use hyperstruc::{hs::HyperGroupoid, utilities::{U1024Collection, U1024Range, U1024}};
-use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator};
-use rayon::iter::ParallelIterator;
+use std::time::Instant;
+use hyperstruc::hs::HyperGroupoid;
+
 fn main(){
     let now = Instant::now();
     let cardinality = 6u64;
