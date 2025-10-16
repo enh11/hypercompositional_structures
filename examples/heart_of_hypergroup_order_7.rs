@@ -1,4 +1,4 @@
-use hyperstruc::hs::HyperGroupoid;
+use hyperstruc::{hs::HyperGroupoid, hypergroups::HyperGroup};
 
 fn main() {
     let cardinality = 7u64;
@@ -12,10 +12,7 @@ fn main() {
         vec![5,6],vec![2],vec![3],vec![1],vec![0],vec![4],vec![4],
     ];
     let hypergroupoid = HyperGroupoid::new_from_elements(&input_array, &cardinality);
-    let hg = match hypergroupoid.is_hypergroup() {
-        true => hyperstruc::hypergroups::HyperGroup::new_from_hypergroupiod(&hypergroupoid),
-        false => panic!()
-    };
+    let hg = HyperGroup::new_from_hypergroupoid(hypergroupoid);
     let beta = hg.collect_beta_classes();
     println!("beta {:?}",beta);
     let fundamental = hg.get_isomorphic_fundamental_group();

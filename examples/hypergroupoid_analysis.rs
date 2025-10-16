@@ -61,7 +61,7 @@ fn main() {
 
     // === 4. Analyze subhypergroups (if hypergroup) ===
     if is_hypergroup {
-        let hypergroup = HyperGroup::new_from_hypergroupiod(&hg);
+        let hypergroup = HyperGroup::new_from_hypergroupoid(hg);
 
         println!("\n=== Subhypergroup Analysis ===");
         hypergroup.show_proper_subhypergroups();

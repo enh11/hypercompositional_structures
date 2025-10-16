@@ -5,8 +5,8 @@ use itertools::Itertools;
 use nalgebra::DMatrix;
 use num_rational::Rational64;
 use permutation::Permutation;
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
-use crate::{binary_relations::relations::Relation, fuzzy::FuzzySubset, hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoid}, quotient_hg::QuotientHyperGroup, utilities::{get_complement_subset, support, u64_to_set, vec_to_set, U1024}};
+use rayon::iter::{IntoParallelRefIterator, PanicFuse, ParallelIterator};
+use crate::{binary_relations::relations::Relation, fuzzy::FuzzySubset, hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoid}, hypergroups, quotient_hg::QuotientHyperGroup, utilities::{get_complement_subset, support, u64_to_set, vec_to_set, U1024}};
 #[derive(Debug, Clone)]
 pub enum HyperStructureError {
     NotHypergroup,
@@ -22,9 +22,11 @@ impl fmt::Display for HyperStructureError {
 pub struct HyperGroup(pub HyperGroupoid);
 
 impl HyperGroup {
-    pub fn new_from_hypergroupiod(h:&HyperGroupoid)-> Self {
-        assert!(h.is_hypergroup());
-        HyperGroup(h.clone())
+    pub fn new_from_hypergroupoid(h : HyperGroupoid)->Self{
+        match h.try_into() {
+            Ok(hg) => HyperGroup(hg),
+            Err(error) => panic!("{}",error),
+        }
     }
     pub fn new_from_matrix(matrix:&DMatrix<u64>)->Self{
         let hg= HyperGroupoid::new_from_matrix(matrix);

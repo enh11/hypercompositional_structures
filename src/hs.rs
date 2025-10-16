@@ -6,12 +6,27 @@ use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
 use rand::Rng;
-use crate::{binary_relations::relations::Relation, fuzzy::FuzzySubset, utilities::{all_triplets, binary_to_n, from_tag_to_vec, from_tag_u1024_to_vec, get_min_max_u1024, get_subset, n_to_binary_vec, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid_u1024, subset_as_u64, support, u64_to_set, vec_to_set, U1024}};
+use crate::{binary_relations::relations::Relation, fuzzy::FuzzySubset, hypergroups::{HyperGroup, HyperStructureError}, utilities::{all_triplets, binary_to_n, from_tag_to_vec, from_tag_u1024_to_vec, get_min_max_u1024, get_subset, n_to_binary_vec, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid_u1024, subset_as_u64, support, u64_to_set, vec_to_set, U1024}};
 #[derive(Debug, Clone,PartialEq)]
 pub struct HyperGroupoid{
     pub h:HashSet<u64>,
     pub hyper_composition:DMatrix<u64>,
     pub n:u64
+}
+ impl From<HyperGroup> for HyperGroupoid{
+     fn from(hg:HyperGroup) -> Self {
+        hg.0
+    }
+}
+impl TryInto<HyperGroup> for HyperGroupoid{
+    type Error= HyperStructureError;
+
+    fn try_into(self) -> Result<HyperGroup, Self::Error> {
+        match  self.is_hypergroup(){
+            true => Ok(HyperGroup(self)),
+            false => Err(HyperStructureError::NotHypergroup),
+        }
+    }
 }
 impl HyperGroupoid {
 /// Generate a new random hyperstructure with cardinality n.
@@ -87,9 +102,9 @@ pub fn new_from_function<F>(function:F,cardinality:&u64)->Self
 /// 
 /// 
 /// Generate a new hyperstructure given a square matrix. Every entry in the matrix is u64 and represent a subset of `H = {0,1,2,...,n}`,
-/// where `n` is the size of the matrix, i.e., the cardinality of the new hyperstructure.
+/// where `n` is the size of the matrix, i.e., the cardinality of the `H`.
 /// In particular, if `a`,`b` are elements of `H`, then `ab` is the entry in position `(a,b)`. 
-/// For more detail about representation, see pub fn get_subset() in utilities.rs.
+/// For more detail about integer representation for subsets, see pub fn get_subset() in utilities.rs.
 /// 
 /// # Example
 /// ```

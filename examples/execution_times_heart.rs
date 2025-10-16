@@ -1,5 +1,5 @@
 use std::time::Instant;
-use hyperstruc::hs::HyperGroupoid;
+use hyperstruc::{hs::HyperGroupoid, hypergroups::HyperGroup};
 
 fn main() {
 let cardinality = 7u64;
@@ -13,10 +13,7 @@ let cardinality = 7u64;
         vec![5,6],vec![2],vec![3],vec![1],vec![0],vec![4],vec![4],
     ];
     let hypergroupoid = HyperGroupoid::new_from_elements(&input_array, &cardinality);
-    let hg = match hypergroupoid.is_hypergroup() {
-        true => hyperstruc::hypergroups::HyperGroup::new_from_hypergroupiod(&hypergroupoid),
-        false => panic!()
-    };
+    let hg:HyperGroup = hypergroupoid.try_into().unwrap();
     let now = Instant::now();
     let heart1 = hg.heart_fast();
     let end1 = now.elapsed();
