@@ -1,8 +1,14 @@
 use std::time::Instant;
-use hyperstruc::hs::HyperGroupoid;
+use hyperstruc::{group_cayley_tables::S3, hs::HyperGroupoid, hypergroups::HyperGroup};
+use itertools::Itertools;
+use rand::seq::IteratorRandom;
 
 fn main(){
-    let now = Instant::now();
+    let partition: Vec<u64> =vec![1,6,24,96,128,256];
+    let hg = HyperGroup::new_complete_from_group("S3", &9u64, &partition);
+    hg.show();
+    println!("{:?}",hg.heart());
+   let now = Instant::now();
     let cardinality = 6u64;
 for _i in 0u64..1000{
     let hs = HyperGroupoid::new_random_from_cardinality(&cardinality);

@@ -46,6 +46,64 @@ impl HyperGroup {
         HyperGroup::new_from_hypergroupoid(hg)
 
     }
+    pub fn new_from_group(cayley_table:&[u64],cardinality: &u64)->Self{
+        let input_array:Vec<Vec<u64>> = cayley_table.iter().map(|e|vec![*e]).collect();
+        HyperGroup::new_from_elements(&input_array, cardinality)
+    }
+/// Generates a new complete hypergroup from a group.
+/// 
+/// It requires the cardinality of the new complete hypergroup `H` and a partition of `{A_g1,A_g2,...,A_gk}` indexed by 
+/// the elements in the input group `G`. Therefore, the length `k` of the partition must be equal to the 
+/// cardinality of `G`. 
+/// 
+/// The hyperoperation `ab` is given by `A_gh`, where `g` and `h` are the unique elements in `G` 
+/// such that `a` belongs to `A_g` and `b` belongs to `A_h`, respectively.
+/// 
+/// For more details we recommend `https://www.mdpi.com/2813-0324/7/1/26`.
+/// 
+/// The list of available groups is `group_cayley_table.rs` file.
+/// 
+/// #Example
+/// 
+/// ```
+/// use hyperstruc::hypergroups::HyperGroup;
+/// use std::collections::HashSet;
+/// 
+/// let cardinality = 9u64;
+/// let partition = vec![1,6,24,96,128,256];
+/// let complete_hg  =HyperGroup::new_complete_from_group("S3",&cardinality,&partition);
+/// /// The heat of a complete hypergroup is always trivial, i.e., {e}, where e is the identity of the fundamental group.
+/// let heart = complete_hg.heart();
+/// let expected_heart:HashSet<u64> = [0].into();
+/// assert_eq!(Some(expected_heart),heart);
+/// 
+/// 
+/// 
+    pub fn new_complete_from_group(group: &str,cardinality:&u64,partition: &Vec<u64>)->Self{
+        //Partition's check:
+        // - Union must be equal to H
+        let sum = partition.iter().fold(0, |acc,x|acc | x);
+        assert_eq!(sum,(1<<cardinality)-1);
+        // - Must be pair-wise disjoint (TODO!)
+
+        let g = match group {
+            "S3" => HyperGroup::new_from_group(&crate::group_cayley_tables::S3, &6u64),
+            _=> panic!("Group not in the list.") 
+        };
+        let generating_function = |a:u64,b:u64| 
+           {
+            let i =partition.iter().find_position(|x|(**x>>a)&1==1).unwrap().0 as u64;
+            let j  =partition.iter().find_position(|x|(**x>>b)&1==1).unwrap().0 as u64;
+
+            let g1g2 = g.mul_by_representation(&(1<<i),&(1<<j));
+            let k = partition[g1g2.trailing_zeros() as usize];
+            k
+           };
+           let hg = HyperGroupoid::new_from_function(generating_function, cardinality);
+            HyperGroup::new_from_hypergroupoid(hg)
+
+
+    }
 /// Generates a new hypergroup from a binary function Fn(u64, u64) -> u64.
 ///
 /// The function is sent to HyperGroupoids::new_from_function`, which compute the new hyperstructure and check if it is a hypergroup.
@@ -80,6 +138,9 @@ pub fn new_from_function<F>(function:F,cardinality:&u64)->Result<Self,HyperStruc
             true => Ok(HyperGroup::new_from_tag_u1024(&hs.get_integer_tag_u1024(), cardinality)),
             false => Err(HyperStructureError::NotHypergroup),            
         }
+}
+pub fn show(&self){
+    self.0.show()
 }
 pub fn cardinality(&self)->u64{
         self.0.n
