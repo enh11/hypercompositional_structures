@@ -1,6 +1,6 @@
 use core::panic;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
-use std::{collections::HashSet, fmt::Display, vec};
+use std::{collections::HashSet, fmt::Display, os::unix::raw::ino_t, vec};
 extern crate nalgebra as na;
 use itertools::Itertools;
 use nalgebra::DMatrix;
@@ -77,7 +77,7 @@ impl HyperGroupoid {
 /// use hyperstruc::hypergroups::HyperGroup;
 /// 
 /// let cardinality =3u64;
-/// let function = |a:u64,b:u64| 1<<a|1<<b;
+/// let function = |a:usize,b:usize| 1<<a|1<<b;
 /// let hs  = HyperGroupoid::new_from_function(function, &cardinality);
 /// println!("hs {}",hs);
 /// assert!(hs.is_hypergroup());
@@ -87,16 +87,18 @@ impl HyperGroupoid {
 /// 
 ///
 pub fn new_from_function<F>(function:F,cardinality:&u64)->Self
-    where F: Fn(u64,u64) -> u64{
-        let tag_vec = (0..*cardinality)
-            .into_iter()
-            .cartesian_product(0..*cardinality)
-                .into_iter()
-                .map(|(a,b)|
-                    n_to_binary_vec(&(function(a,b) as u128),cardinality)
-                ).concat();
-        let tag = U1024::from_binary_vec(&tag_vec);
-        HyperGroupoid::new_from_tag_u1024(&tag, cardinality)
+    where F: Fn(usize,usize) -> u64{
+        let m = DMatrix::from_fn(*cardinality as usize, *cardinality as usize, function);
+        HyperGroupoid::new_from_matrix(&m)
+        // let tag_vec = (0..*cardinality as usize)
+        //     .into_iter()
+        //     .cartesian_product(0..*cardinality as usize)
+        //         .into_iter()
+        //         .map(|(a,b)|
+        //             n_to_binary_vec(&(function(a,b) as u128),cardinality)
+        //         ).concat();
+        // let tag = U1024::from_binary_vec(&tag_vec);
+        // HyperGroupoid::new_from_tag_u1024(&tag, cardinality)
 }
 
 /// 
@@ -180,9 +182,10 @@ pub fn show(&self){
 /// let hypergroupoid = HyperGroupoid::new_from_tag_u128(&tag, &cardinality);
 /// 
 pub fn new_from_elements(input_array: &Vec<Vec<u64>>, cardinality:&u64)->Self{
+    println!("input {:?}",input_array);
     if input_array.len() as u64!=cardinality.pow(2u32) {panic!("Cardinality is {} and the input vector length is {}. It should be a square-length vector!",cardinality,input_array.len())}
-    let function = |a:u64,b:u64| 
-        input_array[(cardinality*a+b) as usize]
+    let function = |a:usize,b:usize| 
+        input_array[(*cardinality as usize)*a+b]
             .iter()
             .fold(
                 0u64, 
@@ -496,12 +499,12 @@ pub fn collect_partial_identities(&self)->Vec<u64>{
 pub fn is_left_identity(&self,e:&u64)->bool{
     
     let row_e=self.hyper_composition.row(*e as usize);
-    (0..self.n).into_iter().all(|x| (row_e.index(x as usize)>>x)&1==1)
+    (0..self.n).into_iter().all(|x| (row_e[x as usize]>>x)&1==1)
 
 }
 pub fn is_right_identity(&self,e:&u64)->bool{
     let col_e=self.hyper_composition.column(*e as usize);
-    (0..self.n).into_iter().all(|x| (col_e.index(x as usize)>>x)&1==1)
+    (0..self.n).into_iter().all(|x| (col_e[x as usize]>>x)&1==1)
     }
 pub fn is_identity(&self,e:&u64)->bool{
     self.is_left_identity(&e)&&self.is_right_identity(&e)

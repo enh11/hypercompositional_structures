@@ -259,7 +259,7 @@ let cardinality  =8u64;
     fn example_transposition_hg() {
         let cardinality = 5;
         let function = {
-            |a:u64,b:u64| 
+            |a:usize,b:usize| 
                 if a!=b {return 1<<a.max(b)}
                 else {return (0..=a).into_iter().fold(0, |acc,x|acc|1<<x)}
             };

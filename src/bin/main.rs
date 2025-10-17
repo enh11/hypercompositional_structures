@@ -1,13 +1,26 @@
 use std::time::Instant;
-use hyperstruc::{group_cayley_tables::S3, hs::HyperGroupoid, hypergroups::HyperGroup};
+use hyperstruc::{group_cayley_tables::{A4, S3}, hs::HyperGroupoid, hypergroups::HyperGroup};
 use itertools::Itertools;
 use rand::seq::IteratorRandom;
+use rayon::vec;
 
 fn main(){
-    let partition: Vec<u64> =vec![1,6,24,96,128,256];
-    let hg = HyperGroup::new_complete_from_group("S3", &9u64, &partition);
+    let a4 = HyperGroup::new_from_group(&A4,&12u64);
+a4.show();
+    //let partition: Vec<u64> =vec![1,6,24,96,128,256];
+    let partition_2 :Vec<u64>= vec![3,4,8,16,96,384];
+    let p_12:Vec<u64> = vec![3,12,48,64,128,256,512,1024,2048,4096,8192,16384];
+    let hg = HyperGroup::new_complete_from_group("A4", &15u64, &p_12);
     hg.show();
-    println!("{:?}",hg.heart());
+    let f  =hg.get_isomorphic_fundamental_group();
+f.show();
+println!("heart {:?}",hg.heart());
+    let l = hg.collect_left_identities().unwrap();
+    println!("left are {:?}",l);
+    let r  =hg.collect_right_identities();
+    println!("right are {:?}",r.unwrap());
+    let i = hg.collect_identities();
+    println!("{:?}",i);
    let now = Instant::now();
     let cardinality = 6u64;
 for _i in 0u64..1000{

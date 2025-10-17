@@ -38,11 +38,11 @@ impl FuzzySubset {
         FuzzySubset { h, mu }
     }
      pub fn get_corsini_join_space(&self)->Result<HyperGroup, HyperStructureError>{
-        let function  = |a:u64,b:u64| 
+        let function  = |a:usize,b:usize| 
             (0..self.h.n).into_iter().filter(|z|
-                (self.mu)(*z).unwrap().0>=(self.mu)(a).unwrap().0.min((self.mu)(b).unwrap().0)
+                (self.mu)(*z).unwrap().0>=(self.mu)(a as u64).unwrap().0.min((self.mu)(b as u64).unwrap().0)
                 &&
-                (self.mu)(*z).unwrap().0<=(self.mu)(a).unwrap().0.max((self.mu)(b).unwrap().0)
+                (self.mu)(*z).unwrap().0<=(self.mu)(a as u64).unwrap().0.max((self.mu)(b as u64).unwrap().0)
 ).into_iter().fold(0,|acc,x| acc|1<<x);
 HyperGroup::new_from_function(function, &self.h.n)
     }

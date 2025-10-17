@@ -68,14 +68,17 @@ impl HyperGroup {
 /// ```
 /// use hyperstruc::hypergroups::HyperGroup;
 /// use std::collections::HashSet;
+/// use hyperstruc::utilities::vec_to_set;
 /// 
 /// let cardinality = 9u64;
 /// let partition = vec![1,6,24,96,128,256];
 /// let complete_hg  =HyperGroup::new_complete_from_group("S3",&cardinality,&partition);
-/// /// The heat of a complete hypergroup is always trivial, i.e., {e}, where e is the identity of the fundamental group.
+/// 
+/// /// The heat of a complete hypergroup is the set of its identities.
+/// 
 /// let heart = complete_hg.heart();
-/// let expected_heart:HashSet<u64> = [0].into();
-/// assert_eq!(Some(expected_heart),heart);
+/// let identities:HashSet<u64> = vec_to_set(&complete_hg.collect_identities().unwrap());
+/// assert_eq!(Some(identities),heart);
 /// 
 /// 
 /// 
@@ -88,9 +91,10 @@ impl HyperGroup {
 
         let g = match group {
             "S3" => HyperGroup::new_from_group(&crate::group_cayley_tables::S3, &6u64),
+            "A4"=> HyperGroup::new_from_group(&crate::group_cayley_tables::A4, &12u64),
             _=> panic!("Group not in the list.") 
         };
-        let generating_function = |a:u64,b:u64| 
+        let generating_function = |a:usize,b:usize| 
            {
             let i =partition.iter().find_position(|x|(**x>>a)&1==1).unwrap().0 as u64;
             let j  =partition.iter().find_position(|x|(**x>>b)&1==1).unwrap().0 as u64;
@@ -127,12 +131,12 @@ impl HyperGroup {
 /// use hyperstruc::hypergroups::HyperGroup;
 /// 
 /// let cardinality =3u64;
-/// let function = |a:u64,b:u64| 1<<a|1<<b;
+/// let function = |a:usize,b:usize| 1<<a|1<<b;
 /// let hg = HyperGroup::new_from_function(function, &cardinality);
 /// assert!(hg.unwrap().is_transposition());
 ///
 pub fn new_from_function<F>(function:F,cardinality:&u64)->Result<Self,HyperStructureError>
-    where F: Fn(u64,u64) -> u64{
+    where F: Fn(usize,usize) -> u64{
         let hs = HyperGroupoid::new_from_function(function, cardinality);
         match hs.is_hypergroup() {
             true => Ok(HyperGroup::new_from_tag_u1024(&hs.get_integer_tag_u1024(), cardinality)),
@@ -202,7 +206,7 @@ pub fn get_integer_tag_u1024(&self)->U1024{
 /// use hyperstruc::hypergroups::HyperGroup;
 /// 
 /// let cardinality =5u64;
-/// let function = |a:u64,b:u64| 1<<a|1<<b;
+/// let function = |a:usize,b:usize| 1<<a|1<<b;
 /// let hg = match HyperGroup::new_from_function(function, &cardinality) {
 /// Ok(hg)=>hg,
 /// Err(HyperStructureError::NotHypergroup)=> panic!("Not hg")
@@ -368,7 +372,7 @@ pub fn subhypergroup_is_reflexive(&self,subset_k:&u64)->bool {
 /// use hyperstruc::hypergroups::HyperGroup;
 /// 
 /// let cardinality =5u64;
-/// let function = |a:u64,b:u64| 1<<a|1<<b;
+/// let function = |a:usize,b:usize| 1<<a|1<<b;
 /// let hg = match HyperGroup::new_from_function(function, &cardinality) {
 /// Ok(hg)=>hg,
 /// Err(HyperStructureError::NotHypergroup)=> panic!("Not hg")
@@ -643,7 +647,7 @@ pub fn get_isomorphic_fundamental_group(&self)->HyperGroup{
     let cardinality = classes.len();
 
     let hash:HashMap<Vec<u64>,usize>= classes.into_iter().enumerate().map(|(i, x)| (x, i)).collect();    
-    let generating_function = |a:u64,b:u64| 
+    let generating_function = |a:usize,b:usize| 
            {
            let get =  match hash.get(
                 &fg.0.hyper_composition[(a as usize,b as usize)][0]) {
