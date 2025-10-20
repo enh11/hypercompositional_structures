@@ -1,12 +1,12 @@
 use std::time::Instant;
-use hyperstruc::{group_cayley_tables::{A4, S3}, hs::HyperGroupoid, hypergroups::HyperGroup};
+use hyperstruc::{group_cayley_tables::{A4, S3, V4}, hs::HyperGroupoid, hypergroups::HyperGroup};
 use itertools::Itertools;
 use rand::seq::IteratorRandom;
 use rayon::vec;
 
 fn main(){
-    let a4 = HyperGroup::new_from_group(&A4,&12u64);
-a4.show();
+    let v4 = HyperGroup::new_from_group(&V4,&4);
+    v4.show();
     //let partition: Vec<u64> =vec![1,6,24,96,128,256];
     let partition_2 :Vec<u64>= vec![3,4,8,16,96,384];
     let p_12:Vec<u64> = vec![3,12,48,64,128,256,512,1024,2048,4096,8192,16384];

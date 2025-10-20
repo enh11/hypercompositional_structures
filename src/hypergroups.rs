@@ -92,6 +92,8 @@ impl HyperGroup {
         let g = match group {
             "S3" => HyperGroup::new_from_group(&crate::group_cayley_tables::S3, &6u64),
             "A4"=> HyperGroup::new_from_group(&crate::group_cayley_tables::A4, &12u64),
+            "V4"=> HyperGroup::new_from_group(&crate::group_cayley_tables::V4, &4u64),
+
             _=> panic!("Group not in the list.") 
         };
         let generating_function = |a:usize,b:usize| 

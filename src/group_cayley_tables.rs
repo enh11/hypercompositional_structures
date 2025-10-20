@@ -1,6 +1,6 @@
-use std::collections::HashSet;
+/// This is a collection of Cayley Table for finite groups. 
+/// They are type (u64, []), where the first integer is the cardinality and the array is the Cayley Table listed by rows.
 
-use crate::{hs::HyperGroupoid, hypergroups::HyperGroup};
 pub const S3:[u64;36] = [
         0, 1, 2, 3, 4, 5,
         1, 0, 5, 4, 3, 2, 
@@ -8,6 +8,14 @@ pub const S3:[u64;36] = [
         3, 5, 4, 0, 2, 1,
         4, 2, 3, 1, 5, 0,
         5, 3, 1, 2, 0, 4
+    ];
+    //===Klein Group===\\
+    pub const V4:[u64;16]=
+   [
+        0, 1, 2, 3, 
+        1, 0, 3, 2,  
+        2, 3, 0, 1, 
+        3, 2, 1, 0
     ];
 pub const A4:[u64;144] = [
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 
