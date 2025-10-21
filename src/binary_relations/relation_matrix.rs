@@ -4,7 +4,7 @@ use itertools::Itertools;
 use nalgebra::DMatrix;
 
 use crate::binary_relations::relations::Relation;
-#[derive(Debug,Clone,PartialEq, Eq)]
+#[derive(Debug,Clone,PartialEq, Eq, Hash)]
 pub struct RelationMatrix(pub DMatrix<u8>);
 
 impl BitAnd for RelationMatrix {

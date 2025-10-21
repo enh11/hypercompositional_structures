@@ -1,6 +1,8 @@
 use std::{collections::HashSet};
 use nalgebra::DMatrix;
 use itertools::Itertools;
+use num_traits::float::TotalOrder;
+use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterator};
 
 use crate::binary_relations::relation_matrix::RelationMatrix;
 
@@ -11,6 +13,11 @@ pub struct Relation {
     pub rel: Vec<(u64,u64)>,
 }
 impl Relation {
+    pub fn new_from_elements(cardinality:&u64,rel : Vec<(u64,u64)>)->Self{
+        let a: HashSet<u64>= (0..*cardinality).collect();
+        let b: HashSet<u64> = (0..*cardinality).collect();
+        Relation { a, b, rel }
+    }
     pub fn is_reflexive(&self)->bool{
         assert_eq!(self.a,self.b,"Domain and codomain not coincede!");
         self.diagonal().rel.iter().all(|x|self.rel.contains(x))
@@ -102,7 +109,6 @@ self.is_reflexive()&&self.is_symmetric()&&self.is_transitive()
         let representant = class.iter().min();
         (*representant.unwrap(),class)
     }
-
     pub fn are_in_relations(&self,x:&u64,y:&u64)->bool {
         self.rel.contains(&(*x,*y)) 
     }
@@ -128,6 +134,13 @@ self.is_reflexive()&&self.is_symmetric()&&self.is_transitive()
     }
     pub fn symmetric_closure(&self)->Self { 
         (self.zero_one_matrix()|self.zero_one_matrix().transpose_relation()).into_relation()
+    }
+    pub fn is_pre_order(&self)->bool{
+        self.is_reflexive()&&self.is_transitive()
+    }
+    pub fn is_anti_symmetric(&self)->bool{
+        todo!()
+
     }
 ///
 /// Compute the transitive closure of a relation on a set H
@@ -161,7 +174,6 @@ self.is_reflexive()&&self.is_symmetric()&&self.is_transitive()
                 }
             }
         }
-    //println!("r^{i} = {:?}",x.rel);
     }
     x
 }
@@ -197,4 +209,55 @@ pub fn transitive_closure_warshall(&self)-> Self {
     }
     r.into_relation()
 }
+}
+
+pub fn enumerate_reflexive_relation(cardinality:&usize)->Vec<RelationMatrix>{
+
+        // The number of reflexive relation from a set of `n` elements is 
+        // 2^{n^2-n}.
+        let free_positions:Vec<(usize,usize)> = (0..*cardinality)
+            .cartesian_product(0..*cardinality)
+            .filter(|(i,j)| i!=j).collect();
+        let free = cardinality.pow(2u32)-cardinality;
+        let total = 1usize<<free;
+
+        (0..total)
+        .into_par_iter()
+        .map(|mask| {
+            // Start with identity (reflexive diagonal = 1)
+            let mut r = DMatrix::<u8>::identity(*cardinality, *cardinality);
+
+            // Set off-diagonal entries according to mask bits
+            for (bit_index, &(i, j)) in free_positions.iter().enumerate() {
+                let bit = (mask >> bit_index) & 1;
+                r[(i, j)] = bit as u8;
+            }
+
+            RelationMatrix(r)
+        })
+        .collect()
+    
+
+    }
+    pub fn par_reflexive_relations(cardinality: usize) -> impl ParallelIterator<Item = RelationMatrix> {
+    let free_positions: Vec<(usize, usize)> = (0..cardinality)
+        .cartesian_product(0..cardinality)
+        .filter(|(i, j)| i != j)
+        .collect();
+
+    let free = cardinality * cardinality - cardinality;
+    let total = 1usize << free;
+
+    // Parallel iterator that generates each matrix independently
+    (0..total).into_par_iter().map(move |mask| {
+        let mut r = DMatrix::<u8>::identity(cardinality, cardinality);
+        for (bit_index, &(i, j)) in free_positions.iter().enumerate() {
+            let bit = (mask >> bit_index) & 1;
+            r[(i, j)] = bit as u8;
+        }
+        RelationMatrix(r)
+    })
+}
+pub fn pre_order_enumeration(cardinality:&usize)->impl ParallelIterator<Item = RelationMatrix>{
+    par_reflexive_relations(*cardinality).into_par_iter().filter(|x|x.into_relation().is_transitive())
 }

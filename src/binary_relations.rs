@@ -1,5 +1,6 @@
 pub mod relations;
 pub mod relation_matrix;
+pub mod preorder_3;
 
 #[cfg(test)]
 mod tests {

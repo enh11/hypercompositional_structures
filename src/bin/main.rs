@@ -1,11 +1,25 @@
 use std::time::Instant;
-use hyperstruc::{group_cayley_tables::{A4, S3, V4}, hs::HyperGroupoid, hypergroups::HyperGroup};
+use hyperstruc::{binary_relations::{preorder_3::{PRE_ORDERS_3, R0}, relation_matrix::RelationMatrix, relations::{enumerate_reflexive_relation, par_reflexive_relations, Relation}}, group_cayley_tables::{A4, S3, V4}, hs::HyperGroupoid, hypergroups::HyperGroup};
 use itertools::Itertools;
+use nalgebra::coordinates::M2x4;
 use rand::seq::IteratorRandom;
-use rayon::vec;
+use rayon::{iter::{IntoParallelIterator, ParallelIterator}, vec};
 
 fn main(){
-    let v4 = HyperGroup::new_from_group(&V4,&4);
+
+    let c = 3usize;
+    let mut r =par_reflexive_relations(c);
+    // let l  =r.count();
+    // println!("{}",l);
+        let ord:Vec<RelationMatrix>  = r.filter(|r| r.into_relation().is_pre_order()).collect();
+let o = ord.len();
+println!("o {}",o);
+let tr=PRE_ORDERS_3.iter().map(|x|Relation::new_from_elements(&(c as u64), x.to_vec())).filter(|x|!x.is_pre_order()).collect_vec();
+       println!("tr {:?}",tr);
+        let missing:Vec<_> =  ord.iter().filter(|r|!PRE_ORDERS_3.iter().map(|x|Relation::new_from_elements(&(c as u64) , x.to_vec()).zero_one_matrix()).contains(*r)).collect();
+println!("missing {:?}",missing[0].into_relation().rel);
+
+let v4 = HyperGroup::new_from_group(&V4,&4);
     v4.show();
     //let partition: Vec<u64> =vec![1,6,24,96,128,256];
     let partition_2 :Vec<u64>= vec![3,4,8,16,96,384];
