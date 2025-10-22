@@ -182,7 +182,6 @@ pub fn show(&self){
 /// let hypergroupoid = HyperGroupoid::new_from_tag_u128(&tag, &cardinality);
 /// 
 pub fn new_from_elements(input_array: &Vec<Vec<u64>>, cardinality:&u64)->Self{
-    println!("input {:?}",input_array);
     if input_array.len() as u64!=cardinality.pow(2u32) {panic!("Cardinality is {} and the input vector length is {}. It should be a square-length vector!",cardinality,input_array.len())}
     let function = |a:usize,b:usize| 
         input_array[(*cardinality as usize)*a+b]

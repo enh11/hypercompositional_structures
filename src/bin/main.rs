@@ -3,10 +3,39 @@ use hyperstruc::{binary_relations::{preorder_3::{PRE_ORDERS_3, R0}, relation_mat
 use itertools::Itertools;
 use nalgebra::coordinates::M2x4;
 use rand::seq::IteratorRandom;
-use rayon::{iter::{self, IntoParallelIterator, ParallelIterator}, vec};
+use rayon::{iter::{self, IntoParallelIterator, IntoParallelRefIterator, ParallelIterator}, vec};
+
+/// Convert a number `n` into a tuple in base `base` of length `size`
+fn number_to_tuple(n: u64, base: u64) -> Vec<Vec<u64>> {
+    let size  =base.pow(2u32) as usize;
+    let mut tuple = Vec::new();
+    let mut num = n;
+    for i in (0..size).rev() {
+        tuple.push(vec![num % base]);
+        num /= base;
+    }
+    tuple
+}
+
+/// Returns a parallel iterator over all `size`-tuples with elements from `0..base-1`
+fn parallel_tuples(base: u64) -> impl ParallelIterator<Item = Vec<Vec<u64>>> {
+    let size = base.pow(2u32) as u32;
+    let total = base.pow(size); // Note: works for size small enough that base^size fits u64
+    (0..total).into_par_iter().map(move |n| number_to_tuple(n, base))
+}
+
 
 fn main(){
 
+    let n  =4u64;
+    let p = parallel_tuples(n);
+    let semigp:Vec<HyperGroupoid> = p.map(|x|HyperGroupoid::new_from_elements(&x, &n)).filter(|hs|hs.is_associative()).collect();
+    let up_to_iso:Vec<_>= semigp.iter().map(|x|x.collect_isomorphism_class()).unique().collect();
+    println!("{}",up_to_iso.len());
+for i in up_to_iso{
+let h  =HyperGroupoid::new_from_tag_u1024(&i.0, &n);
+h.show();
+}
 let v4 = HyperGroup::new_from_group(&V4,&4);
     v4.show();
     //let partition: Vec<u64> =vec![1,6,24,96,128,256];
