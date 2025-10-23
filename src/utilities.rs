@@ -664,4 +664,23 @@ let min: U1024 = (0..square).into_iter().fold(U1024::zero(), |acc: U1024,x: u64|
 let max = U1024::from(2).pow(U1024::from(size))-1;
 (min,max)
  }
+/// Convert a number `n` into a tuple in base `base` of length `size`
+pub fn number_to_tuple(n: u64, base: u64) -> Vec<Vec<u64>> {
+    let size  =base.pow(2u32) as usize;
+    let mut tuple = Vec::new();
+    let mut num = n;
+    for i in (0..size).rev() {
+        tuple.push(vec![num % base]);
+        num /= base;
+    }
+    tuple
+}
+
+/// Returns a parallel iterator over all `size`-tuples with elements from `0..base-1`
+pub fn parallel_tuples(base: u64) -> impl ParallelIterator<Item = Vec<Vec<u64>>> {
+    let size = base.pow(2u32) as u32;
+    let total = base.pow(size); // Note: works for size small enough that base^size fits u64
+    (0..total).into_par_iter().map(move |n| number_to_tuple(n, base))
+}
+
 

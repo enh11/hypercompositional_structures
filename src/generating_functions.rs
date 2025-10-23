@@ -1,3 +1,7 @@
+use std::collections::HashSet;
+
+use crate::{binary_relations::relations::Relation, hs::HyperGroupoid, utilities::{subset_as_u64, support}};
+
 pub fn b_hypercomposition() -> impl Fn(usize, usize) -> u64 {
     Box::new(move |a:usize,b:usize| {1<<a|1<<b})
 }
@@ -14,5 +18,26 @@ pub fn genetics_hypergroup(cardinality: &u64) -> impl Fn(usize, usize) -> u64 {
         let lower_elements = (0..a.min(b)).fold(0u64, |acc, x| acc | (1 << x));
         h - lower_elements
     }
+}
+pub fn el_hypergroup(semigroup:HyperGroupoid,pre_order:Relation) -> impl Fn(usize, usize) -> u64 {
+    match semigroup.is_associative()&&semigroup.collect_scalars().len()==semigroup.n as usize {
+        true => match pre_order.is_pre_order() {
+        true => {
+            move |a: usize, b: usize| {
+                let supp_ab= support(&&semigroup.mul_by_representation(&(1<<a), &(1<<b)), &semigroup.n);
+                let ab:HashSet<u64> = (0..semigroup.n).into_iter().filter(|x|
+                    supp_ab.iter()
+                        .any(|i|pre_order.are_in_relations(&(*i as u64), x))
+                    ).collect();
+                subset_as_u64(&ab)
+                
+    }
+        },
+        false => panic!("The input relation is not a pre-order."),
+    },
+        false => panic!("The input structure must be a semigroup."),
+    }
+    
+    
 }
 

@@ -1,41 +1,58 @@
 use std::time::Instant;
-use hyperstruc::{binary_relations::{preorder_3::{PRE_ORDERS_3, R0}, relation_matrix::RelationMatrix, relations::{enumerate_reflexive_relation, par_reflexive_relations, Relation}}, group_cayley_tables::{A4, S3, V4}, hs::HyperGroupoid, hypergroups::HyperGroup};
+use hyperstruc::{binary_relations::{preorder_3::{PRE_ORDERS_3, R0}, relation_matrix::RelationMatrix, relations::{enumerate_reflexive_relation, par_reflexive_relations, Relation}}, enumeration::enumeration_hyperstructure, generating_functions::el_hypergroup, group_cayley_tables::{A4, S3, V4}, hg_3::semigroup::{SEMIGROUP_3, S_3, S_9}, hs::HyperGroupoid, hypergroups::HyperGroup, utilities::parallel_tuples};
 use itertools::Itertools;
 use nalgebra::coordinates::M2x4;
 use rand::seq::IteratorRandom;
 use rayon::{iter::{self, IntoParallelIterator, IntoParallelRefIterator, ParallelIterator}, vec};
 
-/// Convert a number `n` into a tuple in base `base` of length `size`
-fn number_to_tuple(n: u64, base: u64) -> Vec<Vec<u64>> {
-    let size  =base.pow(2u32) as usize;
-    let mut tuple = Vec::new();
-    let mut num = n;
-    for i in (0..size).rev() {
-        tuple.push(vec![num % base]);
-        num /= base;
-    }
-    tuple
-}
-
-/// Returns a parallel iterator over all `size`-tuples with elements from `0..base-1`
-fn parallel_tuples(base: u64) -> impl ParallelIterator<Item = Vec<Vec<u64>>> {
-    let size = base.pow(2u32) as u32;
-    let total = base.pow(size); // Note: works for size small enough that base^size fits u64
-    (0..total).into_par_iter().map(move |n| number_to_tuple(n, base))
-}
-
 
 fn main(){
+let cardinality =3u64;
+let t = enumeration_hyperstructure("semigroup", &cardinality);
+println!("t = {:?}",t);
 
-    let n  =4u64;
-    let p = parallel_tuples(n);
-    let semigp:Vec<HyperGroupoid> = p.map(|x|HyperGroupoid::new_from_elements(&x, &n)).filter(|hs|hs.is_associative()).collect();
-    let up_to_iso:Vec<_>= semigp.iter().map(|x|x.collect_isomorphism_class()).unique().collect();
-    println!("{}",up_to_iso.len());
-for i in up_to_iso{
-let h  =HyperGroupoid::new_from_tag_u1024(&i.0, &n);
-h.show();
-}
+let input_array = S_9.iter().map(|x|vec![*x]).collect_vec();
+let semihg= HyperGroupoid::new_from_elements(&input_array, &cardinality);
+let class = semihg.collect_isomorphism_class();
+let rep = HyperGroupoid::new_from_tag_u1024(&class.0, &cardinality);
+rep.show();
+assert!(semihg.is_associative());
+assert!(semihg.collect_scalars().len()==cardinality as usize);
+// let rel = vec![
+//     (0,0),
+//     (1,0),(1,1),(1,2),
+//     (2,0),      (2,2)
+
+// ];
+// let preorder = Relation::new_from_elements(&cardinality, rel);
+// assert!(preorder.is_pre_order());
+// let hs = HyperGroupoid::new_from_function(el_hypergroup(semihg, preorder), &cardinality);
+// hs.show();
+// println!("{}",hs.is_associative());
+
+let n  =3u64;
+let p = parallel_tuples(n);
+let semigp:Vec<HyperGroupoid> = p.map(|x|HyperGroupoid::new_from_elements(&x, &n)).filter(|hs|hs.is_associative()).collect();
+let up_to_iso:Vec<_>= semigp.iter().map(|x|x.collect_isomorphism_class()).unique().collect();
+let mut up_to_iso = up_to_iso.iter().map(|x|HyperGroupoid::new_from_tag_u1024(&x.0, &cardinality)).collect_vec();
+up_to_iso.sort();
+println!("My semigroup of order 3");
+up_to_iso.iter().for_each(|x|x.show());
+let semihs :Vec<HyperGroupoid>= SEMIGROUP_3.iter().map(|x|
+    {
+    let v = x.iter().map(|e|vec![*e]).collect_vec();
+    HyperGroupoid::new_from_elements(&v, &n)}
+).collect();
+let semihs = semihs.iter().map(|x|x.collect_isomorphism_class()).unique().collect_vec();
+let semihs = semihs.iter().map(|x|HyperGroupoid::new_from_tag_u1024(&x.0, &cardinality)).collect_vec();
+println!("SEMIGRP_3 are {}",semihs.len());
+let t = up_to_iso.iter().filter(|s|!semihs.contains(*s)).collect_vec();
+t.iter().for_each(|s|s.show());
+
+
+
+
+
 let v4 = HyperGroup::new_from_group(&V4,&4);
     v4.show();
     //let partition: Vec<u64> =vec![1,6,24,96,128,256];

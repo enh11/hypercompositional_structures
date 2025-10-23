@@ -1,17 +1,31 @@
 use core::panic;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
-use std::{collections::HashSet, fmt::Display, os::unix::raw::ino_t, vec};
+use std::{collections::HashSet, fmt::Display, vec};
 extern crate nalgebra as na;
 use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
 use rand::Rng;
 use crate::{binary_relations::relations::Relation, fuzzy::FuzzySubset, hypergroups::{HyperGroup, HyperStructureError}, utilities::{all_triplets, binary_to_n, from_tag_to_vec, from_tag_u1024_to_vec, get_min_max_u1024, get_subset, n_to_binary_vec, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid_u1024, subset_as_u64, support, u64_to_set, vec_to_set, U1024}};
-#[derive(Debug, Clone,PartialEq)]
+#[derive(Debug, Clone,PartialEq,Eq)]
 pub struct HyperGroupoid{
     pub h:HashSet<u64>,
     pub hyper_composition:DMatrix<u64>,
     pub n:u64
+}
+impl PartialOrd for HyperGroupoid {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        match self.cmp(&other) {
+            std::cmp::Ordering::Equal => Some(std::cmp::Ordering::Equal),
+            ord => Some(ord)
+        }
+        
+    }
+}
+impl Ord for HyperGroupoid{
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.get_integer_tag_u1024().cmp(&other.get_integer_tag_u1024())
+    }
 }
  impl From<HyperGroup> for HyperGroupoid{
      fn from(hg:HyperGroup) -> Self {
@@ -338,12 +352,9 @@ pub fn collect_isomorphism_class(&self)->(U1024,Vec<U1024>){
             ).collect();
    isomorphism_classes.sort();
    isomorphism_classes.dedup();
-   let representant_of_class= isomorphism_classes.clone()
-        .into_iter()
-        .sorted().dedup()
-            .into_iter().min().unwrap();
+   let representant_of_class= isomorphism_classes.iter().min().unwrap();
         
-       (representant_of_class,isomorphism_classes)
+       (*representant_of_class,isomorphism_classes)
 
 }
 ///

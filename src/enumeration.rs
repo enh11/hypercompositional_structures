@@ -2,7 +2,7 @@
 use itertools::Itertools;
 use permutation::Permutation;
 use rayon::iter::{IntoParallelIterator, ParallelBridge, ParallelIterator};
-use crate::utilities::{get_min_max, get_min_max_u1024, representing_hypergroupoid_u1024, write, U1024RangeExt, U1024};
+use crate::utilities::{get_min_max, get_min_max_u1024, parallel_tuples, representing_hypergroupoid_u1024, write, U1024RangeExt, U1024};
 use crate::hs::HyperGroupoid;
 use crate::utilities::representing_hypergroupoid;
 
@@ -48,6 +48,16 @@ pub fn collect_hypergroups(cardinality:&u64)->Vec<u128>{
         )
         .collect()
 }
+/// Collect all semigroup of cardinalty `n`. 
+/// The procedure runs a brute-force in parallel. 
+pub fn collect_semigroup(cardinality:&u64)->Vec<u128>{
+    let p = parallel_tuples(*cardinality);
+    p.map(|x|
+        HyperGroupoid::new_from_elements(&x, cardinality))
+        .filter(|hs|hs.is_associative())
+        .map(|x|x.get_integer_tag()).collect()
+
+}
 /*This works, but still to slow with respect to (u128..u128).into_par_iter() */
 pub fn collect_hypergroups_u1024(cardinality:&u64)->Vec<U1024>{
     let (min,max)= get_min_max_u1024(cardinality);
@@ -63,6 +73,7 @@ hgs
 }
 pub fn enumeration_hyperstructure(structure:&str,cardinality:&u64)->Vec<usize>{
     let tags= match structure {
+        "semigroup"=> collect_semigroup(&cardinality),
         "hypergroups"=> collect_hypergroups(&cardinality),
         "unital magmata"=>collect_hypergroupoid_with_scalar_identity(&*cardinality),
         _=>panic!("unknown structure! Works with 'hypergroups, unital magmata,invertible magmata, L_mosaics'. ")
