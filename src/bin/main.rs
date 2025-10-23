@@ -8,16 +8,9 @@ use rayon::{iter::{self, IntoParallelIterator, IntoParallelRefIterator, Parallel
 
 fn main(){
 let cardinality =3u64;
-let t = enumeration_hyperstructure("semigroup", &cardinality);
+let t = enumeration_hyperstructure("hypergroups", &cardinality);
 println!("t = {:?}",t);
 
-let input_array = S_9.iter().map(|x|vec![*x]).collect_vec();
-let semihg= HyperGroupoid::new_from_elements(&input_array, &cardinality);
-let class = semihg.collect_isomorphism_class();
-let rep = HyperGroupoid::new_from_tag_u1024(&class.0, &cardinality);
-rep.show();
-assert!(semihg.is_associative());
-assert!(semihg.collect_scalars().len()==cardinality as usize);
 // let rel = vec![
 //     (0,0),
 //     (1,0),(1,1),(1,2),
