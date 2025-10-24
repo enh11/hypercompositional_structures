@@ -1,14 +1,18 @@
 use std::time::Instant;
-use hyperstruc::{binary_relations::{preorder_3::{PRE_ORDERS_3, R0}, relation_matrix::RelationMatrix, relations::{enumerate_reflexive_relation, par_reflexive_relations, Relation}}, enumeration::enumeration_hyperstructure, generating_functions::el_hypergroup, group_cayley_tables::{A4, S3, V4}, hg_3::semigroup::{SEMIGROUP_3, S_3, S_9}, hs::HyperGroupoid, hypergroups::HyperGroup, utilities::parallel_tuples};
+use hyperstruc::{binary_relations::{preorder_3::{PRE_ORDERS_3, R0}, relation_matrix::RelationMatrix, relations::{enumerate_reflexive_relation, par_reflexive_relations, Relation}}, enumeration::enumeration_hyperstructure, generating_functions::el_hypergroup, group_cayley_tables::{A4, S3, V4}, hg_3::semigroup::{SEMIGROUP_3, S_3, S_9}, hs::HyperGroupoid, hypergroups::HyperGroup, utilities::{parallel_tuples, write, U1024}};
 use itertools::Itertools;
-use nalgebra::coordinates::M2x4;
-use rand::seq::IteratorRandom;
-use rayon::{iter::{self, IntoParallelIterator, IntoParallelRefIterator, ParallelIterator}, vec};
+
+use permutation::Permutation;
+use rayon::{iter::{ParallelIterator}};
 
 
 fn main(){
 let cardinality =3u64;
-let t = enumeration_hyperstructure("hypergroups", &cardinality);
+let hs  = HyperGroupoid::new_random_from_cardinality(&cardinality);
+let t = Instant::now();
+hs.is_associative();
+println!("{:?}",t.elapsed());
+let t = enumeration_hyperstructure("semigroups", &cardinality);
 println!("t = {:?}",t);
 
 // let rel = vec![
@@ -22,12 +26,20 @@ println!("t = {:?}",t);
 // let hs = HyperGroupoid::new_from_function(el_hypergroup(semihg, preorder), &cardinality);
 // hs.show();
 // println!("{}",hs.is_associative());
-
+/* 
 let n  =3u64;
 let p = parallel_tuples(n);
 let semigp:Vec<HyperGroupoid> = p.map(|x|HyperGroupoid::new_from_elements(&x, &n)).filter(|hs|hs.is_associative()).collect();
-let up_to_iso:Vec<_>= semigp.iter().map(|x|x.collect_isomorphism_class()).unique().collect();
-let mut up_to_iso = up_to_iso.iter().map(|x|HyperGroupoid::new_from_tag_u1024(&x.0, &cardinality)).collect_vec();
+let up_to_iso:Vec<(U1024,Vec<U1024>)>= semigp.iter().map(|x|x.collect_isomorphism_class()).unique().collect();
+let l = (1..=n as usize).permutations(n as usize).count();
+let up_to_iso = (0..l).into_iter().map(|k|
+    up_to_iso.iter().filter(|x|x.1.len()==k).collect_vec()
+    ).collect_vec();
+    let s = up_to_iso.iter().map(|s|format!("{:?}\n",s)).collect();
+    let name = format!("classes_semigroups_{}",n);
+let _ = write(s, &name); */
+/* 
+let mut up_to_iso = up_to_iso.iter().map(|x|HyperGroupoid::new_from_tag_u1024(&x.0, &n)).collect_vec();
 up_to_iso.sort();
 println!("My semigroup of order 3");
 up_to_iso.iter().for_each(|x|x.show());
@@ -37,12 +49,12 @@ let semihs :Vec<HyperGroupoid>= SEMIGROUP_3.iter().map(|x|
     HyperGroupoid::new_from_elements(&v, &n)}
 ).collect();
 let semihs = semihs.iter().map(|x|x.collect_isomorphism_class()).unique().collect_vec();
-let semihs = semihs.iter().map(|x|HyperGroupoid::new_from_tag_u1024(&x.0, &cardinality)).collect_vec();
+let semihs = semihs.iter().map(|x|HyperGroupoid::new_from_tag_u1024(&x.0, &n)).collect_vec();
 println!("SEMIGRP_3 are {}",semihs.len());
 let t = up_to_iso.iter().filter(|s|!semihs.contains(*s)).collect_vec();
 t.iter().for_each(|s|s.show());
 
-
+ */
 
 
 

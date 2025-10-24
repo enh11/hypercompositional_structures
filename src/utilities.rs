@@ -142,7 +142,7 @@ impl<'a> IntoParallelIterator for &'a U1024Collection {
 impl UnindexedProducer for U1024Range {
     type Item = U1024;
 
-    fn split(mut self) -> (Self, Option<Self>) {
+    fn split(self) -> (Self, Option<Self>) {
         if let Some((left, right)) = self.split_at() {
             (left, Some(right))
         } else {
@@ -665,13 +665,12 @@ let max = U1024::from(2).pow(U1024::from(size))-1;
 (min,max)
  }
 /// Convert a number `n` into a tuple in base `base` of length `size`
-pub fn number_to_tuple(n: u64, base: u64) -> Vec<Vec<u64>> {
+pub fn number_to_tuple(n: &mut u64, base: u64) -> Vec<Vec<u64>> {
     let size  =base.pow(2u32) as usize;
     let mut tuple = Vec::new();
-    let mut num = n;
-    for i in (0..size).rev() {
-        tuple.push(vec![num % base]);
-        num /= base;
+    for _i in (0..size).rev() {
+        tuple.push(vec![*n % base]);
+        *n /= base;
     }
     tuple
 }
@@ -680,7 +679,7 @@ pub fn number_to_tuple(n: u64, base: u64) -> Vec<Vec<u64>> {
 pub fn parallel_tuples(base: u64) -> impl ParallelIterator<Item = Vec<Vec<u64>>> {
     let size = base.pow(2u32) as u32;
     let total = base.pow(size); // Note: works for size small enough that base^size fits u64
-    (0..total).into_par_iter().map(move |n| number_to_tuple(n, base))
+    (0..total).into_par_iter().map(move |mut n| number_to_tuple(&mut n, base))
 }
 
 

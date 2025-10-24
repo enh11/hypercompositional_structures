@@ -1,8 +1,7 @@
 use std::{collections::HashSet};
 use nalgebra::DMatrix;
 use itertools::Itertools;
-use num_traits::float::TotalOrder;
-use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterator};
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use crate::binary_relations::relation_matrix::RelationMatrix;
 
