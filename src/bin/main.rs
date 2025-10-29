@@ -1,20 +1,43 @@
-use std::time::Instant;
-use hyperstruc::{binary_relations::{preorder_3::{PRE_ORDERS_3, R0}, relation_matrix::RelationMatrix, relations::{enumerate_reflexive_relation, par_reflexive_relations, Relation}}, enumeration::enumeration_hyperstructure, generating_functions::el_hypergroup, group_cayley_tables::{A4, S3, V4}, hg_3::semigroup::{SEMIGROUP_3, S_3, S_9}, hs::HyperGroupoid, hypergroups::HyperGroup, utilities::{parallel_tuples, write, U1024}};
+use std::{collections::{HashMap, HashSet}, time::Instant};
+use hyperstruc::{binary_relations::{preorder_3::{PRE_ORDERS_3, R0}, relation_matrix::RelationMatrix, relations::{Relation, enumerate_reflexive_relation, par_reflexive_relations}}, enumeration::enumeration_hyperstructure, generating_functions::el_hypergroup, group_cayley_tables::{A4, S3, V4}, hg_3::semigroup::{S_3, S_9, SEMIGROUP_3}, hs::HyperGroupoid, hypergroups::HyperGroup, utilities::{U1024, parallel_tuples, permutation_matrix_from_permutation, write}};
 use itertools::Itertools;
 
+use nalgebra::DMatrix;
 use permutation::Permutation;
 use rayon::{iter::{ParallelIterator}};
 
 
 fn main(){
-let cardinality =3u64;
-let hs  = HyperGroupoid::new_random_from_cardinality(&cardinality);
-let t = Instant::now();
-hs.is_associative();
-println!("{:?}",t.elapsed());
-let t = enumeration_hyperstructure("semigroups", &cardinality);
-println!("t = {:?}",t);
+let cardinality = 3u64;
+let t = enumeration_hyperstructure("hypergroups", &cardinality);
+println!("t {:?}",t); 
+let sigma = Permutation::oneline([2,0,1]);
+let sigma_6 = Permutation::oneline([2,0,1,3,4,5]);
 
+
+let s3 = HyperGroup::new_from_group(&S3, &6u64);
+s3.show();
+let iso_s3 = s3.isomorphic_hypergroup_from_permutation(&sigma_6);
+iso_s3.show(); 
+let p1= Relation::new_from_elements(&cardinality, PRE_ORDERS_3[5].to_vec());
+println!("A relation {}", p1.zero_one_matrix().0);
+let mp = permutation_matrix_from_permutation(&cardinality, &sigma);
+println!("permutation of {:?} is {}",sigma,mp);
+let p_sigma = p1.isomorphic_relation_from_permutation(&sigma);
+println!("psigma = {}",p_sigma.zero_one_matrix().0);
+/* let mut el : Vec<HyperGroupoid>=Vec::new();
+let tags: [u128; 3]  = [19173961, 38347922, 76695844];
+for tag in tags{
+let semigp = HyperGroupoid::new_from_tag_u128(&tags[2], &cardinality);
+let p1= Relation::new_from_elements(&cardinality, PRE_ORDERS_3[0].to_vec());
+let class = p1.collect_isomorphism_class();
+println!("{:?}",class);
+println!("{:?}",p1.zero_one_matrix());
+
+let semihg = HyperGroupoid::new_from_function(el_hypergroup(&semigp, &p1), &cardinality);
+el.push(semihg);
+}
+el.iter().cartesian_product(el.clone()).all(|(h,g)|h.is_isomorphic_to(&g)); */
 // let rel = vec![
 //     (0,0),
 //     (1,0),(1,1),(1,2),
@@ -26,14 +49,14 @@ println!("t = {:?}",t);
 // let hs = HyperGroupoid::new_from_function(el_hypergroup(semihg, preorder), &cardinality);
 // hs.show();
 // println!("{}",hs.is_associative());
-/* 
-let n  =3u64;
+
+/* let n  =2u64;
 let p = parallel_tuples(n);
 let semigp:Vec<HyperGroupoid> = p.map(|x|HyperGroupoid::new_from_elements(&x, &n)).filter(|hs|hs.is_associative()).collect();
 let up_to_iso:Vec<(U1024,Vec<U1024>)>= semigp.iter().map(|x|x.collect_isomorphism_class()).unique().collect();
-let l = (1..=n as usize).permutations(n as usize).count();
-let up_to_iso = (0..l).into_iter().map(|k|
-    up_to_iso.iter().filter(|x|x.1.len()==k).collect_vec()
+let l = (0..n as usize).permutations(n as usize).count();
+let up_to_iso = (1..=l).into_iter().map(|k|
+    up_to_iso.iter().filter(|x|x.1.len()==k).sorted_by(|x,y|x.0.cmp(&y.0)).collect_vec()
     ).collect_vec();
     let s = up_to_iso.iter().map(|s|format!("{:?}\n",s)).collect();
     let name = format!("classes_semigroups_{}",n);
@@ -58,7 +81,7 @@ t.iter().for_each(|s|s.show());
 
 
 
-let v4 = HyperGroup::new_from_group(&V4,&4);
+/* let v4 = HyperGroup::new_from_group(&V4,&4);
     v4.show();
     //let partition: Vec<u64> =vec![1,6,24,96,128,256];
     let partition_2 :Vec<u64>= vec![3,4,8,16,96,384];
@@ -81,7 +104,7 @@ for _i in 0u64..1000{
     hs.is_associative();
 }
 let end = now.elapsed();
-println!("time = {:?}",end);
+println!("time = {:?}",end); */
 
 /*  
 let q:Vec<u128> = (25565280..=25565296).into_iter()

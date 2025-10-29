@@ -19,7 +19,7 @@ pub fn genetics_hypergroup(cardinality: &u64) -> impl Fn(usize, usize) -> u64 {
         h - lower_elements
     }
 }
-pub fn el_hypergroup(semigroup:HyperGroupoid,pre_order:Relation) -> impl Fn(usize, usize) -> u64 {
+pub fn el_hypergroup<'a>(semigroup:&'a HyperGroupoid,pre_order:&'a Relation) -> impl Fn(usize, usize) -> u64 + use<'a> {
     match semigroup.is_associative()&&semigroup.collect_scalars().len()==semigroup.n as usize {
         true => match pre_order.is_pre_order() {
         true => {

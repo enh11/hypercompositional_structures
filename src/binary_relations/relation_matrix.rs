@@ -4,9 +4,13 @@ use itertools::Itertools;
 use nalgebra::DMatrix;
 
 use crate::binary_relations::relations::Relation;
-#[derive(Debug,Clone,PartialEq, Eq, Hash)]
-pub struct RelationMatrix(pub DMatrix<u8>);
-
+#[derive(Debug,Clone,PartialEq, Eq, Hash,PartialOrd)]
+pub struct RelationMatrix(pub DMatrix<u64>);
+impl Ord for RelationMatrix {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.to_string().cmp(&other.to_string())
+    }
+}
 impl BitAnd for RelationMatrix {
     type Output = Self;
 
@@ -113,8 +117,8 @@ impl Display for RelationMatrix {
     }
 }
 pub fn scalar_multiplication(
-    row:nalgebra::Matrix<u8, nalgebra::Const<1>, nalgebra::Dyn, nalgebra::ViewStorage<'_, u8, nalgebra::Const<1>, nalgebra::Dyn, nalgebra::Const<1>, nalgebra::Dyn>>,
-    col:nalgebra::Matrix<u8, nalgebra::Dyn, nalgebra::Const<1>, nalgebra::ViewStorage<'_, u8, nalgebra::Dyn, nalgebra::Const<1>, nalgebra::Const<1>, nalgebra::Dyn>>)-> u8 {
-    row.iter().zip(col.iter()).map(|(a,b)| a&b).fold(0u8, |acc,x| acc|x)
+    row:nalgebra::Matrix<u64, nalgebra::Const<1>, nalgebra::Dyn, nalgebra::ViewStorage<'_, u64, nalgebra::Const<1>, nalgebra::Dyn, nalgebra::Const<1>, nalgebra::Dyn>>,
+    col:nalgebra::Matrix<u64, nalgebra::Dyn, nalgebra::Const<1>, nalgebra::ViewStorage<'_, u64, nalgebra::Dyn, nalgebra::Const<1>, nalgebra::Const<1>, nalgebra::Dyn>>)-> u64 {
+    row.iter().zip(col.iter()).map(|(a,b)| a&b).fold(0u64, |acc,x| acc|x)
  
     }

@@ -1,7 +1,7 @@
 
 use itertools::Itertools;
 use permutation::Permutation;
-use rayon::iter::{IntoParallelIterator, ParallelBridge, ParallelIterator};
+use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelBridge, ParallelIterator};
 use crate::utilities::{get_min_max, get_min_max_u1024, parallel_tuples, representing_hypergroupoid_u1024, write, U1024RangeExt, U1024};
 use crate::hs::HyperGroupoid;
 use crate::utilities::representing_hypergroupoid;
@@ -83,22 +83,19 @@ println!("Collecting all {} with cardinality {}...",structure,cardinality);
     let permut_vec:Vec<Vec<usize>> = (0..*cardinality as usize).permutations(*cardinality as usize).collect();
 println!("Completed.\nThere are {} {} of order {}",tags.len(),structure,cardinality);
 println!("Collecting classes of equivalence.");
-    let mut classes:Vec<(U1024,Vec<U1024>)> = tags.iter().map(|x|HyperGroupoid::new_from_tag_u128(x, cardinality).collect_isomorphism_class()).collect();
+    let classes:Vec<(U1024,Vec<U1024>)> = tags.iter().map(|x|HyperGroupoid::new_from_tag_u128(x, cardinality).collect_isomorphism_class()).unique().collect();
 
-    classes.sort();
-    classes.dedup();
+ /*    classes.sort();
+    classes.dedup(); */
 
-    let mut c:Vec<usize>=Vec::new();
-    let mut c_k:Vec<&(U1024,Vec<U1024>)>;
-    let mut s = String::new();
-    for k in 1..=permut_vec.len(){
-        c_k=classes.iter().filter(|y|(*y.1).len()==k).into_iter().map(|x|x).collect_vec();
-        c.push(c_k.len());
-        let add_str=format!("{:?}\n",c_k);
-        s.push_str(&add_str);
-        let _ = write(s.clone(),&format!("enumeration_{}_{}",structure,cardinality));
-        
-    }
+    let c_k =
+        (1..=permut_vec.len()).into_iter()
+            .map(|k|
+                classes.iter().filter(|x|x.1.len()==k).sorted_by(|x,y|x.0.cmp(&y.0)).collect_vec()
+    ).collect_vec();
+    let c:Vec<usize>= c_k.iter().map(|x|x.len()).collect();
+    let s:String = c_k.iter().map(|x|format!("{:?}\n",x)).collect();
+    let _ = write(s.clone(),&format!("enumeration_{}_{}",structure,cardinality));
     println!("Done!\nThe final enumeration is available in the file enumeration_{}_{}.txt",structure,cardinality);
     c
 }

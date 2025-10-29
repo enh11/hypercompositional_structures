@@ -6,7 +6,7 @@ use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
 use rand::Rng;
-use crate::{binary_relations::relations::Relation, fuzzy::FuzzySubset, hypergroups::{HyperGroup, HyperStructureError}, utilities::{all_triplets, binary_to_n, from_tag_to_vec, from_tag_u1024_to_vec, get_min_max_u1024, get_subset, n_to_binary_vec, permutaton_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid_u1024, subset_as_u64, support, u64_to_set, vec_to_set, U1024}};
+use crate::{binary_relations::relations::Relation, fuzzy::FuzzySubset, hypergroups::{HyperGroup, HyperStructureError}, utilities::{all_triplets, binary_to_n, from_tag_to_vec, from_tag_u1024_to_vec, get_min_max_u1024, get_subset, n_to_binary_vec, permutation_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid_u1024, subset_as_u64, support, u64_to_set, vec_to_set, U1024}};
 #[derive(Debug, Clone,PartialEq,Eq)]
 pub struct HyperGroupoid{
     pub h:HashSet<u64>,
@@ -330,7 +330,7 @@ pub fn permutation_of_table(&self,sigma:&Permutation)->Self{
         n: self.n}
 }
 pub fn isomorphic_hypergroup_from_permutation(&self, sigma:&Permutation)->Self{
-    let perm_mat = permutaton_matrix_from_permutation(&(self.n as u64), &sigma.clone());
+    let perm_mat = permutation_matrix_from_permutation(&(self.n as u64), &sigma.clone());
     let isomorphic_matrix=perm_mat.clone()*self.permutation_of_table(sigma).hyper_composition*perm_mat.transpose();
     HyperGroupoid::new_from_matrix(&isomorphic_matrix)
 }

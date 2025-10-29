@@ -405,15 +405,19 @@ pub fn all_triplets(n: u64) -> impl Iterator<Item = (u64, u64, u64)> {
 /// 
 ///
 pub fn subset_as_u64(k:&HashSet<u64>)->u64{
-    k.iter().map(|x|2u64.pow(*x as u32)).sum()
+    k.iter().map(|x|1<<x).sum()
 }
 
-pub fn permutaton_matrix_from_permutation(n:&u64,sigma:&Permutation)->DMatrix<u64>{
+pub fn permutation_matrix_from_permutation(n:&u64,sigma:&Permutation)->DMatrix<u64>{
+// I still have to figure out if it is better to work with sigma or sigma.inverse(). 
+// It is just a meter of notation, for instance, the permutation Permutation::online([2,0,1].to_vec())
+// actually represent the ctcle form (021) which is the inverse permutation of the input slice (201).
+// Here, we prefer to not call the inverse. This will save a .clone().
     let identity: DMatrix<u64>=DMatrix::identity(*n as usize,*n as usize);
-    let rows:Vec<Vec<u64>> = identity.row_iter().map(|x|x.iter().map(|z|*z).collect()).collect();
+    let rows:Vec<Vec<u64>> = identity.column_iter().map(|x|x.iter().map(|z|*z).collect()).collect();
 
-    let x: Vec<u64> =sigma.clone().inverse().apply_slice(rows).concat();
-    DMatrix::from_row_slice(*n as usize, *n as usize, &x).transpose()
+    let x: Vec<u64> =sigma.apply_slice(rows).concat();
+    DMatrix::from_row_slice(*n as usize, *n as usize, &x)
 }
 /// Gets binary representation of an integer k with width-numbers-of-bit.
 /// # Example
@@ -508,8 +512,11 @@ pub fn binary_to_n<T: num_traits::Num>(binary_vec:&Vec<u64>)->T where T: num_tra
 /// 
 /// 
 pub fn representation_permutation_subset (k:&u128,sigma:&Permutation)->u128 {
-
-    let binary_k=n_to_binary_vec(&k,&(sigma.len() as u64)).iter().rev().map(|x|*x).collect_vec();
+// I still have to figure out if it is better to work with sigma or sigma.inverse(). 
+// It is just a meter of notation, for instance, the permutation Permutation::online([2,0,1].to_vec())
+// actually represent the ctcle form (021) which is the inverse permutation of the input slice (201).
+// Here, we prefer to not call the inverse. This will save a .clone().
+let binary_k=n_to_binary_vec(&k,&(sigma.len() as u64)).iter().rev().map(|x|*x).collect_vec();
     let x =sigma.apply_slice(&binary_k).iter().rev().map(|x|*x).collect_vec();
     
     binary_to_n(&x)

@@ -1,9 +1,10 @@
 use std::{collections::HashSet};
 use nalgebra::DMatrix;
 use itertools::Itertools;
-use rayon::iter::{IntoParallelIterator, ParallelIterator};
+use permutation::Permutation;
+use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator as _, ParallelIterator};
 
-use crate::binary_relations::relation_matrix::RelationMatrix;
+use crate::{binary_relations::relation_matrix::RelationMatrix, utilities::{permutation_matrix_from_permutation, representation_permutation_subset}};
 
 #[derive(Debug,Clone,PartialEq, Eq)]
 pub struct Relation {
@@ -11,6 +12,7 @@ pub struct Relation {
     pub b: HashSet<u64>,
     pub rel: Vec<(u64,u64)>,
 }
+
 impl Relation {
     pub fn new_from_elements(cardinality:&u64,rel : Vec<(u64,u64)>)->Self{
         let a: HashSet<u64>= (0..*cardinality).collect();
@@ -120,8 +122,8 @@ self.is_reflexive()&&self.is_symmetric()&&self.is_transitive()
     pub fn zero_one_matrix(&self)-> RelationMatrix {
         let generating_function  =|a: usize,b: usize| {
             match self.rel.contains(&(a as u64,b as u64)) {
-            true =>1u8,
-            false => 0u8
+            true =>1u64,
+            false => 0u64
         }
         };
 
@@ -208,6 +210,52 @@ pub fn transitive_closure_warshall(&self)-> Self {
     }
     r.into_relation()
 }
+pub fn isomorphic_relation_from_permutation(&self,sigma: &Permutation)->Self{
+
+    let perm_mat= permutation_matrix_from_permutation(&(self.a.len() as u64), &sigma.clone());
+    let isomorphic_matrix=perm_mat.clone()*self.zero_one_matrix().0*perm_mat.transpose();
+    RelationMatrix(isomorphic_matrix).into_relation()
+
+    }
+pub fn collect_isomorphism_class(&self)->(Relation,Vec<Relation>) {
+    //We collect the isomorphism class of a relation on a set A.
+    assert_eq!(self.a,self.b);
+
+    let cardinality = self.a.len();
+    let permutation_vec:Vec<Vec<usize>> = (0..cardinality).permutations(cardinality ).collect();
+    let permutation:Vec<Permutation> = permutation_vec.par_iter()
+        .map(|sigma| 
+                Permutation::oneline(sigma.clone())
+            ).collect();
+    let isomorphism_classes:Vec<RelationMatrix>=permutation.par_iter()
+        .map(|sigma|
+                self.isomorphic_relation_from_permutation(&sigma).zero_one_matrix()
+            ).collect();
+   let isomorphism_classes =isomorphism_classes.iter().unique().collect_vec();
+   let representant_of_class= isomorphism_classes.iter().min().unwrap().into_relation();
+   let isomorphism_classes = isomorphism_classes.iter().map(|x|x.into_relation()).collect_vec();
+        
+       (representant_of_class,isomorphism_classes)
+    }
+    pub fn permutation_of_table(&self,sigma:&Permutation)->Self{
+    let permutation_rel = &self.zero_one_matrix();
+    let n = self.a.len();
+    let alfa =DMatrix::from_iterator(
+        n , 
+        n, 
+        permutation_rel.0
+                .iter()
+                .map(|x| 
+                        sigma.apply_idx(*x as usize) as u64)
+                    );
+    RelationMatrix(alfa).into_relation()
+
+    
+    
+}
+pub fn is_isomorphic_to(&self,other:&Relation)->bool {
+    self.collect_isomorphism_class().1.contains(&other)
+}
 }
 
 pub fn enumerate_reflexive_relation(cardinality:&usize)->Vec<RelationMatrix>{
@@ -224,12 +272,12 @@ pub fn enumerate_reflexive_relation(cardinality:&usize)->Vec<RelationMatrix>{
         .into_par_iter()
         .map(|mask| {
             // Start with identity (reflexive diagonal = 1)
-            let mut r = DMatrix::<u8>::identity(*cardinality, *cardinality);
+            let mut r = DMatrix::<u64>::identity(*cardinality, *cardinality);
 
             // Set off-diagonal entries according to mask bits
             for (bit_index, &(i, j)) in free_positions.iter().enumerate() {
-                let bit = (mask >> bit_index) & 1;
-                r[(i, j)] = bit as u8;
+                let bit = ((mask >> bit_index) & 1) as u64;
+                r[(i, j)] = bit;
             }
 
             RelationMatrix(r)
@@ -249,14 +297,14 @@ pub fn enumerate_reflexive_relation(cardinality:&usize)->Vec<RelationMatrix>{
 
     // Parallel iterator that generates each matrix independently
     (0..total).into_par_iter().map(move |mask| {
-        let mut r = DMatrix::<u8>::identity(cardinality, cardinality);
+        let mut r = DMatrix::<u64>::identity(cardinality, cardinality);
         for (bit_index, &(i, j)) in free_positions.iter().enumerate() {
-            let bit = (mask >> bit_index) & 1;
-            r[(i, j)] = bit as u8;
+            let bit = ((mask >> bit_index) & 1) as u64;
+            r[(i, j)] = bit;
         }
         RelationMatrix(r)
     })
 }
-pub fn pre_order_enumeration(cardinality:&usize)->impl ParallelIterator<Item = RelationMatrix>{
+pub fn pre_order_enumeration(cardinality:&usize)-> impl ParallelIterator<Item = RelationMatrix>{
     par_reflexive_relations(*cardinality).into_par_iter().filter(|x|x.into_relation().is_transitive())
 }
