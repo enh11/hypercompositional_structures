@@ -1,43 +1,76 @@
-use std::{collections::{HashMap, HashSet}, time::Instant};
-use hyperstruc::{binary_relations::{preorder_3::{PRE_ORDERS_3, R0}, relation_matrix::RelationMatrix, relations::{Relation, enumerate_reflexive_relation, par_reflexive_relations}}, enumeration::enumeration_hyperstructure, generating_functions::el_hypergroup, group_cayley_tables::{A4, S3, V4}, hg_3::semigroup::{S_3, S_9, SEMIGROUP_3}, hs::HyperGroupoid, hypergroups::HyperGroup, utilities::{U1024, parallel_tuples, permutation_matrix_from_permutation, write}};
+use std::{collections::{HashMap, HashSet}, iter, time::Instant};
+use hyperstruc::{binary_relations::{preorder_3::{PRE_ORDERS_3, R0}, relation_matrix::RelationMatrix, relations::{Relation, enumerate_pre_order_classes, enumerate_reflexive_relation, par_reflexive_relations, pre_order_enumeration}}, enumeration::enumeration_hyperstructure, generating_functions::el_hypergroup, group_cayley_tables::{A4, S3, V4}, hg_3::semigroup::{S_3, S_9, SEMIGROUP_3}, hs::HyperGroupoid, hypergroups::HyperGroup, utilities::{U1024, parallel_tuples, permutation_matrix_from_permutation, write}};
 use itertools::Itertools;
 
 use nalgebra::DMatrix;
 use permutation::Permutation;
-use rayon::{iter::{ParallelIterator}};
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
 
 fn main(){
 let cardinality = 3u64;
-let t = enumeration_hyperstructure("hypergroups", &cardinality);
-println!("t {:?}",t); 
+let representants = PRE_ORDERS_3.iter().map(|s|Relation::new_from_elements(&cardinality, s.to_vec())).collect_vec();
+//let representants: Vec<(Relation, Vec<Relation>)> = representants.iter().map(|x|x.collect_isomorphism_class()).collect();
+println!("rels are {}",representants.len());
+//let s = enumeration_hyperstructure("semigroups", &cardinality);
+//let t:Vec<_>= pre_order_enumeration(&(cardinality as usize)).collect();
+//let r = SEMIGROUP_3.iter().map(|x|HyperGroupoid::new_from_elements(&x.iter().map(|el|vec![*el]).collect_vec(), &cardinality)).into_iter().map(|s|s.collect_isomorphism_class()).unique().collect_vec();
+//let representant_semigr_3 = r.iter().map(|x|x.0).collect_vec();
+
+let representant_semigr_3: Vec<u128>  =[19211556,22063188,19173961, 19178060, 19178596, 19179604, 19179812, 19966052, 22102794,19173962, 19173964, 19173972, 19174180, 19174476, 19174484, 19178276, 19178578, 19178580, 19179618, 19961932, 19962145, 19966028, 19966241, 21566089].to_vec();
+println!("there are {} representants for semigroups",{representant_semigr_3.len()});
+let eq = representant_semigr_3.iter().map(|x|HyperGroupoid::new_from_tag_u128(x, &cardinality).collect_antiisomorphism_class()).unique().collect_vec();
+let eq:Vec<U1024> = eq.iter().map(|d|d.0).collect();
+println!("equivalent are {}",eq.len());
+let pairs = eq.iter().cartesian_product(representants).collect_vec();
+println!("pairs are {}",pairs.len());
+let el_semigroup = pairs.iter().map(|(hs,r)|
+        {
+        let semigr  =HyperGroupoid::new_from_tag_u1024(&hs, &cardinality);
+        let h = HyperGroupoid::new_from_function(el_hypergroup(&semigr, &r), &cardinality);
+        h
+        }
+        ).collect_vec();
+println!("el_semigroups are {}",el_semigroup.len());
+let el_hg = el_semigroup.iter().filter(|h|h.is_hypergroup()).collect_vec();
+println!("total el-hg {}",el_hg.len());
+
+let el_hg  = el_hg.iter().map(|hg|hg.collect_isomorphism_class()).unique().collect_vec();
+println!("total up to iso: {}",el_hg.len());
+/* for item in el_hg {
+
+    HyperGroup::new_from_tag_u1024(&item.0, &cardinality).show();
+} */
+/* for item in el_hg {
+    println!("hg with representant \n");
+    HyperGroup::new_from_tag_u1024(&item.0, &cardinality).show();
+item.1.iter().for_each(|s|HyperGroupoid::new_from_tag_u1024(s, &cardinality).show());
+}
+ */
+/* 
 let sigma = Permutation::oneline([2,0,1]);
-let sigma_6 = Permutation::oneline([2,0,1,3,4,5]);
-
-
-let s3 = HyperGroup::new_from_group(&S3, &6u64);
-s3.show();
-let iso_s3 = s3.isomorphic_hypergroup_from_permutation(&sigma_6);
-iso_s3.show(); 
+ 
 let p1= Relation::new_from_elements(&cardinality, PRE_ORDERS_3[5].to_vec());
 println!("A relation {}", p1.zero_one_matrix().0);
-let mp = permutation_matrix_from_permutation(&cardinality, &sigma);
-println!("permutation of {:?} is {}",sigma,mp);
-let p_sigma = p1.isomorphic_relation_from_permutation(&sigma);
-println!("psigma = {}",p_sigma.zero_one_matrix().0);
-/* let mut el : Vec<HyperGroupoid>=Vec::new();
-let tags: [u128; 3]  = [19173961, 38347922, 76695844];
-for tag in tags{
-let semigp = HyperGroupoid::new_from_tag_u128(&tags[2], &cardinality);
-let p1= Relation::new_from_elements(&cardinality, PRE_ORDERS_3[0].to_vec());
-let class = p1.collect_isomorphism_class();
-println!("{:?}",class);
-println!("{:?}",p1.zero_one_matrix());
 
-let semihg = HyperGroupoid::new_from_function(el_hypergroup(&semigp, &p1), &cardinality);
-el.push(semihg);
+let p_sigma = p1.collect_isomorphism_class();
+let representatn =p_sigma.0.zero_one_matrix().0;
+println!("representatn is {}",representatn);
+let tags: [u128; 6]  = [19173964, 19178057, 21570706, 26364196, 38347924, 76687652];
+for tag in tags {
+let mut el : Vec<HyperGroupoid>=Vec::new();
+
+for r in p_sigma.clone().1 {
+    let semigp = HyperGroupoid::new_from_tag_u128(&tag, &cardinality);
+    let semihg = HyperGroupoid::new_from_function(el_hypergroup(&semigp, &r), &cardinality);
+    el.push(semihg);
+
 }
-el.iter().cartesian_product(el.clone()).all(|(h,g)|h.is_isomorphic_to(&g)); */
+
+el.iter().cartesian_product(el.clone()).all(|(h,g)|h.is_isomorphic_to(&g));
+
+} */
+
 // let rel = vec![
 //     (0,0),
 //     (1,0),(1,1),(1,2),

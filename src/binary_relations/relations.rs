@@ -3,6 +3,7 @@ use nalgebra::DMatrix;
 use itertools::Itertools;
 use permutation::Permutation;
 use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator as _, ParallelIterator};
+use crate::utilities::write;
 
 use crate::{binary_relations::relation_matrix::RelationMatrix, utilities::{permutation_matrix_from_permutation, representation_permutation_subset}};
 
@@ -233,8 +234,8 @@ pub fn collect_isomorphism_class(&self)->(Relation,Vec<Relation>) {
             ).collect();
    let isomorphism_classes =isomorphism_classes.iter().unique().collect_vec();
    let representant_of_class= isomorphism_classes.iter().min().unwrap().into_relation();
-   let isomorphism_classes = isomorphism_classes.iter().map(|x|x.into_relation()).collect_vec();
-        
+   let mut isomorphism_classes = isomorphism_classes.iter().map(|x|x.into_relation()).collect_vec();
+    isomorphism_classes.sort_by(|x,y|x.rel.to_vec().cmp(&y.rel.to_vec()));   
        (representant_of_class,isomorphism_classes)
     }
     pub fn permutation_of_table(&self,sigma:&Permutation)->Self{
@@ -307,4 +308,27 @@ pub fn enumerate_reflexive_relation(cardinality:&usize)->Vec<RelationMatrix>{
 }
 pub fn pre_order_enumeration(cardinality:&usize)-> impl ParallelIterator<Item = RelationMatrix>{
     par_reflexive_relations(*cardinality).into_par_iter().filter(|x|x.into_relation().is_transitive())
+}
+pub fn enumerate_pre_order_classes(cardinality: &usize)->(Vec<Vec<(Relation,Vec<Relation>)>>,Vec<usize>){
+    let mut classes:Vec<(Relation,Vec<Relation>)> = pre_order_enumeration(cardinality)
+        .map(|x|
+            x.into_relation().collect_isomorphism_class()
+        ).collect();
+    classes.sort_by(|x,y|x.0.rel.to_vec().cmp(&y.0.rel.to_vec()));
+    classes.dedup();
+    let permutation_len = (0..*cardinality).permutations(*cardinality ).try_len().unwrap();
+        let mut c:Vec<usize>=Vec::new();
+        let mut s = String::new();
+    let mut c_k:Vec<(Relation,Vec<Relation>)>=Vec::new();
+    let mut enumeration : Vec<Vec<(Relation,Vec<Relation>)>>= Vec::new();
+    for k in 1..=permutation_len{
+        c_k=classes.iter().filter(|y|(*y.1).len()==k).map(|x|x.clone()).collect();
+        enumeration.push(c_k.clone());
+        c.push(c_k.len());
+        let add_str=format!("{:?}\n",c_k);
+        s.push_str(&add_str);
+        let _ = write(s.clone(),&format!("enumeration_preorder_{}",cardinality));
+        
+    }
+    (enumeration,c)
 }

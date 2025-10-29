@@ -150,7 +150,7 @@ pub fn new_from_function<F>(function:F,cardinality:&u64)->Self
 /// Print out the hypergroupoid `H` and its Cayley table. 
 /// 
 pub fn show(&self){
-    println!("H = {:?}",self.h);
+    println!("H = {:?}",&self.h);
     let table:DMatrix<String>=DMatrix::from_iterator(
         self.n as usize, 
         self.n as usize, 
@@ -357,6 +357,15 @@ pub fn collect_isomorphism_class(&self)->(U1024,Vec<U1024>){
        (*representant_of_class,isomorphism_classes)
 
 }
+pub fn collect_antiisomorphism_class(&self)->(U1024,Vec<U1024>) {
+    let transpose = self.hyper_composition.transpose();
+    let antiisomorphic_hs = HyperGroupoid::new_from_matrix(&transpose);
+    let mut class = [antiisomorphic_hs,self.clone()].to_vec();
+    class.sort();
+    let representant = class.iter().min().unwrap();
+    let classes = class.iter().map(|d|d.get_integer_tag_u1024()).collect_vec();
+    (representant.get_integer_tag_u1024(),classes)
+}
 ///
 /// Return true if hyperstructure is both associative and reproductive.
 ///  
@@ -406,6 +415,9 @@ pub fn is_weak_associative(&self)->bool{
 pub fn is_hv_group(&self)->bool {
     self.is_weak_associative()&&self.is_reproductive()
 }
+pub fn is_antyisomorphic_to(&self,other: &Self)->bool{
+    self.hyper_composition==other.hyper_composition.transpose()
+}
 pub fn is_isomorphic_to(&self,other: &Self)->bool{
     let total_tag = get_min_max_u1024(&self.n).1;
     let total_hg = &HyperGroupoid::new_from_tag_u1024(&total_tag, &self.n);
@@ -416,6 +428,9 @@ pub fn is_isomorphic_to(&self,other: &Self)->bool{
 
         false
     }
+}
+pub fn is_equivalent(&self,other: &Self)->bool{
+    self.is_antyisomorphic_to(&other)||self.is_isomorphic_to(other)
 }
 /// Checks whether the structure is commutative.
 /// 
