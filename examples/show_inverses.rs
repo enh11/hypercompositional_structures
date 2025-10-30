@@ -1,4 +1,6 @@
-use hyperstruc::hs::HyperGroupoid;
+use hyperstruc::hs::hypergroupoids::HyperGroupoid;
+
+
 
 fn main() {
 let cardinality = 10u64;

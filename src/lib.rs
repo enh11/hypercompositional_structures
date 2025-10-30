@@ -2,22 +2,19 @@
 //!
 #[macro_use]
 pub mod hs;
-pub mod hypergroups;
 pub mod utilities;
 pub mod hg_2;
 pub mod hg_3;
 pub mod binary_relations;
 pub mod enumeration;
 pub mod group_cayley_tables;
-pub mod fuzzy;
 pub mod generating_functions;
-pub mod quotient_hg;
 #[cfg(test)]
 mod tests {
     use std::collections::HashSet;
-
     use nalgebra::DMatrix;
-    use crate::{hs::HyperGroupoid, hypergroups::HyperGroup};
+    use crate::hs::hypergroupoids::HyperGroupoid;
+    use crate::hs::hypergroups::HyperGroup;
     #[test]
     fn aboutotorab_4_3() {
         let cardinality=4u64;

@@ -7,7 +7,8 @@ use itertools::Itertools;
 use num_rational::Rational64;
 use num_traits::{One, Zero};
 
-use crate::{hs::{HyperGroupoid}, hypergroups::{HyperGroup, HyperStructureError}};
+use crate::hs::{hypergroupoids::HyperGroupoid, hypergroups::{HyperGroup, HyperStructureError}};
+
 
 #[derive(Debug, Copy, Clone)]
 pub struct UnitInterval(Rational64);
@@ -61,7 +62,8 @@ impl HyperGroupoid {
 /// 
 /// # Example
 /// ```
-/// use hyperstruc::hs::HyperGroupoid;
+/// use hyperstruc::hs::hypergroupoids::HyperGroupoid;
+/// 
 /// let cardinality =2u64;
 /// let input_values  = vec![vec![0,1],vec![0,1],
 ///                            vec![1],vec![0]];
@@ -83,7 +85,7 @@ impl HyperGroupoid {
 /// 
 /// # Example
 /// ```
-/// use hyperstruc::hs::HyperGroupoid;
+/// use hyperstruc::hs::hypergroupoids::HyperGroupoid;
 /// use num_rational::Rational64;
 /// 
 /// let cardinality =2u64;

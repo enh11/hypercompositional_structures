@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use crate::{binary_relations::relations::Relation, hs::HyperGroupoid, utilities::{subset_as_u64, support}};
+use crate::{binary_relations::relations::Relation, hs::hypergroupoids::HyperGroupoid, utilities::{subset_as_u64, support}};
 
 pub fn b_hypercomposition() -> impl Fn(usize, usize) -> u64 {
     Box::new(move |a:usize,b:usize| {1<<a|1<<b})

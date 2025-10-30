@@ -6,7 +6,9 @@ use nalgebra::DMatrix;
 use num_rational::Rational64;
 use permutation::Permutation;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
-use crate::{binary_relations::relations::Relation, fuzzy::FuzzySubset, hs::{circumference_radius_d_filtered, hg_in_circumference_radius_one, HyperGroupoid}, quotient_hg::QuotientHyperGroup, utilities::{get_complement_subset, support, u64_to_set, vec_to_set, U1024}};
+
+use crate::{binary_relations::relations::Relation, hs::{fuzzy::FuzzySubset, hypergroupoids::{HyperGroupoid, circumference_radius_d_filtered, hg_in_circumference_radius_one}, quotient_hg::QuotientHyperGroup}, utilities::{U1024, get_complement_subset, support, u64_to_set, vec_to_set}};
+
 #[derive(Debug, Clone)]
 pub enum HyperStructureError {
     NotHypergroup,
@@ -66,7 +68,7 @@ impl HyperGroup {
 /// #Example
 /// 
 /// ```
-/// use hyperstruc::hypergroups::HyperGroup;
+/// use hyperstruc::hs::hypergroups::HyperGroup;
 /// use std::collections::HashSet;
 /// use hyperstruc::utilities::vec_to_set;
 /// 
@@ -130,7 +132,7 @@ impl HyperGroup {
 /// 
 /// # Example
 /// ```
-/// use hyperstruc::hypergroups::HyperGroup;
+/// use hyperstruc::hs::hypergroups::HyperGroup;
 /// 
 /// let cardinality =3u64;
 /// let function = |a:usize,b:usize| 1<<a|1<<b;
@@ -179,7 +181,7 @@ pub fn isomorphic_hypergroup_from_permutation(&self, sigma:&Permutation)->Self{
 /// # Example
 /// ```
 /// use hyperstruc::utilities::U1024;
-/// use hyperstruc::hypergroups::HyperGroup;
+/// use hyperstruc::hs::hypergroups::HyperGroup;
 /// 
 /// let cardinality = 3u64;
 /// let tag_1 = U1024::from(22097724u128);
@@ -204,8 +206,8 @@ pub fn get_integer_tag_u1024(&self)->U1024{
 /// # Example
 /// 
 /// ```
-/// use hyperstruc::hypergroups::HyperStructureError;
-/// use hyperstruc::hypergroups::HyperGroup;
+/// use hyperstruc::hs::hypergroups::HyperStructureError;
+/// use hyperstruc::hs::hypergroups::HyperGroup;
 /// 
 /// let cardinality =5u64;
 /// let function = |a:usize,b:usize| 1<<a|1<<b;
@@ -269,8 +271,9 @@ pub fn is_sub_hypergroup(&self,k:&u64)->bool{
 /// 
 /// # Example
 /// ```
-/// use hyperstruc::hs::HyperGroupoid;
+/// use hyperstruc::hs::hypergroupoids::HyperGroupoid;
 /// use nalgebra::DMatrix;
+/// 
 /// let matrix=DMatrix::from_row_slice(3usize,3usize,&[1,2,4,1,2,4,7,7,7]);
 /// let hyperstructure=HyperGroupoid::new_from_matrix(&matrix);
 /// let identities = hyperstructure.collect_identities();
@@ -370,8 +373,8 @@ pub fn subhypergroup_is_reflexive(&self,subset_k:&u64)->bool {
 /// # Example
 /// 
 /// ```
-/// use hyperstruc::hypergroups::HyperStructureError;
-/// use hyperstruc::hypergroups::HyperGroup;
+/// use hyperstruc::hs::hypergroups::HyperStructureError;
+/// use hyperstruc::hs::hypergroups::HyperGroup;
 /// 
 /// let cardinality =5u64;
 /// let function = |a:usize,b:usize| 1<<a|1<<b;
@@ -547,9 +550,9 @@ match  self.collect_proper_normal_subhypergroups(){
 /// # Example
 /// 
 /// ```
-/// use hyperstruc::hypergroups::HyperGroup;
+/// use hyperstruc::hs::hypergroups::HyperGroup;
 /// use hyperstruc::utilities::get_min_max_u1024;
-/// use hyperstruc::hypergroups::collect_classes_with_respect_to_cardinality;
+/// use hyperstruc::hs::hypergroups::collect_classes_with_respect_to_cardinality;
 /// 
 /// let cardinality = 2u64;
 /// let total_tag = get_min_max_u1024(&cardinality).1;
@@ -602,7 +605,7 @@ pub fn get_fundamental_group(&self)-> QuotientHyperGroup {
 ///
 /// # Example
 /// ```
-/// use hyperstruc::hypergroups::HyperGroup;
+/// use hyperstruc::hs::hypergroups::HyperGroup;
 /// use nalgebra::DMatrix;
 ///
 /// let cardinality = 4u64;
@@ -670,7 +673,7 @@ pub fn get_isomorphic_fundamental_group(&self)->HyperGroup{
 ///
 /// # Example
 /// ```
-/// use hyperstruc::hypergroups::HyperGroup;
+/// use hyperstruc::hs::hypergroups::HyperGroup;
 /// use std::collections::HashSet;
 ///
 /// let cardinality = 3u64;
@@ -749,7 +752,7 @@ pub fn collect_leafs_from_nodes(nodes: &Vec<U1024>,cardinality:&u64)->Vec<U1024>
 /// 
 /// ```
 /// use hyperstruc::utilities::get_min_max_u1024;
-/// use hyperstruc::hypergroups::exploring_tree;
+/// use hyperstruc::hs::hypergroups::exploring_tree;
 /// 
 /// let cardinality = 2u64;
 /// let total_tag = get_min_max_u1024(&cardinality).1;

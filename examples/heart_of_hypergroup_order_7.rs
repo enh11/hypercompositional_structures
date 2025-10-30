@@ -1,4 +1,4 @@
-use hyperstruc::{hs::HyperGroupoid, hypergroups::HyperGroup};
+use hyperstruc::{hs::{hypergroupoids::HyperGroupoid, hypergroups::HyperGroup}};
 
 fn main() {
     let cardinality = 7u64;

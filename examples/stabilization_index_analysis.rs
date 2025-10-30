@@ -1,4 +1,4 @@
-use hyperstruc::hs::HyperGroupoid;
+use hyperstruc::hs::hypergroupoids::HyperGroupoid;
 use rayon::prelude::*;
 
 fn main() {

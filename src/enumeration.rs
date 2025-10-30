@@ -1,9 +1,9 @@
 
 use itertools::Itertools;
 use permutation::Permutation;
-use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelBridge, ParallelIterator};
+use rayon::iter::{IntoParallelIterator, ParallelBridge, ParallelIterator};
+use crate::hs::hypergroupoids::HyperGroupoid;
 use crate::utilities::{get_min_max, get_min_max_u1024, parallel_tuples, representing_hypergroupoid_u1024, write, U1024RangeExt, U1024};
-use crate::hs::HyperGroupoid;
 use crate::utilities::representing_hypergroupoid;
 
 
@@ -93,6 +93,7 @@ println!("Collecting classes of equivalence.");
             .map(|k|
                 classes.iter().filter(|x|x.1.len()==k).sorted_by(|x,y|x.0.cmp(&y.0)).collect_vec()
     ).collect_vec();
+
     let c:Vec<usize>= c_k.iter().map(|x|x.len()).collect();
     let s:String = c_k.iter().map(|x|format!("{:?}\n",x)).collect();
     let _ = write(s.clone(),&format!("enumeration_{}_{}",structure,cardinality));

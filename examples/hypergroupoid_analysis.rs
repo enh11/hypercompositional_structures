@@ -11,7 +11,8 @@
 //! cargo run --example hypergroupoid_analysis
 //! ```
 
-use hyperstruc::{hs::HyperGroupoid, hypergroups::HyperGroup};
+use hyperstruc::hs::{hypergroupoids::HyperGroupoid, hypergroups::HyperGroup};
+
 
 fn main() {
     // === 1. Define the hypergroupoid ===
