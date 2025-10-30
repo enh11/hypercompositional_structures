@@ -437,6 +437,16 @@ pub fn is_isomorphic_to(&self,other: &Self)->bool{
 pub fn is_equivalent(&self,other: &Self)->bool{
     self.is_antyisomorphic_to(&other)||self.is_isomorphic_to(other)
 }
+pub fn is_relation_compatible(&self,r:&Relation)->bool{
+    (0..self.n).into_iter().
+        all(|x|
+            r.rel.iter().all(|(a,b)|
+                r.rel.contains(&(self.mul_by_representation(&(1<<x), &(1<<a)).trailing_zeros() as u64,self.mul_by_representation(&(1<<x), &(1<<b)).trailing_zeros() as u64))
+                &&
+                r.rel.contains(&(self.mul_by_representation(&(1<<a), &(1<<x)).trailing_zeros() as u64,self.mul_by_representation(&(1<<b), &(1<<x)).trailing_zeros() as u64))
+                )
+            )
+}
 /// Checks whether the structure is commutative.
 /// 
 /// # Returns

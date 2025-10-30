@@ -1,4 +1,4 @@
-use hyperstruc::{binary_relations::{preorder_3::{PRE_ORDERS_3, R6}, relations::Relation}, generating_functions::el_hypergroup, hg_3::semigroup::SEMIGROUP_3, hs::hypergroupoids::HyperGroupoid, utilities::U1024};
+use hyperstruc::{binary_relations::{preorder_3::{PRE_ORDERS_3, R6}, relations::Relation}, generating_functions::el_hypergroup, hg_3::semigroup::SEMIGROUP_3, hs::{hypergroupoids::HyperGroupoid, ordered_semigroup::PreOrderedSemigroup}, utilities::U1024};
 use itertools::Itertools;
 
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
@@ -12,21 +12,18 @@ let rels = PRE_ORDERS_3.iter().map(|r|Relation::new_from_elements(&cardinality, 
 let r = Relation::new_from_elements(&cardinality, r.to_vec());
 let class_r = r.collect_isomorphism_class().1;
 println!("{}",class_r.len());
-for item in &class_r{
-    println!("{}",item.zero_one_matrix().0);
-}
 let s:Vec<Vec<u64>> =SEMIGROUP_3[5].iter().map(|s|vec![*s]).collect();
-let semigp = HyperGroupoid::new_from_elements(&s, &cardinality);
-semigp.show();
-for r in rels{
-let b = (0..cardinality).into_iter().all(|x|r.rel.iter().all(|(a,b)|
-    r.rel.contains(&(semigp.mul_by_representation(&(1<<x), &(1<<a)).trailing_zeros() as u64,semigp.mul_by_representation(&(1<<x), &(1<<b)).trailing_zeros() as u64))
-    &&
-    r.rel.contains(&(semigp.mul_by_representation(&(1<<a), &(1<<x)).trailing_zeros() as u64,semigp.mul_by_representation(&(1<<b), &(1<<x)).trailing_zeros() as u64))
 
-    ));
-    println!("{} is compatible {}",r.zero_one_matrix().0,b);
-}
+let semigp = HyperGroupoid::new_from_elements(&s, &cardinality);
+let compatible_with_semigp:Vec<Relation>=rels.into_iter().filter(|r|PreOrderedSemigroup::new(&semigp, r).is_ok()).collect();
+println!("comp are {}",compatible_with_semigp.len());
+/* for item in &class_r{
+    match PreOrderedSemigroup::new(&semigp, item) {
+        Ok(psemigp) => println!("{}",psemigp),
+        Err(_) => continue,
+    }
+} */
+
 let el_semi:Vec<HyperGroupoid> = class_r.iter().map(|r| HyperGroupoid::new_from_function(el_hypergroup(&semigp, r), &cardinality)).collect();
 let el_semi:Vec<_>  = el_semi.iter().map(|s|s.collect_isomorphism_class()).unique().collect();
 for s in el_semi {

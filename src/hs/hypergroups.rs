@@ -12,12 +12,18 @@ use crate::{binary_relations::relations::Relation, hs::{fuzzy::FuzzySubset, hype
 #[derive(Debug, Clone)]
 pub enum HyperStructureError {
     NotHypergroup,
+    NotPreOrderedSemigroup,
+    NotPreOrder,
+    NotAssociative,
 }
 impl fmt::Display for HyperStructureError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             HyperStructureError::NotHypergroup => write!(f, "The structure is not a valid hypergroup."),
-        }
+            HyperStructureError::NotPreOrderedSemigroup => write!(f, "The preorder is not compatible with the semigroup operation."),
+            HyperStructureError::NotPreOrder => write!(f,"The relation is not a preorder."),
+            HyperStructureError::NotAssociative => write!(f,"The operation is not associative"),
+                    }
     }
 }
 #[derive(Debug, Clone,PartialEq)]
