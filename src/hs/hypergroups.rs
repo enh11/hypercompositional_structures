@@ -22,7 +22,7 @@ impl fmt::Display for HyperStructureError {
             HyperStructureError::NotHypergroup => write!(f, "The structure is not a valid hypergroup."),
             HyperStructureError::NotPreOrderedSemigroup => write!(f, "The preorder is not compatible with the semigroup operation."),
             HyperStructureError::NotPreOrder => write!(f,"The relation is not a preorder."),
-            HyperStructureError::NotAssociative => write!(f,"The operation is not associative"),
+            HyperStructureError::NotAssociative => write!(f,"The operation is not associative")
                     }
     }
 }
@@ -219,7 +219,7 @@ pub fn get_integer_tag_u1024(&self)->U1024{
 /// let function = |a:usize,b:usize| 1<<a|1<<b;
 /// let hg = match HyperGroup::new_from_function(function, &cardinality) {
 /// Ok(hg)=>hg,
-/// Err(HyperStructureError::NotHypergroup)=> panic!("Not hg")
+/// _=> panic!("Not hg")
 /// };
 /// assert!(hg.is_transposition())
 /// 
@@ -386,7 +386,7 @@ pub fn subhypergroup_is_reflexive(&self,subset_k:&u64)->bool {
 /// let function = |a:usize,b:usize| 1<<a|1<<b;
 /// let hg = match HyperGroup::new_from_function(function, &cardinality) {
 /// Ok(hg)=>hg,
-/// Err(HyperStructureError::NotHypergroup)=> panic!("Not hg")
+/// _=> panic!("Not a hypergroup")
 /// };
 /// let subhypergroup = 10u64; //This is the subset K = {1,3} of H = {0,1,2,3,4}
 /// assert!(hg.is_sub_hypergroup(&subhypergroup));
