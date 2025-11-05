@@ -9,6 +9,7 @@ pub mod binary_relations;
 pub mod enumeration;
 pub mod group_cayley_tables;
 pub mod generating_functions;
+pub mod hg_4;
 #[cfg(test)]
 mod tests {
     use std::collections::HashSet;

@@ -15,6 +15,7 @@ pub enum HyperStructureError {
     NotPreOrderedSemigroup,
     NotPreOrder,
     NotAssociative,
+    NotSemigroup,
 }
 impl fmt::Display for HyperStructureError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -22,7 +23,8 @@ impl fmt::Display for HyperStructureError {
             HyperStructureError::NotHypergroup => write!(f, "The structure is not a valid hypergroup."),
             HyperStructureError::NotPreOrderedSemigroup => write!(f, "The preorder is not compatible with the semigroup operation."),
             HyperStructureError::NotPreOrder => write!(f,"The relation is not a preorder."),
-            HyperStructureError::NotAssociative => write!(f,"The operation is not associative")
+            HyperStructureError::NotAssociative => write!(f,"The operation is not associative"),
+            HyperStructureError::NotSemigroup => write!(f,"The structure is not a semigroup."),
                     }
     }
 }

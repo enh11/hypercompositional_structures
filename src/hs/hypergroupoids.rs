@@ -400,6 +400,9 @@ pub fn collect_antiisomorphism_class(&self)->(U1024,Vec<U1024>) {
 pub fn is_hypergroup(&self)->bool{
     self.is_associative()&self.is_reproductive()
 }
+pub fn is_semigroup(&self)->bool{
+    self.is_associative()&&(0..self.n).all(|s|self.is_scalar(&s))
+}
 pub fn is_weak_associative(&self)->bool{
     self.get_singleton().iter().all(|a|
         self.get_singleton().iter().all(|b|
@@ -446,6 +449,16 @@ pub fn is_relation_compatible(&self,r:&Relation)->bool{
                 r.rel.contains(&(self.mul_by_representation(&(1<<a), &(1<<x)).trailing_zeros() as u64,self.mul_by_representation(&(1<<b), &(1<<x)).trailing_zeros() as u64))
                 )
             )
+}
+pub fn assert_is_relation_compatible(&self,r:&Relation){
+    for x in 0..self.n {
+        for (a,b) in r.rel.iter() {
+            assert!(r.rel.contains(&(self.mul_by_representation(&(1<<x), &(1<<a)).trailing_zeros() as u64,self.mul_by_representation(&(1<<x), &(1<<b)).trailing_zeros() as u64)),"left x a = {} b = {} x ={}",a,b,x);
+        
+            assert!(r.rel.contains(&(self.mul_by_representation(&(1<<a), &(1<<x)).trailing_zeros() as u64,self.mul_by_representation(&(1<<b), &(1<<x)).trailing_zeros() as u64)),"right x a = {} b = {} x ={}",a,b,x)
+                
+        }
+    }
 }
 /// Checks whether the structure is commutative.
 /// 

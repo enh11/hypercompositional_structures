@@ -2,7 +2,9 @@
 use itertools::Itertools;
 use permutation::Permutation;
 use rayon::iter::{IntoParallelIterator, ParallelBridge, ParallelIterator};
+use crate::binary_relations::relations::Relation;
 use crate::hs::hypergroupoids::HyperGroupoid;
+use crate::hs::hypergroups::HyperStructureError;
 use crate::utilities::{get_min_max, get_min_max_u1024, parallel_tuples, representing_hypergroupoid_u1024, write, U1024RangeExt, U1024};
 use crate::utilities::representing_hypergroupoid;
 
@@ -56,6 +58,24 @@ pub fn collect_semigroup(cardinality:&u64)->Vec<u128>{
         HyperGroupoid::new_from_elements(&x, cardinality))
         .filter(|hs|hs.is_associative())
         .map(|x|x.get_integer_tag()).collect()
+
+}
+pub fn enumeration_ordered_semigroup_from_list(semigroups:&Vec<HyperGroupoid>,relations:&Vec<Relation>)->Result<Vec<(HyperGroupoid,Vec<Relation>)>,HyperStructureError>{
+    match semigroups.iter().all(|s|s.is_semigroup()) {
+        true => match relations.iter().all(|r|r.is_pre_order()) {
+            true => {
+                let out=
+                semigroups.iter().map(|s|{
+                let compatible:Vec<Relation> = relations.iter().filter(|r|s.is_relation_compatible(&r)).map(|r|r.clone()).collect();
+                (s.clone(),compatible)
+                }
+                ).collect();
+                Ok(out)
+            },
+            false => Err(HyperStructureError::NotPreOrder),
+        },
+        false => Err(HyperStructureError::NotSemigroup),
+    }
 
 }
 /*This works, but still to slow with respect to (u128..u128).into_par_iter() */
