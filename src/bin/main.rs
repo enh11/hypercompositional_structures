@@ -14,10 +14,14 @@ let semigrps:Vec<HyperGroupoid> = SEMIGROUP_4.iter().map(|t|{
     HyperGroupoid::new_from_elements(&array, &cardinality)
 } ).collect();
 println!("there are {} semigroups",semigrps.len());
+
+
+//Enumeration EL-hypergroup
+
 let enumeration = enumeration_ordered_semigroup_from_list(&semigrps, &rels);
 let n:usize  = match enumeration.clone() {
     Ok(list) => list.iter().map(|a|a.1.len()).sum(),
-    Err(_) => panic!("no orderes semigroup found."),
+    Err(error) => panic!("{}",error),
 };
 println!("there are {} ordered semigroup",n);
 let v = enumeration.unwrap();
@@ -27,9 +31,9 @@ let v = v.iter().map(|el|el.iter().sorted().map(|s|s.collect_isomorphism_class()
 let v = v.iter().map(|s|s.iter().sorted().unique().collect_vec()).collect_vec();
 let binding = v.concat();
 let v  = binding.iter().sorted().unique().collect_vec();
-println!("{}",v.len());
+println!("up to isomorphis {}",v.len());
 let hg = v.iter().filter(|s|HyperGroupoid::new_from_tag_u1024(&s.0, &cardinality).is_hypergroup()).collect_vec();
-println!("el-hypergroups are {}",hg.len());
+println!("el-hypergroups are {}",hg.len()); 
 /* for (s,r) in enumeration.unwrap() {
     println!("Semigroup");
     s.show();
@@ -38,7 +42,7 @@ println!("el-hypergroups are {}",hg.len());
 
 } */
 
-
+/* 
 
 let representants = PRE_ORDERS_3.iter().map(|s|Relation::new_from_elements(&cardinality, s.to_vec())).collect_vec();
 //let representants: Vec<(Relation, Vec<Relation>)> = representants.iter().map(|x|x.collect_isomorphism_class()).collect();
@@ -67,7 +71,7 @@ let el_hg = el_semigroup.iter().filter(|h|h.is_hypergroup()).collect_vec();
 println!("total el-hg {}",el_hg.len());
 
 let el_hg  = el_hg.iter().map(|hg|hg.collect_isomorphism_class()).unique().collect_vec();
-println!("total up to iso: {}",el_hg.len());
+println!("total up to iso: {}",el_hg.len()); */
 /* for item in el_hg {
 
     HyperGroup::new_from_tag_u1024(&item.0, &cardinality).show();
