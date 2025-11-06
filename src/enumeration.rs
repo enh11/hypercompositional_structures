@@ -1,7 +1,7 @@
 
 use itertools::Itertools;
 use permutation::Permutation;
-use rayon::iter::{IntoParallelIterator, ParallelBridge, ParallelIterator};
+use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelBridge, ParallelIterator};
 use crate::binary_relations::relations::Relation;
 use crate::hs::hypergroupoids::HyperGroupoid;
 use crate::hs::hypergroups::HyperStructureError;
@@ -65,8 +65,8 @@ pub fn enumeration_ordered_semigroup_from_list(semigroups:&Vec<HyperGroupoid>,re
         true => match relations.iter().all(|r|r.is_pre_order()) {
             true => {
                 let out=
-                semigroups.iter().map(|s|{
-                let compatible:Vec<Relation> = relations.iter().filter(|r|s.is_relation_compatible(&r)).map(|r|r.clone()).collect();
+                semigroups.par_iter().map(|s|{
+                let compatible:Vec<Relation> = relations.par_iter().filter(|r|s.is_relation_compatible(&r)).map(|r|r.clone()).collect();
                 (s.clone(),compatible)
                 }
                 ).collect();

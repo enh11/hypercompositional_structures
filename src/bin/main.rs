@@ -1,4 +1,4 @@
-use hyperstruc::{binary_relations::{preorder_3::{PRE_ORDERS_3, R3, R4, R5, R6}, relations::{Relation, pre_order_enumeration}}, enumeration::{collect_semigroup, enumeration_ordered_semigroup_from_list}, generating_functions::el_hypergroup, hg_3::semigroup::SEMIGROUP_3, hg_4::semigroups_4::SEMIGROUP_4, hs::{hypergroupoids::HyperGroupoid, ordered_semigroup::PreOrderedSemigroup}, utilities::U1024};
+use hyperstruc::{binary_relations::{preorder_3::{PRE_ORDERS_3, R3, R4, R5, R6}, relations::{Relation, pre_order_enumeration}}, enumeration::{collect_semigroup, enumeration_ordered_semigroup_from_list}, generating_functions::el_hypergroup, hg_3::semigroup::SEMIGROUP_3, hg_4::semigroups_4::SEMIGROUP_4, hg_5::semigroups_5::SEMIGROUP_5, hs::{hypergroupoids::HyperGroupoid, ordered_semigroup::PreOrderedSemigroup}, utilities::U1024};
 use itertools::Itertools;
 
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
@@ -6,10 +6,10 @@ use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
 fn main(){
 
-let cardinality = 4u64;
+let cardinality = 5u64;
 let rels :Vec<Relation>= pre_order_enumeration(&(cardinality as usize)).map(|s|s.into_relation()).collect();
 println!("there are {} preorder relations ", rels.len());
-let semigrps:Vec<HyperGroupoid> = SEMIGROUP_4.iter().map(|t|{
+let semigrps:Vec<HyperGroupoid> = SEMIGROUP_5.iter().map(|t|{
     let array = t.iter().map(|s|vec![*s]).collect::<Vec<Vec<u64>>>();
     HyperGroupoid::new_from_elements(&array, &cardinality)
 } ).collect();

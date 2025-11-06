@@ -10,6 +10,7 @@ pub mod enumeration;
 pub mod group_cayley_tables;
 pub mod generating_functions;
 pub mod hg_4;
+pub mod hg_5;
 #[cfg(test)]
 mod tests {
     use std::collections::HashSet;
