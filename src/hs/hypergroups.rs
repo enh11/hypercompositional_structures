@@ -16,6 +16,7 @@ pub enum HyperStructureError {
     NotPreOrder,
     NotAssociative,
     NotSemigroup,
+    NotRegularRelation
 }
 impl fmt::Display for HyperStructureError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -25,6 +26,7 @@ impl fmt::Display for HyperStructureError {
             HyperStructureError::NotPreOrder => write!(f,"The relation is not a preorder."),
             HyperStructureError::NotAssociative => write!(f,"The operation is not associative"),
             HyperStructureError::NotSemigroup => write!(f,"The structure is not a semigroup."),
+            HyperStructureError::NotRegularRelation => write!(f,"The relation is not regular."),
                     }
     }
 }
@@ -598,7 +600,7 @@ pub fn beta_relation(&self)->Relation {
 pub fn collect_beta_classes(&self)->Vec<(u64,Vec<u64>)>{
     self.0.beta_relation().quotient_set()
 }
-pub fn get_fundamental_group(&self)-> QuotientHyperGroup {
+pub fn get_fundamental_group(&self)-> Result<QuotientHyperGroup, HyperStructureError>{
     let beta = self.beta_relation();
     QuotientHyperGroup::new_from_equivalence_relation(self.clone(), beta)
 }
@@ -628,7 +630,7 @@ pub fn get_fundamental_group(&self)-> QuotientHyperGroup {
 ///     )
 /// );
 ///
-/// let fundamental_group = hs.get_fundamental_group();
+/// let fundamental_group = hs.get_fundamental_group().unwrap();
 /// println!("fundamental {}", fundamental_group);
 ///
 /// let fundamental_group = hs.get_isomorphic_fundamental_group();
@@ -654,7 +656,7 @@ pub fn get_fundamental_group(&self)-> QuotientHyperGroup {
 /// - [`get_fundamental_group`](Self::get_fundamental_group): Returns the untransformed fundamental group.
 /// - [`HyperGroup::new_from_elements`](HyperGroup::new_from_elements): Constructs a hypergroup from raw data.
 pub fn get_isomorphic_fundamental_group(&self)->HyperGroup{
-    let fg = self.get_fundamental_group();
+    let fg = self.get_fundamental_group().unwrap();
     let mut classes:Vec<Vec<u64>>= self.beta_relation().quotient_set().into_iter().map(|(_,y)|y).collect();
     classes.sort();
     let cardinality = classes.len();

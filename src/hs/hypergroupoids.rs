@@ -1377,32 +1377,37 @@ pub struct QuotientHyperGroupoid{
     pub n:u64
 }
 impl QuotientHyperGroupoid {
-    pub fn new_from_equivalence_relation(base_hypergroupoid:&HyperGroupoid,equivalence:&Relation)->Self{
-
-        assert!(equivalence.is_equivalence(),"The input relation is not an equivalence! The quotinet is not defined!");
-        let classes = equivalence.quotient_set();
-        let n = classes.len() as u64;
-        let representants:Vec<u64> = classes.iter().map(|x|x.0).collect();
-        let function  = |a:usize,b:usize| 
-            support(
-                &base_hypergroupoid.mul_by_representation(
-                    &(1<<representants[a]), &(1<<representants[b])),&base_hypergroupoid.n).iter()
-                    .map(|x|equivalence.get_class(&(*x as u64)).1)
-                    .sorted()
-                    .unique()
-                    .collect_vec();
-        let hyper_composition: nalgebra::Matrix<Vec<Vec<u64>>, nalgebra::Dyn, nalgebra::Dyn, nalgebra::VecStorage<Vec<Vec<u64>>, nalgebra::Dyn, nalgebra::Dyn>> = DMatrix::from_fn(
-            n as usize, 
-            n as usize, 
-            function
-            );
-        QuotientHyperGroupoid { 
-            base_hypergroup:base_hypergroupoid.clone(), 
-            equivalence_relation:equivalence.clone(), 
-            hyper_composition, 
-            n,
-            }
-       
+    pub fn new_from_regular_relation(base_hypergroupoid:&HyperGroupoid,regular_relation:&Relation)->Result<Self,HyperStructureError>{
+        match  regular_relation.is_regular(base_hypergroupoid.clone()) {
+            true => {
+                        let classes = regular_relation.quotient_set();
+                let n = classes.len() as u64;
+                let representants:Vec<u64> = classes.iter().map(|x|x.0).collect();
+                let function  = |a:usize,b:usize| 
+                    support(
+                        &base_hypergroupoid.mul_by_representation(
+                            &(1<<representants[a]), &(1<<representants[b])),&base_hypergroupoid.n).iter()
+                            .map(|x|regular_relation.get_class(&(*x as u64)).1)
+                            .sorted()
+                            .unique()
+                            .collect_vec();
+                let hyper_composition: nalgebra::Matrix<Vec<Vec<u64>>, nalgebra::Dyn, nalgebra::Dyn, nalgebra::VecStorage<Vec<Vec<u64>>, nalgebra::Dyn, nalgebra::Dyn>> = DMatrix::from_fn(
+                    n as usize, 
+                    n as usize, 
+                    function
+                    );
+                Ok(QuotientHyperGroupoid { 
+                    base_hypergroup:base_hypergroupoid.clone(), 
+                    equivalence_relation:regular_relation.clone(), 
+                    hyper_composition, 
+                    n,
+                    })
+            
+                        
+            },
+            false => Err(HyperStructureError::NotRegularRelation),
+        }
+        
     }
     
 }
