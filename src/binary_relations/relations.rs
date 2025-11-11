@@ -1,9 +1,12 @@
+use core::panic;
 use std::{collections::HashSet};
-use nalgebra::{DMatrix, iter};
+use nalgebra::{DMatrix, SimdRealField, iter};
 use itertools::Itertools;
 use permutation::Permutation;
 use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator as _, ParallelIterator};
-use crate::utilities::write;
+use crate::hs::hypergroupoids::HyperGroupoid;
+use crate::hs::hypergroups::HyperStructureError;
+use crate::utilities::{support, write};
 
 use crate::{binary_relations::relation_matrix::RelationMatrix, utilities::{permutation_matrix_from_permutation, representation_permutation_subset}};
 
@@ -25,10 +28,38 @@ impl Ord for Relation {
     }
 }
 impl Relation {
-    pub fn new_from_elements(cardinality:&u64,rel : Vec<(u64,u64)>)->Self{
+    pub fn new_from_elements(cardinality:&u64,rel : &Vec<(u64,u64)>)->Self{
         let a: HashSet<u64>= (0..*cardinality).collect();
         let b: HashSet<u64> = (0..*cardinality).collect();
-        Relation { a, b, rel }
+        Relation { a, b, rel: rel.to_vec() }
+    }
+/// Return an equivalence associated to a preorder.
+/// If r is a preorder on X, then the relation k defined by 
+/// `x k y if and only if x r y and y r x` is an equivalence on X.
+/// 
+/// #Example
+///```
+/// use hyperstruc::binary_relations::relations::Relation;
+/// 
+/// let cardinality = 3u64;
+/// let r = [
+///     (0,0),(0,1),
+///           (1,1),
+///                (2,2)
+/// ].to_vec();
+/// let preorder = Relation::new_from_elements(&cardinality,&r);
+/// assert!(preorder.is_pre_order());
+/// let e  = Relation::new_from_preorder(&preorder);
+/// 
+    pub fn new_from_preorder(preorder:&Self)->Result<Self,HyperStructureError>{
+        match preorder.is_pre_order() {
+            true => {
+                let n =  preorder.a.len() as u64;
+                let rel = (0..n).cartesian_product(0..n).into_iter().filter(|(a,b)|preorder.rel.contains(&(*a,*b))&&preorder.rel.contains(&(*b,*a))).collect_vec();
+                Ok(Relation::new_from_elements(&n, &rel))
+            },
+            false => Err(HyperStructureError::NotPreOrder),
+        }
     }
     pub fn is_reflexive(&self)->bool{
         assert_eq!(self.a,self.b,"Domain and codomain not coincede!");
@@ -110,7 +141,59 @@ impl Relation {
 /// 
 /// ```
     pub fn is_equivalence(&self)->bool{
-self.is_reflexive()&&self.is_symmetric()&&self.is_transitive()
+        self.is_reflexive()&&self.is_symmetric()&&self.is_transitive()
+    }
+/// Return true if the relation is regular on a hypercompositional structure
+/// 
+/// #Example 
+///```
+/// use hyperstruc::{binary_relations::relations::{self, Relation}, hg_3::tag_hypergroups_3::TAGS_HG_3, hs::hypergroups::HyperGroup};
+/// use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+/// 
+/// let cardinality =3u64;
+/// TAGS_HG_3.par_iter().all(|tag| {
+///     let hg = HyperGroup::new_from_tag_u128(tag,&cardinality);
+///     hg.beta_relation().is_left_regular(&hg.0)
+/// });
+/// 
+
+    pub fn is_left_regular(&self, h:&HyperGroupoid)->bool{
+        match self.is_equivalence() {
+            true => self.rel.iter().all(|(x,y)| 
+            (0..h.n).into_iter().all(|a|
+                {
+                let ax = h.mul_by_representation(&(1<<a), &(1<<x));
+                let ay = h.mul_by_representation(&(1<<a), &(1<<y));
+                support(&ax, &h.n).iter().all(|u|
+                    support(&ay, &h.n).iter().any(|v|
+                        self.rel.contains(&(*u as u64,*v as u64))
+                        )
+                    )
+                })
+            ),
+            false => panic!("The relation is not left regular. In particular, input relation is not an equivalence."),
+        }
+        
+    }
+    pub fn is_right_regular(&self, h:&HyperGroupoid)->bool{
+        match self.is_equivalence() {
+            true => self.rel.iter().all(|(x,y)| 
+            (0..h.n).into_iter().all(|a|
+                {
+                let xa = h.mul_by_representation(&(1<<x), &(1<<a));
+                let ya = h.mul_by_representation(&(1<<y), &(1<<a));
+                support(&xa, &h.n).iter().all(|u|
+                    support(&ya, &h.n).iter().any(|v|
+                        self.rel.contains(&(*u as u64,*v as u64))
+                        )
+                    )
+                })
+            ),
+            false => panic!("The relation is not right regular. In particular, input relation is not an equivalence."),
+        }
+            }
+    pub fn is_regular(&self,h:HyperGroupoid)->bool{
+        self.is_left_regular(&h)&&self.is_right_regular(&h)
     }
     pub fn get_class(&self, x:&u64)->(u64,Vec<u64>) {
         let class:Vec<u64> = self.a.iter()

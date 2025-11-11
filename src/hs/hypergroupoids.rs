@@ -6,7 +6,7 @@ use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
 use rand::Rng;
-use crate::{binary_relations::relations::Relation, hs::fuzzy::FuzzySubset, hs::hypergroups::{HyperGroup, HyperStructureError}, utilities::{all_triplets, binary_to_n, from_tag_to_vec, from_tag_u1024_to_vec, get_min_max_u1024, get_subset, n_to_binary_vec, permutation_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid_u1024, subset_as_u64, support, u64_to_set, vec_to_set, U1024}};
+use crate::{binary_relations::relations::Relation, generating_functions::el_hypergroup, hs::{fuzzy::FuzzySubset, hypergroups::{HyperGroup, HyperStructureError}, ordered_semigroup::PreOrderedSemigroup}, utilities::{U1024, all_triplets, binary_to_n, from_tag_to_vec, from_tag_u1024_to_vec, get_min_max_u1024, get_subset, n_to_binary_vec, permutation_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid_u1024, subset_as_u64, support, u64_to_set, vec_to_set}};
 #[derive(Debug, Clone,PartialEq,Eq)]
 pub struct HyperGroupoid{
     pub h:HashSet<u64>,
@@ -264,6 +264,13 @@ pub fn new_from_tag_u1024(mut tag:&U1024,cardinality:&u64)->Self{
     let hyper_composition_matrix = DMatrix::from_row_slice(*cardinality as usize, *cardinality as usize, &vector_of_subsets_as_integers);
         
     HyperGroupoid::new_from_matrix(&hyper_composition_matrix)
+}
+pub fn new_el_hypergroup(pre_ordered_semigroup:PreOrderedSemigroup)->Self{
+    Self::new_from_function(
+        el_hypergroup(
+            &pre_ordered_semigroup.semigrp, 
+            &pre_ordered_semigroup.order), 
+        &pre_ordered_semigroup.semigrp.n)
 }
  /// # Example
 /// 
