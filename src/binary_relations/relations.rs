@@ -6,7 +6,7 @@ use permutation::Permutation;
 use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator as _, ParallelIterator};
 use crate::hs::hypergroupoids::HyperGroupoid;
 use crate::hs::hypergroups::HyperStructureError;
-use crate::utilities::{support, write};
+use crate::utilities::{n_to_binary_vec, support, write};
 
 use crate::{binary_relations::relation_matrix::RelationMatrix, utilities::{permutation_matrix_from_permutation, representation_permutation_subset}};
 

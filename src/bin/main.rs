@@ -1,12 +1,13 @@
 use std::collections::HashSet;
 
-use hyperstruc::{binary_relations::{preorder_3::{PRE_ORDERS_3, R3, R4, R5, R6}, relations::{Relation, pre_order_enumeration}}, enumeration::{collect_semigroup, enumeration_ordered_semigroup_from_list}, generating_functions::el_hypergroup, hg_3::semigroup::SEMIGROUP_3, hg_4::semigroups_4::SEMIGROUP_4, hg_5::semigroups_5::SEMIGROUP_5, hs::{hypergroupoids::{HyperGroupoid, QuotientHyperGroupoid}, ordered_semigroup::PreOrderedSemigroup}, utilities::U1024};
+use hyperstruc::{binary_relations::{preorder_3::{PRE_ORDERS_3, R3, R4, R5, R6}, relation_matrix::RelationMatrix, relations::{Relation, enumerate_reflexive_relation, pre_order_enumeration}}, enumeration::{collect_semigroup, enumeration_ordered_semigroup_from_list}, generating_functions::el_hypergroup, hg_3::semigroup::SEMIGROUP_3, hg_4::semigroups_4::SEMIGROUP_4, hg_5::semigroups_5::SEMIGROUP_5, hs::{hypergroupoids::{HyperGroupoid, QuotientHyperGroupoid}, ordered_semigroup::PreOrderedSemigroup}, utilities::{U1024, n_to_binary_vec}};
 use itertools::Itertools;
 
 use rayon::{iter::{IntoParallelRefIterator, ParallelIterator}, vec};
 
 
 fn main(){
+
 
  let cardinality = 4u64;
  let semigroup_table = [
