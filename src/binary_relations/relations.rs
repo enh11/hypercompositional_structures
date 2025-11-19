@@ -2,11 +2,12 @@ use core::panic;
 use std::{collections::HashSet};
 use nalgebra::{DMatrix, SimdRealField, iter};
 use itertools::Itertools;
+use num_traits::One;
 use permutation::Permutation;
 use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator as _, ParallelIterator};
 use crate::hs::hypergroupoids::HyperGroupoid;
 use crate::hs::HyperStructureError;
-use crate::utilities::{n_to_binary_vec, support, write};
+use crate::utilities::{U1024, binary_to_n, binary_to_u1024, n_to_binary_vec, support, write};
 
 use crate::{binary_relations::relation_matrix::RelationMatrix, utilities::{permutation_matrix_from_permutation, representation_permutation_subset}};
 
@@ -33,6 +34,14 @@ impl Relation {
         let b: HashSet<u64> = (0..*cardinality).collect();
         Relation { a, b, rel: rel.to_vec() }
     }
+pub fn get_tag(&self)->U1024{
+    let mut array = self.zero_one_matrix().0.transpose().as_slice().to_vec();
+    array.reverse();
+    array
+        .iter().enumerate()
+        .filter(|(_,i)|i.is_one())
+        .map(|(e,i)|U1024::from(1<<e)).sum()
+}
 /// Return an equivalence associated to a preorder.
 /// If r is a preorder on X, then the relation k defined by 
 /// `x k y if and only if x r y and y r x` is an equivalence on X.

@@ -196,7 +196,7 @@ pub fn get_integer_tag_u1024(&self)->U1024{
 /// # Example
 /// 
 /// ```
-/// use hyperstruc::hs::hypergroups::HyperStructureError;
+/// use hyperstruc::hs::HyperStructureError;
 /// use hyperstruc::hs::hypergroups::HyperGroup;
 /// 
 /// let cardinality =5u64;
@@ -363,7 +363,7 @@ pub fn subhypergroup_is_reflexive(&self,subset_k:&u64)->bool {
 /// # Example
 /// 
 /// ```
-/// use hyperstruc::hs::hypergroups::HyperStructureError;
+/// use hyperstruc::hs::HyperStructureError;
 /// use hyperstruc::hs::hypergroups::HyperGroup;
 /// 
 /// let cardinality =5u64;

@@ -186,16 +186,31 @@ pub fn enumerate_el_hyperstructures(cardinality:&u64)->usize{
         3u64 => {SEMIGROUP_3.iter().map(|s|s.iter().map(|el|vec![*el]).collect_vec()).collect_vec()}
         _=>panic!("{}",HyperStructureError::ListOfSemigroupsNotAvailable)
         
-    };
+    }; 
     let relations:Vec<Relation> = pre_order_enumeration(cardinality).map(|w|w.into_relation()).collect();
-    println!("there are {} preorder of order {}",relations.len(),cardinality);
-    println!("there are {} possible pairs" ,semigroups.len()*relations.len());
+   
+/*      /* Collect all preorders */
+let relations :Vec<Relation>= pre_order_enumeration(&cardinality).map(|s|s.into_relation()).collect();
+println!("there are {} preorder relations ", relations.len());
+/* Collect all semigroups (if the list is not available) up to isomorphism */
+let semigrps  = collect_semigroup(&cardinality)
+    .iter()
+    .map(|w|
+        HyperGroupoid::new_from_tag_u128(w, &cardinality)
+        )
+    .map(|s|s.collect_isomorphism_class()
+    ).sorted().dedup().collect_vec();
+/* Store representants as Hypergroupoid  */
+let semigroups = semigrps.iter().map(|s|HyperGroupoid::new_from_tag_u1024(&s.0, &cardinality)).collect_vec();
+ */
+    println!("there are {} possible semigroups " ,semigroups.len());
     let preordered_semigroup = semigroups.iter().cartesian_product(relations)
         .filter_map(|(s,r)|
-            PreOrderedSemigroup::new(
+/*         PreOrderedSemigroup::new(s, &r).ok()
+ */            PreOrderedSemigroup::new(
         &HyperGroupoid::new_from_elements(s, cardinality), 
-        &r
-        ).ok()
+        &r).ok()
+        
         )
         .sorted()
         .dedup()
@@ -211,7 +226,11 @@ pub fn enumerate_el_hyperstructures(cardinality:&u64)->usize{
     classes.sort();
     classes.dedup();
 println!("there are {} classes of preorders",classes.len());
-
+/* println!("we print all classes of preorders");
+for item in &classes {
+    item.1.iter().for_each(|s|println!("{:?}",s.get_integer_tag_u1024()));
+    println!("_______________________")
+} */
 
 /*
 // This check that isomorphic preorders generate the same EL-hyperstrcuture
@@ -241,9 +260,12 @@ class.iter().all(|r|
     .dedup()
     .collect_vec();
 
-println!("The total number of EL-hyperstructures (not up to isomorphism) is {}",el.len());
+println!("The total number of EL-hyperstructures, considering the generating order is (not up to isomorphism) is {}",el.len());
+let el_no_ordering = el.iter().map(|s|s.0.clone()).sorted().dedup().collect_vec();
+println!("The total number of EL-hyperstructures, without considering the generating order is (not up to isomorphism) is {}",el_no_ordering.len());
+
 /* Up to isomorphism */
-let iso_el = el.iter().map(|s|s.0.collect_isomorphism_class()).sorted().dedup().collect_vec();
+let iso_el = el_no_ordering.iter().map(|s|s.collect_isomorphism_class()).sorted().dedup().collect_vec();
 println!("The total number of EL-hyperstructures of order {} up to isomorphism is {}",cardinality,iso_el.len());
 let out = iso_el.iter().filter(|s|HyperGroupoid::new_from_tag_u1024(&s.0,cardinality).is_hypergroup()).count();
 

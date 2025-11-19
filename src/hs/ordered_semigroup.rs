@@ -3,7 +3,7 @@ use itertools::Itertools;
 use permutation::Permutation;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
-use crate::{binary_relations::relations::Relation, hs::{HyperStructureError, hypergroupoids::HyperGroupoid}, utilities::permutation_matrix_from_permutation};
+use crate::{binary_relations::relations::Relation, hs::{HyperStructureError, hypergroupoids::HyperGroupoid}, utilities::{U1024, permutation_matrix_from_permutation}};
 
 
 #[derive(Eq,PartialEq, PartialOrd,Ord,Clone)]
@@ -30,6 +30,9 @@ impl PreOrderedSemigroup {
             false => Err(HyperStructureError::NotAssociative),
         }
     }
+pub fn get_integer_tag_u1024(&self)->(U1024,U1024){
+    (self.semigrp.get_integer_tag_u1024(),self.order.get_tag())
+}
 pub fn isomorphic_preordered_semigroup_from_permutation(&self, sigma:&Permutation)->Result<PreOrderedSemigroup, HyperStructureError>{
     let isomorphic_semigroup = self.semigrp.isomorphic_hypergroup_from_permutation(sigma);
     let isomorphic_preorder = self.order.isomorphic_relation_from_permutation(sigma);
