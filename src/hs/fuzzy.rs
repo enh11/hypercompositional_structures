@@ -7,7 +7,7 @@ use itertools::Itertools;
 use num_rational::Rational64;
 use num_traits::{One, Zero};
 
-use crate::hs::{hypergroupoids::HyperGroupoid, hypergroups::{HyperGroup, HyperStructureError}};
+use crate::hs::{HyperStructureError, hypergroupoids::HyperGroupoid, hypergroups::HyperGroup};
 
 
 #[derive(Debug, Copy, Clone)]

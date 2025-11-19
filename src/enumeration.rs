@@ -2,9 +2,15 @@
 use itertools::Itertools;
 use permutation::Permutation;
 use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelBridge, ParallelIterator};
-use crate::binary_relations::relations::Relation;
+use rayon::vec;
+use crate::binary_relations::relations::{Relation, pre_order_enumeration};
+use crate::hg_2::semigroup_2::SEMIGROUP_2;
+use crate::hg_3::semigroup_3::SEMIGROUP_3;
+use crate::hg_4::semigroups_4::SEMIGROUP_4;
+use crate::hg_5::semigroups_5::SEMIGROUP_5;
+use crate::hs::HyperStructureError;
 use crate::hs::hypergroupoids::HyperGroupoid;
-use crate::hs::hypergroups::HyperStructureError;
+use crate::hs::ordered_semigroup::PreOrderedSemigroup;
 use crate::utilities::{get_min_max, get_min_max_u1024, parallel_tuples, representing_hypergroupoid_u1024, write, U1024RangeExt, U1024};
 use crate::utilities::representing_hypergroupoid;
 
@@ -60,13 +66,18 @@ pub fn collect_semigroup(cardinality:&u64)->Vec<u128>{
         .map(|x|x.get_integer_tag()).collect()
 
 }
-pub fn enumeration_ordered_semigroup_from_list(semigroups:&Vec<HyperGroupoid>,relations:&Vec<Relation>)->Result<Vec<(HyperGroupoid,Vec<Relation>)>,HyperStructureError>{
+pub fn enumeration_preordered_semigroup_from_list(semigroups:&Vec<HyperGroupoid>,relations:&Vec<Relation>)->Result<Vec<(HyperGroupoid,Vec<Relation>)>,HyperStructureError>{
     match semigroups.iter().all(|s|s.is_semigroup()) {
         true => match relations.iter().all(|r|r.is_pre_order()) {
             true => {
                 let out=
                 semigroups.par_iter().map(|s|{
-                let compatible:Vec<Relation> = relations.par_iter().filter(|r|s.is_relation_compatible(&r)).map(|r|r.clone()).collect();
+                let compatible:Vec<Relation> = relations
+                    .par_iter()
+                    .filter(|r|
+                        s.is_relation_compatible(&r)
+                    ).map(|r|r.clone()
+                    ).collect();
                 (s.clone(),compatible)
                 }
                 ).collect();
@@ -92,7 +103,7 @@ hgs
     
 }
 pub fn enumeration_hyperstructure(structure:&str,cardinality:&u64)->Vec<usize>{
-println!("Collecting all {} with cardinality {}...",structure,cardinality);
+    println!("Collecting all {} with cardinality {}...",structure,cardinality);
     let tags= match structure {
         "semigroups"=> collect_semigroup(&cardinality),
         "hypergroups"=> collect_hypergroups(&cardinality),
@@ -101,18 +112,20 @@ println!("Collecting all {} with cardinality {}...",structure,cardinality);
     };
     let _= write(format!("{:?}",tags.clone()),&format!("tag_{structure}_{cardinality}"));
     let permut_vec:Vec<Vec<usize>> = (0..*cardinality as usize).permutations(*cardinality as usize).collect();
-println!("Completed.\nThere are {} {} of order {}",tags.len(),structure,cardinality);
-println!("Collecting classes of equivalence.");
-    let classes:Vec<(U1024,Vec<U1024>)> = tags.iter().map(|x|HyperGroupoid::new_from_tag_u128(x, cardinality).collect_isomorphism_class()).unique().collect();
-
- /*    classes.sort();
-    classes.dedup(); */
+    println!("Completed.\nThere are {} {} of order {}",tags.len(),structure,cardinality);
+    println!("Collecting classes of equivalence.");
+    let classes:Vec<(U1024,Vec<U1024>)> = tags.iter()
+        .map(|x|
+            HyperGroupoid::new_from_tag_u128(x, cardinality).collect_isomorphism_class()
+        )
+        .unique()
+        .collect();
 
     let c_k =
         (1..=permut_vec.len()).into_iter()
             .map(|k|
                 classes.iter().filter(|x|x.1.len()==k).sorted_by(|x,y|x.0.cmp(&y.0)).collect_vec()
-    ).collect_vec();
+        ).collect_vec();
 
     let c:Vec<usize>= c_k.iter().map(|x|x.len()).collect();
     let s:String = c_k.iter().map(|x|format!("{:?}\n",x)).collect();
@@ -160,3 +173,83 @@ pub fn enumeration_hyperstructure_u1024(structure:&str,cardinality:&u64)->Vec<us
     }
     c
 }
+
+// Seams to not work properly. It is ok up to the computation of preordered semigroup. 
+// It seams to fail when computing classes up to isomorphism. 
+// For example, wiith n = 2 we get 14 classes of equivalence of preordered semigroups, while 
+// they are supposed to be 10.
+//   
+
+pub fn enumerate_el_hyperstructures(cardinality:&u64)->usize{
+    let semigroups= match cardinality {
+        2u64 => {SEMIGROUP_2.iter().map(|s|s.iter().map(|el|vec![*el]).collect_vec()).collect_vec()},
+        3u64 => {SEMIGROUP_3.iter().map(|s|s.iter().map(|el|vec![*el]).collect_vec()).collect_vec()}
+        _=>panic!("{}",HyperStructureError::ListOfSemigroupsNotAvailable)
+        
+    };
+    let relations:Vec<Relation> = pre_order_enumeration(cardinality).map(|w|w.into_relation()).collect();
+    println!("there are {} preorder of order {}",relations.len(),cardinality);
+    println!("there are {} possible pairs" ,semigroups.len()*relations.len());
+    let preordered_semigroup = semigroups.iter().cartesian_product(relations)
+        .filter_map(|(s,r)|
+            PreOrderedSemigroup::new(
+        &HyperGroupoid::new_from_elements(s, cardinality), 
+        &r
+        ).ok()
+        )
+        .sorted()
+        .dedup()
+        .collect_vec();
+    println!("there are {} preodered semigroups of order {}",preordered_semigroup.len(),cardinality);
+    let mut classes: Vec<(PreOrderedSemigroup, Vec<PreOrderedSemigroup>)>  = preordered_semigroup
+        .par_iter()
+        .map(|s|
+            s.collect_isomorphism_class()
+        ).filter_map(|s|
+            s.ok()
+        ).collect();
+    classes.sort();
+    classes.dedup();
+println!("there are {} classes of preorders",classes.len());
+
+
+/*
+// This check that isomorphic preorders generate the same EL-hyperstrcuture
+// This is a Theorem actually. But it is not an if and only if, i.e.,
+// if two EL-hyperstructure coinced, then the generating preorders are not equal in general.
+
+    classes.iter().all(|(rep,class)|
+
+
+class.iter().all(|r|
+    HyperGroupoid::new_el_hypergroup(r.clone())
+    ==
+    HyperGroupoid::new_el_hypergroup(rep.clone())
+    )
+); */
+
+/* Fin qui tutto ok pare... 
+ Da qui in poi quacosa non va ---
+ */
+
+    let el= classes
+    .iter()
+    .map(|s|
+        HyperGroupoid::new_el_hypergroup(s.0.clone())
+    )
+    .sorted()
+    .dedup()
+    .collect_vec();
+
+println!("The total number of EL-hyperstructures (not up to isomorphism) is {}",el.len());
+/* Up to isomorphism */
+let iso_el = el.iter().map(|s|s.0.collect_isomorphism_class()).sorted().dedup().collect_vec();
+println!("The total number of EL-hyperstructures of order {} up to isomorphism is {}",cardinality,iso_el.len());
+let out = iso_el.iter().filter(|s|HyperGroupoid::new_from_tag_u1024(&s.0,cardinality).is_hypergroup()).count();
+
+    println!("there are {} EL-Hypergroups",out);
+    /*for el in el{
+        el.show();
+    } */
+out
+    }

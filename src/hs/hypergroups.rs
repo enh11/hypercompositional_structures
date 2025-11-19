@@ -7,29 +7,9 @@ use num_rational::Rational64;
 use permutation::Permutation;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
-use crate::{binary_relations::relations::Relation, hs::{fuzzy::FuzzySubset, hypergroupoids::{HyperGroupoid, circumference_radius_d_filtered, hg_in_circumference_radius_one}, quotient_hg::QuotientHyperGroup}, utilities::{U1024, get_complement_subset, support, u64_to_set, vec_to_set}};
+use crate::{binary_relations::relations::Relation, hs::{HyperStructureError, fuzzy::FuzzySubset, hypergroupoids::{HyperGroupoid, circumference_radius_d_filtered, hg_in_circumference_radius_one}, quotient_hg::QuotientHyperGroup}, utilities::{U1024, get_complement_subset, support, u64_to_set, vec_to_set}};
 
-#[derive(Debug, Clone)]
-pub enum HyperStructureError {
-    NotHypergroup,
-    NotPreOrderedSemigroup,
-    NotPreOrder,
-    NotAssociative,
-    NotSemigroup,
-    NotRegularRelation
-}
-impl fmt::Display for HyperStructureError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            HyperStructureError::NotHypergroup => write!(f, "The structure is not a valid hypergroup."),
-            HyperStructureError::NotPreOrderedSemigroup => write!(f, "The preorder is not compatible with the semigroup operation."),
-            HyperStructureError::NotPreOrder => write!(f,"The relation is not a preorder."),
-            HyperStructureError::NotAssociative => write!(f,"The operation is not associative"),
-            HyperStructureError::NotSemigroup => write!(f,"The structure is not a semigroup."),
-            HyperStructureError::NotRegularRelation => write!(f,"The relation is not regular."),
-                    }
-    }
-}
+
 #[derive(Debug, Clone,PartialEq)]
 pub struct HyperGroup(pub HyperGroupoid);
 

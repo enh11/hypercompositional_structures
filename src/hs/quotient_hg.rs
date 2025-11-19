@@ -1,5 +1,5 @@
 use std::fmt::Display;
-use crate::{binary_relations::relations::Relation, hs::{hypergroupoids::QuotientHyperGroupoid, hypergroups::{HyperGroup, HyperStructureError}, quotient_hg}};
+use crate::{binary_relations::relations::Relation, hs::{HyperStructureError,hypergroupoids::QuotientHyperGroupoid, hypergroups::HyperGroup, quotient_hg}};
 extern crate nalgebra as na;
 
 #[derive(Debug,Clone,PartialEq)]

@@ -1,7 +1,9 @@
 use std::fmt::Display;
 use itertools::Itertools;
+use permutation::Permutation;
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
-use crate::{binary_relations::relations::Relation, hs::{hypergroupoids::HyperGroupoid, hypergroups::HyperStructureError}};
+use crate::{binary_relations::relations::Relation, hs::{HyperStructureError, hypergroupoids::HyperGroupoid}, utilities::permutation_matrix_from_permutation};
 
 
 #[derive(Eq,PartialEq, PartialOrd,Ord,Clone)]
@@ -11,16 +13,16 @@ pub struct PreOrderedSemigroup {
 }
 impl Display for PreOrderedSemigroup {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f,"{},{}", self.semigrp,self.order.zero_one_matrix().0)    }
+        write!(f,"{}{}", self.semigrp,self.order.zero_one_matrix().0)    }
 }
 impl PreOrderedSemigroup {
-    pub fn new(sg:&HyperGroupoid,r:&Relation)->Result<Self,HyperStructureError>{
-        match sg.is_semigroup() {
-            true => match r.is_pre_order() {
-                true => match sg.is_relation_compatible(&r) {
+    pub fn new(semigroup:&HyperGroupoid,preorder:&Relation)->Result<Self,HyperStructureError>{
+        match semigroup.is_semigroup() {
+            true => match preorder.is_pre_order() {
+                true => match semigroup.is_relation_compatible(&preorder) {
                     true => Ok(PreOrderedSemigroup{
-                                    semigrp: sg.clone(),
-                                    order: r.clone()}),
+                                    semigrp: semigroup.clone(),
+                                    order: preorder.clone()}),
                     false => Err(HyperStructureError::NotPreOrderedSemigroup),
                     }
                 false => Err(HyperStructureError::NotPreOrder),
@@ -28,34 +30,59 @@ impl PreOrderedSemigroup {
             false => Err(HyperStructureError::NotAssociative),
         }
     }
-    pub fn collect_isomorphism_class(&self)->(Self,Vec<Self>) {
-        /* Seams to work but must be improved.. Avoid .unwrap()*/
+pub fn isomorphic_preordered_semigroup_from_permutation(&self, sigma:&Permutation)->Result<PreOrderedSemigroup, HyperStructureError>{
+    let isomorphic_semigroup = self.semigrp.isomorphic_hypergroup_from_permutation(sigma);
+    let isomorphic_preorder = self.order.isomorphic_relation_from_permutation(sigma);
+
+    PreOrderedSemigroup::new(&isomorphic_semigroup, &isomorphic_preorder)
+}
+
+pub fn collect_isomorphism_class(&self)-> Result<(Self, Vec<Self>), HyperStructureError>{
+    let cardinality = self.semigrp.n as usize;
+    let permutation_vec:Vec<Vec<usize>> = (0..cardinality).permutations(cardinality ).collect();
+    let permutation:Vec<Permutation> = permutation_vec.par_iter()
+        .map(|sigma| 
+                Permutation::oneline(sigma.clone())
+            ).collect();
+    let mut isomorphism_classes:Vec<_>=permutation.par_iter()
+        .map(|sigma|
+                self.isomorphic_preordered_semigroup_from_permutation(&sigma)
+            ).filter_map(|s|s.ok()).collect();
+   isomorphism_classes.sort();
+   isomorphism_classes.dedup();
+   let representant_of_class= isomorphism_classes[0].clone();
         
-        let sg_class= self.semigrp.collect_isomorphism_class();
-        println!("There are {} isomorphic semigroup",sg_class.1.len());
-        let rel_class = self.order.collect_isomorphism_class();
-        
-        println!("There are {} isomorphic relation",rel_class.1.len());
-        
-        let sg_representant = HyperGroupoid::new_from_tag_u1024(&sg_class.0, &self.semigrp.n);
-        let rel_representant = rel_class.0;
-        let representant = PreOrderedSemigroup::new(&sg_representant, &rel_representant);
-       /*  match representant {
-            Ok(rep) => println!("A representant for the class {}",rep),
-            Err(e) => println!("{}",e),
-        } */
-        let mut class = sg_class.1.iter().cartesian_product(rel_class.1).map(|(s,r)| {
-            
-            let sg = HyperGroupoid::new_from_tag_u1024(s, &self.semigrp.n);
-            PreOrderedSemigroup::new(&sg, &r)
-        }).filter(|s|s.is_ok()).map(|a|a.unwrap()).collect_vec();
-        class.sort();
-        class.dedup();
-        (representant.unwrap(),class)
-        
+       Ok((representant_of_class,isomorphism_classes))
 
 
-    }
+    /* let sg_class = self.semigrp.collect_isomorphism_class();
+
+    let rel_class = self.order.collect_isomorphism_class();
+
+    // Create the representant
+    let representant = PreOrderedSemigroup::new(
+        &HyperGroupoid::new_from_tag_u1024(&sg_class.0, &self.semigrp.n),
+        &rel_class.0,
+    )?; // <- replaces unwrap()
+
+    // Build the class
+    let mut class = sg_class
+        .1
+        .iter()
+        .cartesian_product(rel_class.1.iter())
+        .filter_map(|(s, r)| {
+            PreOrderedSemigroup::new(
+                &HyperGroupoid::new_from_tag_u1024(s, &self.semigrp.n),
+                r,
+            ).ok()     
+        })
+        .collect_vec();
+    class.sort();
+    class.dedup();
+ let representant = &class[0];
+    Ok((representant.clone(), class)) */
+}
+
     
 }
 

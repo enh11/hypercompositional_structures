@@ -5,7 +5,7 @@ use itertools::Itertools;
 use permutation::Permutation;
 use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator as _, ParallelIterator};
 use crate::hs::hypergroupoids::HyperGroupoid;
-use crate::hs::hypergroups::HyperStructureError;
+use crate::hs::HyperStructureError;
 use crate::utilities::{n_to_binary_vec, support, write};
 
 use crate::{binary_relations::relation_matrix::RelationMatrix, utilities::{permutation_matrix_from_permutation, representation_permutation_subset}};
@@ -321,16 +321,14 @@ pub fn collect_isomorphism_class(&self)->(Relation,Vec<Relation>) {
         .map(|sigma| 
                 Permutation::oneline(sigma.clone())
             ).collect();
-    let isomorphism_classes:Vec<RelationMatrix>=permutation.par_iter()
+    let mut isomorphism_classes: Vec<Relation>=permutation.par_iter()
         .map(|sigma|
-                self.isomorphic_relation_from_permutation(&sigma).zero_one_matrix()
-            ).collect();
-    let isomorphism_classes:Vec<Relation> =isomorphism_classes
-        .iter()
-        .unique()
-        .map(|x|x.into_relation())
-        .sorted()
-        .collect();   
+                self.isomorphic_relation_from_permutation(&sigma).zero_one_matrix().into_relation()
+            )
+            .collect();
+        isomorphism_classes.sort();
+        isomorphism_classes.dedup();
+   
     let representant_of_class= isomorphism_classes[0].clone();// As isomorphism_class is sorted, this is the minimum in the class
        (representant_of_class,isomorphism_classes)
     }
@@ -380,9 +378,9 @@ pub fn enumerate_reflexive_relation(cardinality:&usize)->Vec<RelationMatrix>{
     
 
     }
-    pub fn par_reflexive_relations(cardinality: usize) -> impl ParallelIterator<Item = RelationMatrix> {
-    let free_positions: Vec<(usize, usize)> = (0..cardinality)
-        .cartesian_product(0..cardinality)
+    pub fn par_reflexive_relations(cardinality: &u64) -> impl ParallelIterator<Item = RelationMatrix> + use<'_> {
+    let free_positions: Vec<(usize, usize)> = (0..*cardinality as usize)
+        .cartesian_product(0..*cardinality as usize)
         .filter(|(i, j)| i != j)
         .collect();
 
@@ -391,7 +389,7 @@ pub fn enumerate_reflexive_relation(cardinality:&usize)->Vec<RelationMatrix>{
 
     // Parallel iterator that generates each matrix independently
     (0..total).into_par_iter().map(move |mask| {
-        let mut r = DMatrix::<u64>::identity(cardinality, cardinality);
+        let mut r = DMatrix::<u64>::identity(*cardinality as usize, *cardinality as usize);
         for (bit_index, &(i, j)) in free_positions.iter().enumerate() {
             let bit = ((mask >> bit_index) & 1) as u64;
             r[(i, j)] = bit;
@@ -399,10 +397,10 @@ pub fn enumerate_reflexive_relation(cardinality:&usize)->Vec<RelationMatrix>{
         RelationMatrix(r)
     })
 }
-pub fn pre_order_enumeration(cardinality:&usize)-> impl ParallelIterator<Item = RelationMatrix>{
-    par_reflexive_relations(*cardinality).into_par_iter().filter(|x|x.into_relation().is_transitive())
+pub fn pre_order_enumeration(cardinality:&u64)-> impl ParallelIterator<Item = RelationMatrix> + use<'_>{
+    par_reflexive_relations(cardinality).into_par_iter().filter(|x|x.into_relation().is_transitive())
 }
-pub fn enumerate_pre_order_classes(cardinality: &usize)->(Vec<Vec<(Relation,Vec<Relation>)>>,Vec<usize>){
+pub fn enumerate_pre_order_classes(cardinality: &u64)->(Vec<Vec<(Relation,Vec<Relation>)>>,Vec<usize>){
     let mut classes:Vec<(Relation,Vec<Relation>)> = pre_order_enumeration(cardinality)
         .map(|x|
             x.into_relation().collect_isomorphism_class()
@@ -410,7 +408,7 @@ pub fn enumerate_pre_order_classes(cardinality: &usize)->(Vec<Vec<(Relation,Vec<
     classes.sort();
     classes.dedup();
 
-    let permutation_len = (0..*cardinality).permutations(*cardinality ).count();
+    let permutation_len = (0..*cardinality).permutations(*cardinality as usize).count();
 
     let c_k =
         (1..=permutation_len).into_iter()

@@ -22,7 +22,10 @@ use itertools::Itertools;
                          (3, 2), (3, 3)].to_vec() };
 let preordered_semigroup = PreOrderedSemigroup::new(&semigroup,&r).unwrap();
 println!("a preodered semigroup {}",preordered_semigroup);
-let class = preordered_semigroup.collect_isomorphism_class();
+let class = match preordered_semigroup.collect_isomorphism_class(){
+    Ok(v) => v,
+    Err(e) => panic!("{}",e),
+};
 let el_h_rep = HyperGroupoid::new_el_hypergroup(class.0);
 println!("class of length {}",class.1.len());
 let el_h = class.1.iter().map(|s: &PreOrderedSemigroup|HyperGroupoid::new_el_hypergroup(s.clone())).collect_vec();

@@ -6,7 +6,7 @@ use itertools::Itertools;
 use nalgebra::DMatrix;
 use permutation::Permutation;
 use rand::Rng;
-use crate::{binary_relations::relations::Relation, generating_functions::el_hypergroup, hs::{fuzzy::FuzzySubset, hypergroups::{HyperGroup, HyperStructureError}, ordered_semigroup::PreOrderedSemigroup}, utilities::{U1024, all_triplets, binary_to_n, from_tag_to_vec, from_tag_u1024_to_vec, get_min_max_u1024, get_subset, n_to_binary_vec, permutation_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid_u1024, subset_as_u64, support, u64_to_set, vec_to_set}};
+use crate::{binary_relations::relations::Relation, generating_functions::el_hypergroup, hs::{HyperStructureError,fuzzy::FuzzySubset, hypergroups::HyperGroup, ordered_semigroup::PreOrderedSemigroup}, utilities::{U1024, all_triplets, binary_to_n, from_tag_to_vec, from_tag_u1024_to_vec, get_min_max_u1024, get_subset, n_to_binary_vec, permutation_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid_u1024, subset_as_u64, support, u64_to_set, vec_to_set}};
 #[derive(Debug, Clone,PartialEq,Eq)]
 pub struct HyperGroupoid{
     pub h:HashSet<u64>,
