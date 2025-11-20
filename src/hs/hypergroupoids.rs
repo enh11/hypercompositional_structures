@@ -3,7 +3,7 @@ use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use std::{collections::HashSet, fmt::Display, vec};
 extern crate nalgebra as na;
 use itertools::Itertools;
-use nalgebra::DMatrix;
+use nalgebra::{DMatrix, coordinates::M2x3};
 use permutation::Permutation;
 use rand::Rng;
 use crate::{binary_relations::relations::Relation, generating_functions::el_hypergroup, hs::{HyperStructureError,fuzzy::FuzzySubset, hypergroups::HyperGroup, ordered_semigroup::PreOrderedSemigroup}, utilities::{U1024, all_triplets, binary_to_n, from_tag_to_vec, from_tag_u1024_to_vec, get_min_max_u1024, get_subset, n_to_binary_vec, permutation_matrix_from_permutation, representation_permutation_subset, representing_hypergroupoid_u1024, subset_as_u64, support, u64_to_set, vec_to_set}};
@@ -400,12 +400,19 @@ pub fn collect_isomorphism_class(&self)->(U1024,Vec<U1024>){
 pub fn collect_antiisomorphism_class(&self)->(U1024,Vec<U1024>) {
     let transpose = self.hyper_composition.transpose();
     let antiisomorphic_hs = HyperGroupoid::new_from_matrix(&transpose);
-    let mut class = [antiisomorphic_hs,self.clone()].to_vec();
-    class.sort();
-    let representant = class.iter().min().unwrap();
-    let classes = class.iter().map(|d|d.get_integer_tag_u1024()).collect_vec();
-    (representant.get_integer_tag_u1024(),classes)
+    antiisomorphic_hs.collect_isomorphism_class()
+    
 }
+pub fn collect_equivalence_classe(&self)->(U1024,Vec<U1024>) {
+    let mut anti = self.collect_antiisomorphism_class().1;
+    let mut iso = self.collect_isomorphism_class().1;
+    anti.append(&mut iso);
+    anti.sort();
+    anti.dedup();
+    (anti[0].clone(),anti)
+
+}
+
 ///
 /// Return true if hyperstructure is both associative and reproductive.
 ///  

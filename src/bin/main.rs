@@ -95,7 +95,7 @@ let preords :usize= enumeration_preordered_semigroup_from_list(&sg, &rels).unwra
 println!("Total number of preordered semigroup of cardinality {} is {}",cardinality, preords);
  */
 
-let cardinality  =3u64;
+let cardinality  =4u64;
 enumerate_el_hyperstructures(&cardinality); 
 /*  let cardinality = 4u64;
  let semigroup_table = [
@@ -157,7 +157,7 @@ let semigrps = semigrps.iter().map(|s|HyperGroupoid::new_from_tag_u1024(&s.0, &c
 //    let array = t.iter().map(|s|vec![*s]).collect::<Vec<Vec<u64>>>();
 //    HyperGroupoid::new_from_elements(&array, &cardinality)
 //} ).collect();
-println!("there are {} semigroups",semigrps.len());
+println!("there are {} semigroups up to isomorphism",semigrps.len());
 
 
 //Enumeration EL-hypergroup
