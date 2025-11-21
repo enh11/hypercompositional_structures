@@ -1,9 +1,9 @@
 use std::collections::HashSet;
 
-use hyperstruc::{binary_relations::{preorder_3::{PRE_ORDERS_3, R3, R4, R5, R6}, relation_matrix::RelationMatrix, relations::{Relation, enumerate_reflexive_relation, pre_order_enumeration}}, enumeration::{collect_semigroup, enumerate_el_hyperstructures, enumeration_preordered_semigroup_from_list}, generating_functions::el_hypergroup, hg_2::semigroup_2::SEMIGROUP_2, hg_3::semigroup_3::SEMIGROUP_3, hg_4::semigroups_4::SEMIGROUP_4, hg_5::semigroups_5::SEMIGROUP_5, hs::{hypergroupoids::{HyperGroupoid, QuotientHyperGroupoid}, ordered_semigroup::PreOrderedSemigroup}, utilities::{U1024, n_to_binary_vec}};
+use hyperstruc::{binary_relations::{preorder_3::{PRE_ORDERS_3, R3, R4, R5, R6}, relation_matrix::RelationMatrix, relations::{Relation, enumerate_reflexive_relation, pre_order_enumeration}}, enumeration::{collect_semigroup, enumerate_el_hyperstructures, enumeration_preordered_semigroup_from_list}, generating_functions::el_hypergroup, hg_2::semigroup_2::SEMIGROUP_2, hg_3::semigroup_3::SEMIGROUP_3, hg_4::semigroups_4::SEMIGROUP_4, hg_5::semigroups_5::SEMIGROUP_5, hs::{HyperStructureError, hypergroupoids::{HyperGroupoid, QuotientHyperGroupoid}, ordered_semigroup::PreOrderedSemigroup}, utilities::{U1024, n_to_binary_vec}};
 use itertools::Itertools;
 
-use rayon::{iter::{IntoParallelRefIterator, ParallelIterator}, vec};
+use rayon::{iter::{IntoParallelRefIterator, ParallelIterator}, slice::ParallelSliceMut, vec};
 
 
 fn main(){
@@ -95,7 +95,7 @@ let preords :usize= enumeration_preordered_semigroup_from_list(&sg, &rels).unwra
 println!("Total number of preordered semigroup of cardinality {} is {}",cardinality, preords);
  */
 
-let cardinality  =4u64;
+let cardinality  =3u64;
 enumerate_el_hyperstructures(&cardinality); 
 /*  let cardinality = 4u64;
  let semigroup_table = [
@@ -170,21 +170,26 @@ let n:usize  = match enumeration.clone() {
 
 println!("there are {} ordered semigroup",n);
 
-let v = enumeration.clone().unwrap();
+let v = enumeration.unwrap();
 /* Collect preorders */
-let preoders = v
-    .iter()
+let preordered_semigroups: Vec<Vec<Result<PreOrderedSemigroup,HyperStructureError>>> = v
+    .par_iter()
     .map(|(s,rels)|
     rels.iter().map(|r|
         PreOrderedSemigroup::new(s, r)
     ).collect_vec()
-).concat()
-    .iter()
+).collect();
+let preordered_semigroups = preordered_semigroups.concat();
+let mut preordered_semigroups:Vec<PreOrderedSemigroup> = preordered_semigroups
+    .par_iter()
     .filter_map(|s|
         s.clone().ok()
-    ).sorted().dedup().collect_vec();
-    println!("We build {} preorder of order {}",preoders.len(),cardinality);
-let iso_preordered_semigp = preoders.iter().map(|s|s.collect_isomorphism_class()).collect_vec();
+    )
+    .collect();
+preordered_semigroups.par_sort();
+preordered_semigroups.dedup();
+    println!("We build {} preorder of order {}",preordered_semigroups.len(),cardinality);
+let iso_preordered_semigp: Vec<Result<(PreOrderedSemigroup, Vec<PreOrderedSemigroup>),HyperStructureError>> = preordered_semigroups.par_iter().map(|s|s.collect_isomorphism_class()).collect();
 let t: Vec<(PreOrderedSemigroup, Vec<PreOrderedSemigroup>)> = iso_preordered_semigp.iter().filter_map(|s|s.clone().ok()).sorted().dedup().collect_vec();
 println!("number of preoders up to isomorphim {}",t.len());
 /* println!("We print all classes of preoders");
@@ -194,7 +199,11 @@ for item in &t  {
 } */
 
 /* Compute EL-hyperstructure for each representant */
-let mut el_hyperstrucutures =t.iter().map(|s|HyperGroupoid::new_el_hypergroup(s.0.clone())).collect_vec();
+let mut el_hyperstrucutures =t
+    .iter()
+    .map(|s|
+        HyperGroupoid::new_el_hypergroup(s.0.clone())
+    ).collect_vec();
 el_hyperstrucutures.sort();
 el_hyperstrucutures.dedup();
 println!("Total number of el-hyperstructures with respect to the generating order (not up to isomorphism) from preorders representants is {}",el_hyperstrucutures.len());
