@@ -76,7 +76,9 @@ pub fn enumeration_preordered_semigroup_from_list(semigroups:&Vec<HyperGroupoid>
                 let compatible:Vec<Relation> = relations
                     .par_iter()
                     .filter(|r|
-                        s.is_relation_compatible(&r)
+                        s.is_relation_compatible(&r) 
+                        /* ||
+                        s.antiisomoprhic().is_relation_compatible(&r) */
                     ).map(|r|r.clone()
                     ).collect();
                 (s.clone(),compatible)
@@ -186,7 +188,9 @@ pub fn enumerate_el_hyperstructures(cardinality:&u64)->usize{
         /* This will collect representants of semigroups isomorphism from lists*/
         2u64 => {SEMIGROUP_2.iter().map(|s|s.iter().map(|el|vec![*el]).collect_vec()).collect_vec()},
         3u64 => {SEMIGROUP_3.iter().map(|s|s.iter().map(|el|vec![*el]).collect_vec()).collect_vec()},
-        4u64 => {SEMIGROUP_4.iter().map(|s|s.iter().map(|el|vec![*el]).collect_vec()).collect_vec()}
+        4u64 => {SEMIGROUP_4.iter().map(|s|s.iter().map(|el|vec![*el]).collect_vec()).collect_vec()},
+        5u64 => {SEMIGROUP_5.iter().map(|s|s.iter().map(|el|vec![*el]).collect_vec()).collect_vec()}
+
 
         _=>panic!("{}",HyperStructureError::ListOfSemigroupsNotAvailable)
         
@@ -196,6 +200,7 @@ pub fn enumerate_el_hyperstructures(cardinality:&u64)->usize{
         HyperGroupoid::new_from_elements(s, cardinality).collect_equivalence_classe().1).collect();
     let mut semigroups =  semigroups.concat();
         semigroups.sort();
+        semigroups.dedup();
     let semigroups: Vec<HyperGroupoid> = semigroups.par_iter().map(|s|HyperGroupoid::new_from_tag_u1024(s, cardinality)).collect();
     /* We collect all preorder relation */
     let relations:Vec<Relation> = pre_order_enumeration(cardinality).map(|w|w.into_relation()).collect();
@@ -265,7 +270,7 @@ println!("enumeration of all compatible relations done!");
         ).collect();
     classes.par_sort();
     classes.dedup();
-println!("there are {} classes of preorders",classes.len());
+println!("there are {} classes of isomorphism of preorders",classes.len());
 /* println!("we print all classes of preorders");
 for item in &classes {
     item.1.iter().for_each(|s|println!("{:?}",s.get_integer_tag_u1024()));

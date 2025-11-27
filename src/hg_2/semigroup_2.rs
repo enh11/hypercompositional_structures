@@ -16,6 +16,9 @@ pub const S2_2: [u64; 4] = [
 pub const S2_3: [u64; 4] = [
     0,     1,     
     1,     0, ];
+pub const S2_4: [u64; 4] = [
+    0,     1,     
+    0,     1, ];
 
 pub const SEMIGROUP_2: [&[u64]; 4] = [
     &S2_0, &S2_1, &S2_2,&S2_3

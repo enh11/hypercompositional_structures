@@ -403,6 +403,23 @@ pub fn collect_antiisomorphism_class(&self)->(U1024,Vec<U1024>) {
     antiisomorphic_hs.collect_isomorphism_class()
     
 }
+pub fn collect_automorphism(&self)->Vec<Permutation>{
+    let permutation:Vec<Permutation>=(0..self.n as usize).permutations(self.n as usize).map(|s|Permutation::oneline(s)).collect();
+    permutation.into_iter().filter(|s|self.permutation_of_table(&s)==*self).collect::<Vec<Permutation>>()
+}
+pub fn collect_automorphism_extended(&self)->(Vec<Permutation>,Vec<Permutation>){
+    let permutation:Vec<Permutation>=(0..self.n as usize).permutations(self.n as usize).map(|s|Permutation::oneline(s)).collect();
+    let autos =   permutation
+            .iter()
+            .filter(|sigma|
+                self.permutation_of_table(&sigma)==*self)
+                .map(|s|s.clone()).collect::<Vec<Permutation>>();
+    let anti = permutation
+            .into_iter()
+            .filter(|sigma|
+                self.permutation_of_table(&sigma)==self.antiisomoprhic()).collect::<Vec<Permutation>>();
+                (autos,anti)
+}
 pub fn collect_equivalence_classe(&self)->(U1024,Vec<U1024>) {
     let mut anti = self.collect_antiisomorphism_class().1;
     let mut iso = self.collect_isomorphism_class().1;
@@ -465,7 +482,11 @@ pub fn is_weak_associative(&self)->bool{
 pub fn is_hv_group(&self)->bool {
     self.is_weak_associative()&&self.is_reproductive()
 }
-pub fn is_antyisomorphic_to(&self,other: &Self)->bool{
+pub fn antiisomoprhic(&self)->Self{
+    let t= self.hyper_composition.transpose();
+    HyperGroupoid { h: self.h.clone(), hyper_composition: t, n: self.n }
+}
+pub fn is_antiisomorphic_to(&self,other: &Self)->bool{
     self.hyper_composition==other.hyper_composition.transpose()
 }
 pub fn is_isomorphic_to(&self,other: &Self)->bool{
@@ -480,7 +501,7 @@ pub fn is_isomorphic_to(&self,other: &Self)->bool{
     }
 }
 pub fn is_equivalent(&self,other: &Self)->bool{
-    self.is_antyisomorphic_to(&other)||self.is_isomorphic_to(other)
+    self.is_antiisomorphic_to(&other)||self.is_isomorphic_to(other)
 }
 pub fn is_relation_compatible(&self,r:&Relation)->bool{
     (0..self.n).into_iter().

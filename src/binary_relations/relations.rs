@@ -313,6 +313,9 @@ pub fn transitive_closure_warshall(&self)-> Self {
     }
     r.into_relation()
 }
+pub fn antiisomorphic(&self)->Self{
+    self.zero_one_matrix().transpose_relation().into_relation()
+}
 pub fn isomorphic_relation_from_permutation(&self,sigma: &Permutation)->Self{
 
     let perm_mat= permutation_matrix_from_permutation(&(self.a.len() as u64), &sigma.clone());

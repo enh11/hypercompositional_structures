@@ -33,6 +33,11 @@ impl PreOrderedSemigroup {
 pub fn get_integer_tag_u1024(&self)->(U1024,U1024){
     (self.semigrp.get_integer_tag_u1024(),self.order.get_tag())
 }
+pub fn antiisomoprhic(&self)->Self{
+    let anti_semigroup = self.semigrp.antiisomoprhic();
+    let anti_relation = self.order.antiisomorphic();
+    PreOrderedSemigroup { semigrp: anti_semigroup, order: anti_relation }
+}
 pub fn isomorphic_preordered_semigroup_from_permutation(&self, sigma:&Permutation)->Result<PreOrderedSemigroup, HyperStructureError>{
     let isomorphic_semigroup = self.semigrp.isomorphic_hypergroup_from_permutation(sigma);
     let isomorphic_preorder = self.order.isomorphic_relation_from_permutation(sigma);
@@ -55,35 +60,8 @@ pub fn collect_isomorphism_class(&self)-> Result<(Self, Vec<Self>), HyperStructu
    isomorphism_classes.dedup();
    let representant_of_class= isomorphism_classes[0].clone();
         
-       Ok((representant_of_class,isomorphism_classes))
+       Ok((representant_of_class,isomorphism_classes))        
 
-
-    /* let sg_class = self.semigrp.collect_isomorphism_class();
-
-    let rel_class = self.order.collect_isomorphism_class();
-
-    // Create the representant
-    let representant = PreOrderedSemigroup::new(
-        &HyperGroupoid::new_from_tag_u1024(&sg_class.0, &self.semigrp.n),
-        &rel_class.0,
-    )?; // <- replaces unwrap()
-
-    // Build the class
-    let mut class = sg_class
-        .1
-        .iter()
-        .cartesian_product(rel_class.1.iter())
-        .filter_map(|(s, r)| {
-            PreOrderedSemigroup::new(
-                &HyperGroupoid::new_from_tag_u1024(s, &self.semigrp.n),
-                r,
-            ).ok()     
-        })
-        .collect_vec();
-    class.sort();
-    class.dedup();
- let representant = &class[0];
-    Ok((representant.clone(), class)) */
 }
 
     
