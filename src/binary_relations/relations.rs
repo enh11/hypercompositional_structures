@@ -1,13 +1,15 @@
 use core::panic;
 use std::{collections::HashSet};
-use nalgebra::{DMatrix, SimdRealField, iter};
+use nalgebra::{DMatrix, Matrix, SimdRealField, iter};
 use itertools::Itertools;
 use num_traits::One;
 use permutation::Permutation;
 use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator as _, ParallelIterator};
+use rayon::vec;
+use crate::binary_relations::relation_matrix;
 use crate::hs::hypergroupoids::HyperGroupoid;
 use crate::hs::HyperStructureError;
-use crate::utilities::{U1024, binary_to_n, binary_to_u1024, n_to_binary_vec, support, write};
+use crate::utilities::{U1024, binary_to_n, binary_to_u1024, collect_n_digits_u1024, n_to_binary_vec, support, write};
 
 use crate::{binary_relations::relation_matrix::RelationMatrix, utilities::{permutation_matrix_from_permutation, representation_permutation_subset}};
 
@@ -20,12 +22,12 @@ pub struct Relation {
 impl PartialOrd for Relation {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
     
-        self.rel.partial_cmp(&other.rel)
+        self.get_tag().partial_cmp(&other.get_tag())
     }
 }
 impl Ord for Relation {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.rel.cmp(&other.rel)
+        self.get_tag().cmp(&other.get_tag())
     }
 }
 impl Relation {
@@ -41,6 +43,34 @@ pub fn get_tag(&self)->U1024{
         .iter().enumerate()
         .filter(|(_,i)|i.is_one())
         .map(|(e,i)|U1024::from(1<<e)).sum()
+}
+///
+/// 
+/// # Example
+/// 
+/// ```
+/// use hyperstruc::binary_relations::relations::Relation;
+/// use hyperstruc::utilities::U1024;
+/// 
+/// let cardinality =3u64;
+/// let tag1 = U1024::from(465);
+/// let rel = Relation::new_from_tag_u1024(&tag1, &cardinality);
+/// assert_eq!(tag1,rel.get_tag());
+/// 
+pub fn new_from_tag_u1024(tag:&U1024,cardinality: &u64)->Self{
+    let size = cardinality.pow(2);
+    let mut slice = collect_n_digits_u1024(&size, tag);
+    //slice.reverse();
+    RelationMatrix(
+        DMatrix::from_row_slice(*
+            cardinality as usize,*
+            cardinality as usize,
+            slice.as_slice())
+        )
+        .into_relation()
+
+
+
 }
 /// Return an equivalence associated to a preorder.
 /// If r is a preorder on X, then the relation k defined by 
@@ -316,13 +346,30 @@ pub fn transitive_closure_warshall(&self)-> Self {
 pub fn antiisomorphic(&self)->Self{
     self.zero_one_matrix().transpose_relation().into_relation()
 }
+pub fn automorphism_orbit(&self,alpha:&Vec<Permutation>)->(Self,Vec<Self>){
+    let orbit = alpha
+        .iter()
+        .map(|s|
+            self.isomorphic_relation_from_permutation(s)
+        ).sorted().dedup().collect_vec();
+    let representant = orbit[0].clone();
+    (representant,orbit)
+
+}
+pub fn anti_class(&self)->(Relation,Vec<Relation>) {
+    let anti_isomoprhic = self.antiisomorphic();
+    let min = self.min(&anti_isomoprhic);
+    let max = self.max(&anti_isomoprhic);
+
+    (min.clone(),vec![min.clone(),max.clone()])
+}
 pub fn isomorphic_relation_from_permutation(&self,sigma: &Permutation)->Self{
 
     let perm_mat= permutation_matrix_from_permutation(&(self.a.len() as u64), &sigma.clone());
     let isomorphic_matrix=perm_mat.clone()*self.zero_one_matrix().0*perm_mat.transpose();
     RelationMatrix(isomorphic_matrix).into_relation()
-
-    }
+    
+}
 pub fn collect_isomorphism_class(&self)->(Relation,Vec<Relation>) {
     //We collect the isomorphism class of a relation on a set A.
     assert_eq!(self.a,self.b);
@@ -409,6 +456,9 @@ pub fn enumerate_reflexive_relation(cardinality:&usize)->Vec<RelationMatrix>{
         RelationMatrix(r)
     })
 }
+///
+/// Enumerate all preorder for a set of cardinality n.
+/// 
 pub fn pre_order_enumeration(cardinality:&u64)-> impl ParallelIterator<Item = RelationMatrix> + use<'_>{
     par_reflexive_relations(cardinality).into_par_iter().filter(|x|x.into_relation().is_transitive())
 }

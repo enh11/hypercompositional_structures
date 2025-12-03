@@ -398,14 +398,13 @@ pub fn collect_isomorphism_class(&self)->(U1024,Vec<U1024>){
 
 }
 pub fn collect_antiisomorphism_class(&self)->(U1024,Vec<U1024>) {
-    let transpose = self.hyper_composition.transpose();
-    let antiisomorphic_hs = HyperGroupoid::new_from_matrix(&transpose);
-    antiisomorphic_hs.collect_isomorphism_class()
+    self.antiisomoprhic().collect_isomorphism_class()
     
 }
 pub fn collect_automorphism(&self)->Vec<Permutation>{
-    let permutation:Vec<Permutation>=(0..self.n as usize).permutations(self.n as usize).map(|s|Permutation::oneline(s)).collect();
-    permutation.into_iter().filter(|s|self.permutation_of_table(&s)==*self).collect::<Vec<Permutation>>()
+    let permutation:Vec<Permutation>=
+    (0..self.n as usize).permutations(self.n as usize).map(|s|Permutation::oneline(s)).collect();
+    permutation.into_iter().filter(|s|self.isomorphic_hypergroup_from_permutation(s)==*self).collect::<Vec<Permutation>>()
 }
 pub fn collect_automorphism_extended(&self)->(Vec<Permutation>,Vec<Permutation>){
     let permutation:Vec<Permutation>=(0..self.n as usize).permutations(self.n as usize).map(|s|Permutation::oneline(s)).collect();

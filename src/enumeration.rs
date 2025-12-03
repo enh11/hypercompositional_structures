@@ -5,6 +5,7 @@ use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, IntoParallelRef
 use rayon::slice::ParallelSliceMut;
 use rayon::vec;
 use crate::binary_relations::relations::{Relation, pre_order_enumeration};
+use crate::enumeration;
 use crate::hg_2::semigroup_2::SEMIGROUP_2;
 use crate::hg_3::semigroup_3::SEMIGROUP_3;
 use crate::hg_4::semigroups_4::SEMIGROUP_4;
@@ -73,7 +74,7 @@ pub fn enumeration_preordered_semigroup_from_list(semigroups:&Vec<HyperGroupoid>
             true => {
                 let out=
                 semigroups.par_iter().map(|s|{
-                let compatible:Vec<Relation> = relations
+                let mut compatible:Vec<Relation> = relations
                     .par_iter()
                     .filter(|r|
                         s.is_relation_compatible(&r) 
@@ -81,6 +82,7 @@ pub fn enumeration_preordered_semigroup_from_list(semigroups:&Vec<HyperGroupoid>
                         s.antiisomoprhic().is_relation_compatible(&r) */
                     ).map(|r|r.clone()
                     ).collect();
+                    compatible.sort();
                 (s.clone(),compatible)
                 }
                 ).collect();
@@ -196,15 +198,21 @@ pub fn enumerate_el_hyperstructures(cardinality:&u64)->usize{
         
     }; 
     /* From representants we can generate all the others semigroups */
-    let semigroups: Vec<Vec<U1024>> = semigroups_representants.par_iter().map(|s|
-        HyperGroupoid::new_from_elements(s, cardinality).collect_equivalence_classe().1).collect();
-    let mut semigroups =  semigroups.concat();
+    let semigroups = semigroups_representants.par_iter().map(|s|
+        HyperGroupoid::new_from_elements(s, cardinality)
+        //.collect_equivalence_classe().1
+    ).collect::<Vec<HyperGroupoid>>();
+/*      let mut semigroups =  semigroups.concat();
         semigroups.sort();
         semigroups.dedup();
     let semigroups: Vec<HyperGroupoid> = semigroups.par_iter().map(|s|HyperGroupoid::new_from_tag_u1024(s, cardinality)).collect();
-    /* We collect all preorder relation */
+     */
+    println!("Total number of semigroups is {}",semigroups.len());
+    /* We collect all preorder relation */ 
     let relations:Vec<Relation> = pre_order_enumeration(cardinality).map(|w|w.into_relation()).collect();
-   
+   let mut relations: Vec<Relation> = relations.par_iter().map(|s|s.anti_class().0).collect::<Vec<_>>();
+relations.par_sort();
+relations.dedup();
 /*      /* Collect all preorders */
 let relations :Vec<Relation>= pre_order_enumeration(&cardinality).map(|s|s.into_relation()).collect();
 println!("there are {} preorder relations ", relations.len());
@@ -219,9 +227,19 @@ let semigrps  = collect_semigroup(&cardinality)
 /* Store representants as Hypergroupoid  */
 let semigroups = semigrps.iter().map(|s|HyperGroupoid::new_from_tag_u1024(&s.0, &cardinality)).collect_vec();
  */
-    println!("there are {} possible semigroups " ,semigroups.len());
-    let enumeration =enumeration_preordered_semigroup_from_list(&semigroups, &relations);
-println!("enumeration of all compatible relations done!");
+   // println!("there are {} possible semigroups " ,semigroups.len());
+let enumeration =enumeration_preordered_semigroup_from_list(&semigroups, &relations);
+/* println!("enumeration of all compatible relations with respect to semigroups representants done!");
+let n = match enumeration {
+    Ok(ref en) => en.iter().map(|(s,rels)| {
+        if s.antiisomoprhic()==*s {rels.len()}
+        else {
+            rels.len()*2
+        }
+    }).sum(),
+        Err(_) => 0,
+};
+println!("Number of compatible preorders for anti isomorphism representative {}",n); */
     let preordered_semigroup= match enumeration{
         Ok(preordered_semigroups) => {
             let p:Vec<Vec<Result<PreOrderedSemigroup, HyperStructureError>>>= preordered_semigroups
@@ -231,7 +249,8 @@ println!("enumeration of all compatible relations done!");
                             .iter()
                             .map(|r|
                                     PreOrderedSemigroup::new(s, r)
-                            ).collect_vec()
+                            )
+                            .map_ok(|s|s).collect_vec()
                     ).collect();
             let  p = p.concat();
             println!("preordered collected!");
@@ -243,24 +262,11 @@ println!("enumeration of all compatible relations done!");
                 p.par_sort();
                 p.dedup();
                 println!("dedup preordered collected!");
-
                 p
             },
         Err(e) => panic!("{}",e),
     };
-        
-/*     let preordered_semigroup = semigroups.iter().cartesian_product(relations)
-        .filter_map(|(s,r)|
-/*         PreOrderedSemigroup::new(s, &r).ok()
- */            PreOrderedSemigroup::new(
-        &&HyperGroupoid::new_from_tag_u1024(s, cardinality), 
-        &r).ok()
-        
-        )
-        .sorted()
-        .dedup()
-        .collect_vec(); */
-    println!("there are {} preodered semigroups of order {}",preordered_semigroup.len(),cardinality);
+println!("There are {} preodered semigroups of order {}, computed from the total number of semigroups",preordered_semigroup.len(),cardinality);
     let mut classes: Vec<(PreOrderedSemigroup, Vec<PreOrderedSemigroup>)>  = preordered_semigroup
         .par_iter()
         .map(|s|
@@ -273,8 +279,8 @@ println!("enumeration of all compatible relations done!");
 println!("there are {} classes of isomorphism of preorders",classes.len());
 /* println!("we print all classes of preorders");
 for item in &classes {
-    item.1.iter().for_each(|s|println!("{:?}",s.get_integer_tag_u1024()));
-    println!("_______________________")
+    let tags = item.1.iter().map(|s|s.get_integer_tag_u1024()).collect_vec();
+println!("{:?} || {:?}",item.0.get_integer_tag_u1024(),tags);  
 } */
 
 /*
