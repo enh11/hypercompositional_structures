@@ -1,4 +1,5 @@
 use core::panic;
+use std::collections::VecDeque;
 use std::{collections::HashSet};
 use nalgebra::{DMatrix, Matrix, SimdRealField, iter};
 use itertools::Itertools;
@@ -347,11 +348,13 @@ pub fn antiisomorphic(&self)->Self{
     self.zero_one_matrix().transpose_relation().into_relation()
 }
 pub fn automorphism_orbit(&self,alpha:&Vec<Permutation>)->(Self,Vec<Self>){
+    let class = self.anti_class();
     let orbit = alpha
         .iter()
         .map(|s|
-            self.isomorphic_relation_from_permutation(s)
-        ).sorted().dedup().collect_vec();
+            class.1.iter().map(|r|r.isomorphic_relation_from_permutation(s)).collect::<Vec<Relation>>()
+        )
+        .concat().into_iter().sorted().dedup().collect_vec();
     let representant = orbit[0].clone();
     (representant,orbit)
 

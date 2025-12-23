@@ -73,7 +73,8 @@ println!("Total number of preordered semigroup of cardinality {} is {}",cardinal
  */
 
 
-let cardinality  =5u64;
+let cardinality  =3u64;
+
 
 //enumerate_el_hyperstructures(&cardinality); 
 /*   let cardinality = 4u64;
@@ -131,6 +132,7 @@ rels.par_sort();
 rels.dedup();
 
 println!("There are {} preorder relations modulo transposition", rels.len());
+rels.iter().for_each(|r|println!("{}",r.zero_one_matrix().0));
 
 /* 
 /* Collect all semigroups (if the list is not available) up to isomorphism */
@@ -167,6 +169,7 @@ let semigrps: Vec<HyperGroupoid> = semigrps.par_iter().map(|s|HyperGroupoid::new
 //    HyperGroupoid::new_from_elements(&array, &cardinality)
 //} ).collect();
 println!("There are {} semigroups up to (anti)isomorphism",semigrps.len());
+semigrps.iter().for_each(|s|s.show());
 
 
 //Enumeration EL-hypergroup
@@ -180,6 +183,14 @@ let n:usize  = match enumeration.clone() {
 println!("There are {} ordered semigroup modulo transpose relations",n);
  
 let v = enumeration.unwrap();
+for item in v.clone() {
+    item.0.show();
+    println!("compatible relations are");
+    item.1.iter().for_each(|r|println!("{}",r.zero_one_matrix().0));
+    println!("Automorphism are:");
+    let aut =item.0.collect_automorphism();
+    aut.iter().for_each(|s|println!("{:?}",s));
+}
 
 /* v.iter().for_each(|s| 
     println!("Authomorphism of {} are {:?}",s.0,s.0.collect_automorphism())); */
@@ -197,7 +208,7 @@ let pre:Vec<(HyperGroupoid,Vec<(Relation,Vec<Relation>)>)>= v
             .sorted().dedup().collect::<Vec<(Relation,Vec<Relation>)>>();
         (s.clone(),aut_orbits)
 }).collect();
-/* println!("We print preordered up to anti isomorphism from Aut(S)");
+println!("We print preordered up to anti isomorphism from Aut(S)");
 for item in &pre{
         for rels in &item.1 {
             let representant = rels.0.get_tag();
@@ -205,7 +216,7 @@ for item in &pre{
     println!("{},orbit ({},{:?})",item.0.get_integer_tag(),representant,tags);
         }
     
-} */
+}
 let number_of_classes:usize = pre.iter().map(|s|s.1.len()).sum(); 
 println!("There are {} classes of preodered semigroup up to antiisomorphism using Aut(S)",number_of_classes);
 
