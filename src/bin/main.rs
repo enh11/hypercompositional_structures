@@ -3,6 +3,7 @@ use std::collections::HashSet;
 use hyperstruc::{binary_relations::{preorder_3::{PRE_ORDERS_3, R3, R4, R5, R6}, relation_matrix::RelationMatrix, relations::{Relation, enumerate_reflexive_relation, pre_order_enumeration}}, enumeration::{collect_semigroup, enumerate_el_hyperstructures, enumeration_preordered_semigroup_from_list}, generating_functions::el_hypergroup, hg_2::semigroup_2::SEMIGROUP_2, hg_3::semigroup_3::SEMIGROUP_3, hg_4::semigroups_4::SEMIGROUP_4, hg_5::semigroups_5::SEMIGROUP_5, hs::{HyperStructureError, hypergroupoids::{HyperGroupoid, QuotientHyperGroupoid}, ordered_semigroup::PreOrderedSemigroup}, utilities::{U1024, n_to_binary_vec}};
 use itertools::Itertools;
 
+use nalgebra::partial_sort2;
 use permutation::Permutation;
 use rayon::{iter::{IntoParallelRefIterator, ParallelIterator}, slice::ParallelSliceMut, vec};
 
@@ -183,14 +184,14 @@ let n:usize  = match enumeration.clone() {
 println!("There are {} ordered semigroup modulo transpose relations",n);
  
 let v = enumeration.unwrap();
-for item in v.clone() {
+/* for item in v.clone() {
     item.0.show();
     println!("compatible relations are");
     item.1.iter().for_each(|r|println!("{}",r.zero_one_matrix().0));
     println!("Automorphism are:");
     let aut =item.0.collect_automorphism();
     aut.iter().for_each(|s|println!("{:?}",s));
-}
+} */
 
 /* v.iter().for_each(|s| 
     println!("Authomorphism of {} are {:?}",s.0,s.0.collect_automorphism())); */
@@ -209,16 +210,55 @@ let pre:Vec<(HyperGroupoid,Vec<(Relation,Vec<Relation>)>)>= v
         (s.clone(),aut_orbits)
 }).collect();
 println!("We print preordered up to anti isomorphism from Aut(S)");
-for item in &pre{
+/* for item in &pre{
         for rels in &item.1 {
             let representant = rels.0.get_tag();
             let tags = rels.1.iter().map(|r|r.get_tag()).collect_vec();
     println!("{},orbit ({},{:?})",item.0.get_integer_tag(),representant,tags);
         }
     
-}
-let number_of_classes:usize = pre.iter().map(|s|s.1.len()).sum(); 
+} */
+let number_of_classes:usize = pre.par_iter().map(|s|s.1.len()).sum(); 
 println!("There are {} classes of preodered semigroup up to antiisomorphism using Aut(S)",number_of_classes);
+println!("Now we build all associated EL semihypergroups");
+let el_semi= pre
+    .par_iter()
+    .map(
+        |(s,rels)| 
+            rels.par_iter().map(|r|
+                HyperGroupoid::new_el_hypergroup(
+                    PreOrderedSemigroup::new(s, &r.0).unwrap()
+                    )
+).collect::<Vec<(HyperGroupoid, PreOrderedSemigroup)>>()
+).collect::<Vec<Vec<(HyperGroupoid, PreOrderedSemigroup)>>>();
+let el_semi = el_semi.concat();
+let mut distinct_el_semi = el_semi.par_iter().map(|s|s.0.clone()).collect::<Vec<HyperGroupoid>>();
+distinct_el_semi.par_sort();
+distinct_el_semi.dedup();
+let mut fin:Vec<_> = distinct_el_semi.par_iter().map(|s|s.collect_equivalence_classe()).collect();
+fin.par_sort();
+fin.dedup();
+
+/* 
+let counter_ex = distinct_el_semi
+    .par_iter()
+    .map(|s|
+            el_semi.iter().filter(
+                |(h,_)|h==s).collect_vec()
+            ).collect::<Vec<_>>();
+let counter_ex = counter_ex.iter().filter(|s|s.len()>1).collect_vec();
+for item in counter_ex
+{
+    for i in item {
+        println!("El semihypergroup");
+        i.0.show();
+        println!("from preordered semigroup {}",i.1)
+    }
+   
+} */
+
+println!("There are {} EL-hyperstrucutres",distinct_el_semi.len());
+println!("Up to anti isomorphism are {}",fin.len())
 
 /* ----
 /* Collect preordered semigroups */
