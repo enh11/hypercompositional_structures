@@ -43,7 +43,7 @@ pub fn get_tag(&self)->U1024{
     array
         .iter().enumerate()
         .filter(|(_,i)|i.is_one())
-        .map(|(e,i)|U1024::from(1<<e)).sum()
+        .map(|(e,_)|U1024::from(1<<e)).sum()
 }
 ///
 /// 
@@ -60,8 +60,7 @@ pub fn get_tag(&self)->U1024{
 /// 
 pub fn new_from_tag_u1024(tag:&U1024,cardinality: &u64)->Self{
     let size = cardinality.pow(2);
-    let mut slice = collect_n_digits_u1024(&size, tag);
-    //slice.reverse();
+    let slice = collect_n_digits_u1024(&size, tag);
     RelationMatrix(
         DMatrix::from_row_slice(*
             cardinality as usize,*
@@ -95,7 +94,13 @@ pub fn new_from_tag_u1024(tag:&U1024,cardinality: &u64)->Self{
         match preorder.is_pre_order() {
             true => {
                 let n =  preorder.a.len() as u64;
-                let rel = (0..n).cartesian_product(0..n).into_iter().filter(|(a,b)|preorder.rel.contains(&(*a,*b))&&preorder.rel.contains(&(*b,*a))).collect_vec();
+                let rel = (0..n).cartesian_product(0..n)
+                    .into_iter()
+                    .filter(|(a,b)|
+                        preorder.rel.contains(&(*a,*b))
+                        &&
+                        preorder.rel.contains(&(*b,*a))
+                    ).collect_vec();
                 Ok(Relation::new_from_elements(&n, &rel))
             },
             false => Err(HyperStructureError::NotPreOrder),
@@ -106,8 +111,7 @@ pub fn new_from_tag_u1024(tag:&U1024,cardinality: &u64)->Self{
         self.diagonal().rel.iter().all(|x|self.rel.contains(x))
     }
     pub fn is_symmetric(&self)->bool{
-        assert_eq!(self.a,self.b,"Domain and codomain not coincede!");
-        self.rel.iter().all(|(x,y)|self.rel.contains(&(*y,*x)))
+        self.zero_one_matrix().transpose_relation()==self.zero_one_matrix()
     }
 /// Checks whether the relation is transitive.
 ///
@@ -453,7 +457,7 @@ pub fn enumerate_reflexive_relation(cardinality:&usize)->Vec<RelationMatrix>{
     (0..total).into_par_iter().map(move |mask| {
         let mut r = DMatrix::<u64>::identity(*cardinality as usize, *cardinality as usize);
         for (bit_index, &(i, j)) in free_positions.iter().enumerate() {
-            let bit = ((mask >> bit_index) & 1) as u64;
+            let bit = (mask as u64 >> bit_index as u64) & 1;
             r[(i, j)] = bit;
         }
         RelationMatrix(r)

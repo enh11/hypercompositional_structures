@@ -74,7 +74,7 @@ println!("Total number of preordered semigroup of cardinality {} is {}",cardinal
  */
 
 
-let cardinality  =3u64;
+let cardinality  =6u64;
 
 
 //enumerate_el_hyperstructures(&cardinality); 
@@ -133,8 +133,8 @@ rels.par_sort();
 rels.dedup();
 
 println!("There are {} preorder relations modulo transposition", rels.len());
-rels.iter().for_each(|r|println!("{}",r.zero_one_matrix().0));
-
+/* rels.iter().for_each(|r|println!("{}",r.zero_one_matrix().0));
+ */
 /* 
 /* Collect all semigroups (if the list is not available) up to isomorphism */
 let mut semigrps:Vec<(U1024, Vec<U1024>)> = collect_semigroup(&cardinality)
@@ -170,8 +170,8 @@ let semigrps: Vec<HyperGroupoid> = semigrps.par_iter().map(|s|HyperGroupoid::new
 //    HyperGroupoid::new_from_elements(&array, &cardinality)
 //} ).collect();
 println!("There are {} semigroups up to (anti)isomorphism",semigrps.len());
-semigrps.iter().for_each(|s|s.show());
-
+/* semigrps.iter().for_each(|s|s.show());
+ */
 
 //Enumeration EL-hypergroup
     /* For each semigroup representant, filter the compatible preorder */

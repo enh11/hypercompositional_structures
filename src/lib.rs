@@ -3,14 +3,15 @@
 #[macro_use]
 pub mod hs;
 pub mod utilities;
-pub mod hg_2;
-pub mod hg_3;
 pub mod binary_relations;
 pub mod enumeration;
 pub mod group_cayley_tables;
 pub mod generating_functions;
+pub mod hg_2;
+pub mod hg_3;
 pub mod hg_4;
 pub mod hg_5;
+pub mod hg_6;
 #[cfg(test)]
 mod tests {
     use std::collections::HashSet;
