@@ -1435,7 +1435,7 @@ impl QuotientHyperGroupoid {
     pub fn new_from_regular_relation(base_hypergroupoid:&HyperGroupoid,regular_relation:&Relation)->Result<Self,HyperStructureError>{
         match  regular_relation.is_regular(base_hypergroupoid.clone()) {
             true => {
-                        let classes = regular_relation.quotient_set();
+                let classes = regular_relation.quotient_set();
                 let n = classes.len() as u64;
                 let representants:Vec<u64> = classes.iter().map(|x|x.0).collect();
                 let function  = |a:usize,b:usize| 
@@ -1470,7 +1470,7 @@ impl Display for QuotientHyperGroupoid{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let representants = self.equivalence_relation.quotient_set().iter().map(|x|x.0).collect_vec();
         let table:DMatrix<String>=DMatrix::from_iterator(self.n as usize, self.n as usize, 
-            self.hyper_composition.iter().map(|x| format!("{:?}", x.concat())));
+            self.hyper_composition.iter().map(|x| format!("{:?}", x.iter().unique().collect_vec())));
         
         write!(f, "\nH: {:?},\nHypercomposition table:\n{} Size:{}\n", representants, table, self.n )
     }

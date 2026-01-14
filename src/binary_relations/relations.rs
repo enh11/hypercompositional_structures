@@ -6,11 +6,9 @@ use itertools::Itertools;
 use num_traits::One;
 use permutation::Permutation;
 use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator as _, ParallelIterator};
-use rayon::vec;
-use crate::binary_relations::relation_matrix;
 use crate::hs::hypergroupoids::HyperGroupoid;
 use crate::hs::HyperStructureError;
-use crate::utilities::{U1024, binary_to_n, binary_to_u1024, collect_n_digits_u1024, n_to_binary_vec, support, write};
+use crate::utilities::{U1024, collect_n_digits_u1024, support, write};
 
 use crate::{binary_relations::relation_matrix::RelationMatrix, utilities::{permutation_matrix_from_permutation, representation_permutation_subset}};
 
@@ -423,8 +421,8 @@ pub fn enumerate_reflexive_relation(cardinality:&usize)->Vec<RelationMatrix>{
         let free_positions:Vec<(usize,usize)> = (0..*cardinality)
             .cartesian_product(0..*cardinality)
             .filter(|(i,j)| i!=j).collect();
-        let free = cardinality.pow(2u32)-cardinality;
-        let total = 1usize<<free;
+        let free = (cardinality.pow(2u32)-cardinality) as u64;
+        let total = 1u64<<free;
 
         (0..total)
         .into_par_iter()
@@ -451,7 +449,7 @@ pub fn enumerate_reflexive_relation(cardinality:&usize)->Vec<RelationMatrix>{
         .collect();
 
     let free = cardinality * cardinality - cardinality;
-    let total = 1usize << free;
+    let total = 1 << free;
 
     // Parallel iterator that generates each matrix independently
     (0..total).into_par_iter().map(move |mask| {
