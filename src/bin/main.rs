@@ -76,7 +76,6 @@ println!("Total number of preordered semigroup of cardinality {} is {}",cardinal
 
 let cardinality  =6u64;
 
-
 //enumerate_el_hyperstructures(&cardinality); 
 
 

@@ -384,7 +384,7 @@ pub fn subhypergroup_is_normal(&self,subset_k:&u64)->bool {
         .all(|x|
             self.mul_by_representation(&subset_k, x)
             ==
-            self.mul_by_representation(&subset_k, x))
+            self.mul_by_representation( x,&subset_k))
 }
 pub fn subhypergroup_is_right_invertible(&self,subset_k:&u64)->bool {
     if !self.is_sub_hypergroup(&subset_k) {return false;}
