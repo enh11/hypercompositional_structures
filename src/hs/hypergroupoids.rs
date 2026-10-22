@@ -572,11 +572,15 @@ pub fn is_right_partial_identity_of_x(&self,e:&u64,x:&u64) -> bool{
     if !e.is_power_of_two()|!x.is_power_of_two() {panic!("Some input value is not an element in hypergroupoid!")}
     *x&self.mul_by_representation(x, e)==*x
 }
-pub fn collect_partial_left_identities_of_x(&self,x:&u64)->Vec<u64>{
-    self.get_singleton().into_iter()
+pub fn collect_partial_left_identities_of_x(&self,x:&u64)->Option<Vec<u64>>{
+    let plx:Vec<u64> = self.get_singleton().into_iter()
         .filter(|e|
             self.is_left_partial_identity_of_x(&e, x))
-        .collect()
+        .collect();
+        match plx.is_empty() {
+        true => None,
+        false => Some(plx)
+    }
 }
 pub fn collect_partial_right_identities_of_x(&self,x:&u64)->Vec<u64>{
     self.get_singleton().into_iter()
@@ -584,15 +588,23 @@ pub fn collect_partial_right_identities_of_x(&self,x:&u64)->Vec<u64>{
             self.is_right_partial_identity_of_x(&e, x))
         .collect()
 }
-pub fn collect_partial_left_identities(&self)->Vec<u64>{
+pub fn collect_partial_left_identities(&self)->Option<Vec<u64>>{
     let mut i_pl = self.get_singleton()
         .into_iter()
         .map(|x|
-            self.collect_partial_left_identities_of_x(&x))
+            match self.collect_partial_left_identities_of_x(&x){
+                None=> Vec::new(),
+                Some(il)=>il
+            })
         .concat();
+
     i_pl.sort();
     i_pl.dedup();
-    i_pl
+    match i_pl.is_empty() {
+        
+        false => Some(i_pl),
+        true => None
+    }
 }
 pub fn collect_partial_right_identities(&self)->Vec<u64>{
     let mut i_pr = self.get_singleton()
@@ -605,7 +617,7 @@ pub fn collect_partial_right_identities(&self)->Vec<u64>{
     i_pr
 }
 pub fn collect_partial_identities(&self)->Vec<u64>{
-    let mut i_pl = self.collect_partial_left_identities();
+    let mut i_pl = self.collect_partial_left_identities().unwrap();
     let mut i_pr = self.collect_partial_right_identities();
     i_pl.append(&mut i_pr);
     i_pl.sort();
@@ -632,6 +644,17 @@ pub fn collect_left_identities(&self)->Option<Vec<u64>>{
     match left_identities.is_empty() {
         true => None,
         false => Some(left_identities)
+    }
+}
+pub fn show_partial_left_identities(&self){
+    match self.collect_partial_left_identities(){
+        Some(plids) => println!("Partial left identities: {:?}",
+            plids
+                .iter()
+                .map(|e| format!("{}", e.trailing_zeros()))
+                .join(", ")
+        ),
+        None => println!("No partial left identity found."),
     }
 }
 pub fn show_left_identities(&self){
@@ -715,7 +738,7 @@ pub fn show_left_scalars(&self){
             let left_s:Vec<String> = left_scalars
                 .iter()
                 .map(|e| 
-                    format!("{}",e.trailing_zeros())
+                    format!("{}",e)
                 ).collect();
             println!("Left scalars: {:?}",left_s.join(", "));
         }
@@ -730,11 +753,11 @@ pub fn collect_right_scalars(&self)-> Vec<u64> {
 pub fn show_right_scalars(&self){
     let right_scalars = self.collect_right_scalars();
     match right_scalars.is_empty(){
-        true => println!("No right scalar found."),
+        true => println!("No right scalar elements found."),
         false =>  {
             let right_s:Vec<String> = right_scalars
                     .iter()
-                    .map(|e| format!("{}",e.trailing_zeros())
+                    .map(|e| format!("{}",e)
                 ).collect();
         println!("Right scalars: {:?}",right_s.join(", "));
         }
